@@ -42,3 +42,13 @@
 .nav__how { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: var(--fs-small); color: var(--text-muted); }
 .nav__how strong { color: var(--text); }
 .nav__src { margin: 8px 0 0; font-size: var(--fs-small); color: var(--text-muted); }
+/* Демо-прогулянка астронавта (15.11) */
+.walk-panel { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border, #3a2e27); border-radius: var(--radius, 10px); background: var(--surface, #1f1916); min-width: 0; }
+.walk-panel__row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.walk-panel__main { font-weight: 700; border-color: var(--accent, #e0673c) !important; }
+.walk-panel__speeds { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.walk-panel__scrub { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; min-width: 0; }
+.walk-panel__scrub input { width: 100%; min-width: 0; accent-color: var(--accent, #e0673c); }
+.walk-panel__scrub output { font-variant-numeric: tabular-nums; }
+.walk-panel__stats { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; font-size: var(--fs-small, 0.85rem); font-variant-numeric: tabular-nums; }
+.walk-panel__note { color: var(--text-muted, #b9aca2); }

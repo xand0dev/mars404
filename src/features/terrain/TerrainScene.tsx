@@ -17,6 +17,8 @@ import { useOptionalTexture } from './useRegionTexture';
 import { renderPoint, renderShape, sampleRender, type RenderHeights } from './lib/hd';
 import { tileFramePoints, type ContextHeights } from './lib/context';
 import { Atmosphere, ContextTerrain, Sun } from './Environment';
+import { Astronaut } from './Astronaut';
+import { useWalk, walkPose } from './walkStore';
 import { BLOCKED_RGB, HALO_RGB } from './lib/overlay';
 
 /** Підйом ліній і маркерів над поверхнею, м (лише візуально, щоб не тонули в меші). */
@@ -105,6 +107,15 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
   useEffect(() => {
     const { camera, invalidate } = get();
     const controls = get().controls as unknown as { target: { set(x: number, y: number, z: number): void }; update(): void } | null;
+    // Free і Follow не скидають камеру: Free продовжує з поточного ракурсу, Follow веде useFrame.
+    if (mode === 'free' || mode === 'follow') {
+      anim.current = null;
+      camera.near = 0.5;
+      camera.far = wide ? 400_000 : frame.size * 20 + (frame.maxY - frame.minY) * 4;
+      camera.updateProjectionMatrix();
+      invalidate();
+      return;
+    }
     const base = cameraPose(mode, frame, povKey, aspect);
     // З кільцем контексту Orbit дивиться з північного заходу на південний схід — на Mount Sharp за районом.
     const pose =
@@ -140,7 +151,25 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
     }
     invalidate();
   }, [get, frame, mode, povKey, aspect, controlsReady, wide, data.grid]);
-  useFrame(({ camera, invalidate, controls }) => {
+  useFrame(({ camera, invalidate, controls }, dt) => {
+    if (mode === 'follow' && walkPose.ready) {
+      // Камера позаду й трохи вище астронавта, плавно наздоганяє.
+      const p = walkPose.position;
+      const h = walkPose.heading;
+      const back = 7.5;
+      const up = 3.2;
+      const want = new Vector3(p.x - Math.cos(h) * back, p.y + up, p.z + Math.sin(h) * back);
+      // При ×60 астронавт іде ~50 м/с — камера тримається жорстко позаду (курс уже згладжено в Astronaut).
+      const k = camera.position.distanceTo(want) > back * 6 ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 12);
+      camera.position.lerp(want, k);
+      // Дивимось трохи вперед по курсу — видно, куди йде астронавт.
+      const look = new Vector3(p.x + Math.cos(h) * 4, p.y + 1.4, p.z - Math.sin(h) * 4);
+      camera.lookAt(look);
+      const c = controls as unknown as { target?: { copy(v: Vector3): void } } | null;
+      c?.target?.copy(look);
+      if (camera.position.distanceTo(want) > 0.05) invalidate();
+      return;
+    }
     const a = anim.current;
     if (!a) return;
     const t = Math.min(1, (performance.now() - a.t0) / FLY_IN_MS);
@@ -253,6 +282,64 @@ function ZoneOverlay({ rgba, grid, geometry }: { rgba: Uint8Array; grid: Plannin
     [tex, material],
   );
   return <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay} material={material} />;
+}
+
+/** Вільний політ (режим Free): WASD / стрілки — уперед-назад-убік, Q / E — вниз-вгору, Shift — швидше. Миша — як Orbit. */
+function FreeFly({ enabled, scale }: { enabled: boolean; scale: number }) {
+  const keys = useRef(new Set<string>());
+  useEffect(() => {
+    if (!enabled) return;
+    const typing = () => {
+      const el = document.activeElement;
+      return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable);
+    };
+    const down = (e: KeyboardEvent) => {
+      if (typing()) return;
+      const k = e.key.toLowerCase();
+      if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
+        keys.current.add(k);
+        if (k.startsWith('arrow')) e.preventDefault();
+      }
+    };
+    const up = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
+    const blur = () => keys.current.clear();
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
+    const ks = keys.current;
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
+      ks.clear();
+    };
+  }, [enabled]);
+  useFrame(({ camera, controls, invalidate }, dt) => {
+    const k = keys.current;
+    if (!enabled || k.size === 0) return;
+    const c = controls as unknown as { target?: Vector3; update?(): void } | null;
+    const fwd = new Vector3();
+    camera.getWorldDirection(fwd);
+    fwd.y = 0;
+    fwd.normalize();
+    const right = new Vector3(-fwd.z, 0, fwd.x);
+    const dist = c?.target ? camera.position.distanceTo(c.target) : scale;
+    const speed = Math.max(20, dist * 0.6) * (k.has('shift') ? 3 : 1) * Math.min(dt, 0.1);
+    const move = new Vector3();
+    if (k.has('w') || k.has('arrowup')) move.add(fwd);
+    if (k.has('s') || k.has('arrowdown')) move.sub(fwd);
+    if (k.has('d') || k.has('arrowright')) move.add(right);
+    if (k.has('a') || k.has('arrowleft')) move.sub(right);
+    if (k.has('e')) move.y += 1;
+    if (k.has('q')) move.y -= 1;
+    if (move.lengthSq() === 0) return;
+    move.normalize().multiplyScalar(speed);
+    camera.position.add(move);
+    c?.target?.add(move);
+    c?.update?.();
+    invalidate();
+  });
+  return null;
 }
 
 export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null, nav = null }: SceneProps) {
@@ -410,6 +497,16 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   });
 
   const tileSize = Math.max(grid.width, grid.height) * grid.metersPerPixel;
+  const walkActive = useWalk((w) => w.active);
+  const groundAt = useMemo(
+    () => (xy: XY) => {
+      const v = render ? sampleRender(grid, render, xy) : null;
+      if (v !== null) return v;
+      const c = xyToCell(grid, xy);
+      return c ? (heights[c.index] ?? null) : null;
+    },
+    [grid, render, heights],
+  );
   const frameCenter = useMemo<[number, number, number]>(() => {
     const [ox, oy] = grid.originM;
     const w = grid.width * grid.metersPerPixel;
@@ -494,11 +591,12 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
           renderOrder={RENDER_ORDER.lines}
         />
       ))}
-      {routePts.length >= 2 && (
+      {routePts.length >= 2 && !(walkActive && (mode === 'follow' || mode === 'free')) && (
         <>
           {/* Темне обведення під лінією — маршрут видно і на світлому ґрунті, і на ореолі (#94). */}
           <Line points={routePts} color="#140c08" lineWidth={7} transparent opacity={0.7} depthWrite={false} renderOrder={RENDER_ORDER.lines} />
-          <Line points={routePts} color={CSS.routeHd} lineWidth={3.5} depthTest={false} transparent renderOrder={RENDER_ORDER.lines + 1} />
+          {/* Біля землі (Follow / Free) лінія без перевірки глибини перетинає ближню площину й дає артефакти. */}
+          <Line points={routePts} color={CSS.routeHd} lineWidth={3.5} depthTest={mode === 'follow' || mode === 'free'} transparent renderOrder={RENDER_ORDER.lines + 1} />
         </>
       )}
       {noReturnPts.map((l, k) => (
@@ -647,7 +745,9 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         );
       })}
 
-      <OrbitControls makeDefault enableDamping={false} />
+      {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} />}
+      <OrbitControls makeDefault enableDamping={false} enabled={mode !== 'follow'} />
+      <FreeFly enabled={mode === 'free'} scale={tileSize} />
       <CameraRig data={data} mode={mode} pov={pov} />
     </group>
   );
