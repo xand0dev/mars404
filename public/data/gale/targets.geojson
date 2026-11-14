@@ -1,0 +1,173 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "nontron-quadrant",
+      "geometry": { "type": "Point", "coordinates": [137.4011643, -4.73350736] },
+      "properties": {
+        "id": "nontron-quadrant",
+        "name": "Nontron Quadrant",
+        "why": "Track local geological and mineralogical variability while crossing fractured terrain toward the sulfate-bearing unit.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-nontron-quadrant"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/nontron-quadrant-sol3008.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 85_1072 in the Nontron quadrant",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/886246",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3008,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "brantome",
+      "geometry": { "type": "Point", "coordinates": [137.4060989, -4.73349744] },
+      "properties": {
+        "id": "brantome",
+        "name": "Brantôme",
+        "why": "Compare bedrock in the rubbly transition from clay-bearing Glen Torridon toward sulfate-bearing strata.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-brantome"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/brantome-sol3025.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 86_480 near the Brantôme workspace",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/894938",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3025,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "nontron-drill",
+      "geometry": { "type": "Point", "coordinates": [137.412544, -4.73538556] },
+      "properties": {
+        "id": "nontron-drill",
+        "name": "Nontron",
+        "why": "Investigate clay-bearing bedrock: clay minerals can store water and help assess whether the past environment was habitable.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-nontron-drill"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/nontron-drill-sol3052.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 87_792 beside the Nontron drill workspace",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/908724",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3052,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mont-mercou",
+      "geometry": { "type": "Point", "coordinates": [137.4123619, -4.73579377] },
+      "properties": {
+        "id": "mont-mercou",
+        "name": "Mont Mercou",
+        "why": "Characterize chemistry, mineralogy and sedimentary structures from the top of the roughly 6-meter cliff.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-mont-mercou"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/mont-mercou-sol3086.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 87_2536 on top of Mont Mercou",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/920315",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3086,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gourdon",
+      "geometry": { "type": "Point", "coordinates": [137.4118801, -4.73595798] },
+      "properties": {
+        "id": "gourdon",
+        "name": "Gourdon",
+        "why": "Examine freshly broken rock, veins and unusual textures near the tiger-stripe workspace below Mont Mercou.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-gourdon"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/gourdon-sol3110.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 87_2902 near the Gourdon workspace",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/928696",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3110,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "gardonne",
+      "geometry": { "type": "Point", "coordinates": [137.4035221, -4.74180507] },
+      "properties": {
+        "id": "gardonne",
+        "name": "Gardonne",
+        "why": "Measure bedrock composition and document terrain beside the next planned drill campaign location.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-gardonne"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/gardonne-sol3161.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 89_1862 approaching the Gardonne drill area",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/948930",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3161,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "chalagnac-ridge",
+      "geometry": { "type": "Point", "coordinates": [137.4030554, -4.74188868] },
+      "properties": {
+        "id": "chalagnac-ridge",
+        "name": "Chalagnac Ridge",
+        "why": "Compare the chemistry and textures of a low linear ridge, brushed bedrock and nearby darker material.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-linear-ridge"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/linear-ridge-sol3185.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 89_2380 beside the low linear ridge",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/955046",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3185,
+          "status": "verified"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "champeaux",
+      "geometry": { "type": "Point", "coordinates": [137.401711, -4.74242398] },
+      "properties": {
+        "id": "champeaux",
+        "name": "Champeaux",
+        "why": "Study nodular bedrock textures while climbing through the transition from clay-bearing to sulfate-bearing layers.",
+        "sourceIds": ["mmgis-msl-waypoints", "msl-blog-champeaux"],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": {
+          "url": "./data/gale/photos/champeaux-sol3192.jpg",
+          "alt": "Left Navcam view from Curiosity rover stop RMC 90_232 near the Champeaux target",
+          "sourceUrl": "https://mars.nasa.gov/raw_images/958556",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 3192,
+          "status": "verified"
+        }
+      }
+    }
+  ]
+}
