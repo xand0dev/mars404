@@ -7,3 +7,4 @@ export function CameraModes() {
     </div>
   );
 }
+// F2: контроль automerge — лише власна папка.
