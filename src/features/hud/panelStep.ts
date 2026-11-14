@@ -17,7 +17,7 @@ export const STEP_PANELS: Record<PanelStep, string[]> = {
   site: ['Location', 'Resources'],
   targets: ['Science targets', 'Resources'],
   route: ['Science targets', 'Route', 'Resources'],
-  checklist: ['Route', 'Resources', 'Pre-EVA checklist'],
+  checklist: ['Route', 'Navigation', 'Resources', 'Pre-EVA checklist'],
 };
 
 /** Сумісність: головна панель кроку. */

@@ -68,6 +68,11 @@ test('демо: Gale → Brantôme + Mont Mercou → Build route → GO / NO-GO'
   await expect(page.getByTestId('gonogo-verdict')).toHaveText(/GO|NO-GO|HOLD/);
   await expect(page.getByRole('list', { name: 'Route legs' })).toBeVisible();
 
+  // Навігація без GPS: після маршруту — маяки й частка маршруту з точним місцем.
+  const nav = page.getByRole('region', { name: 'Navigation' });
+  await expect(nav).toContainText(/\d+% of the route with a precise position/);
+  await expect(nav.getByRole('list', { name: 'Navigation beacons' }).getByRole('listitem').first()).toContainText('Base');
+
   if (isDesktop(page)) {
     await expect(page.locator('.hud__return'), 'головне число видно без прокрутки').toBeInViewport();
     await expect(page.getByTestId('gonogo-verdict')).toBeInViewport();
