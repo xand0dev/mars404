@@ -1,0 +1,35 @@
+1
+00:00:00,000 --> 00:00:03,000
+Planning a spacewalk on Mars.
+
+2
+00:00:03,000 --> 00:00:06,000
+Gale crater, real NASA terrain.
+
+3
+00:00:06,000 --> 00:00:10,000
+HiRISE, THEMIS and slope layers.
+
+4
+00:00:10,000 --> 00:00:13,000
+Science targets with rover photos.
+
+5
+00:00:13,000 --> 00:00:17,000
+Route avoids steep and unknown ground.
+
+6
+00:00:17,000 --> 00:00:21,000
+Uphill costs more than downhill.
+
+7
+00:00:21,000 --> 00:00:25,000
+Less oxygen, smaller safe zone.
+
+8
+00:00:25,000 --> 00:00:28,000
+Swap to a closer target.
+
+9
+00:00:28,000 --> 00:00:30,000
+MARS::404 — a model, not certified navigation.
