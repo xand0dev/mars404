@@ -7,3 +7,4 @@ export function CameraModes() {
     </div>
   );
 }
+export const broken: number = 'not a number';
