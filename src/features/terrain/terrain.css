@@ -1,5 +1,5 @@
 /* Стилі F2 (лише класи terrain-*). Токени — з src/ui/tokens.css (F7). */
-.terrain-stage { position: relative; height: min(60vh, 520px); min-height: 240px; background: radial-gradient(ellipse at 50% 40%, var(--surface-2), var(--bg) 75%); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.terrain-stage { position: relative; height: min(60vh, 520px); min-height: 240px; background: radial-gradient(ellipse at 50% 40%, var(--surface-2), var(--bg) 75%); border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
 .terrain-info { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px; }
 .terrain-facts, .terrain-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 2px 0; }
 .terrain-facts strong { color: var(--text); }

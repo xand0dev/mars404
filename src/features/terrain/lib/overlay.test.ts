@@ -66,11 +66,11 @@ describe('F2-AC2 накладка 3D: blocked / NoData / ореол', () => {
     expect(inner.slice(0, 3)).toEqual([...HALO_RGB]);
     expect(inner[3]).toBeGreaterThanOrEqual(130);
     expect(inner[3]).toBeLessThan(255);
-    // Змішування з найсвітлішим відтінком ґрунту лишається блакитним, а не сірим.
+    // Змішування з найсвітлішим відтінком ґрунту лишається кольору ореолу (зелений), а не сірим чи рудим.
     const a = (inner[3] as number) / 255;
     const ground = [226, 178, 120];
     const mixed = HALO_RGB.map((v, k) => v * a + (ground[k] as number) * (1 - a));
-    expect((mixed[2] as number) - (mixed[0] as number)).toBeGreaterThan(40);
+    expect((mixed[1] as number) - (mixed[0] as number)).toBeGreaterThan(40);
   });
 
   it('маска невідповідної довжини → без ореолу і з попередженням', () => {
