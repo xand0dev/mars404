@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAnnotations, cellCenter, cellIndex, dataUrl, isBlocked, isNoDataValue, lonLatToXY, toR3F, validateGrid, xyToCell } from './planning';
+import { applyAnnotations, cellCenter, cellIndex, dataUrl, isBlocked, isNoDataValue, isSiteId, lonLatToXY, regionKind, siteDataUrl, toR3F, validateGrid, xyToCell } from './planning';
 import { mockGrid, MOCK_CELLS } from '../mocks';
 import type { Region } from './index';
 
@@ -77,5 +77,24 @@ describe('applyAnnotations (SPEC §7.12)', () => {
     const g = applyAnnotations(mockGrid, [base('hazard', 10)]);
     expect(g.hazard[cellIndex(mockGrid, 64, 64)]).toBe(1);
     expect(g.walkable[cellIndex(mockGrid, 64, 64)]).toBe(1);
+  });
+});
+
+describe('райони (SPEC §6.0, 15.11)', () => {
+  it('regionKind: немає поля — eva; overview лише явно', () => {
+    expect(regionKind({})).toBe('eva');
+    expect(regionKind(null)).toBe('eva');
+    expect(regionKind({ kind: 'eva' })).toBe('eva');
+    expect(regionKind({ kind: 'overview' })).toBe('overview');
+  });
+
+  it('isSiteId: чотири відомі райони, решта — ні', () => {
+    for (const id of ['gale', 'columbia-hills', 'olympus-mons', 'valles-marineris']) expect(isSiteId(id)).toBe(true);
+    for (const v of ['jezero', '', null, 1, 'GALE']) expect(isSiteId(v)).toBe(false);
+  });
+
+  it('siteDataUrl: data/<site>/<path>, без подвійних слешів', () => {
+    expect(siteDataUrl('columbia-hills', '/region.json')).toBe(dataUrl('columbia-hills/region.json'));
+    expect(siteDataUrl('gale', 'elevation.f32').endsWith('data/gale/elevation.f32')).toBe(true);
   });
 });

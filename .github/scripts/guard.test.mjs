@@ -42,6 +42,16 @@ describe('guard (F0-AC2)', () => {
     expect(ownsFile('F1', 'pipeline/globe/make.py')).toBe(true);
   });
 
+  it('нові райони (15.11): пакет — F3, цілі й фото — F6', () => {
+    expect(ownsFile('F3', 'public/data/columbia-hills/region.json')).toBe(true);
+    expect(ownsFile('F3', 'public/data/olympus-mons/elevation.f32')).toBe(true);
+    expect(ownsFile('F3', 'public/data/valles-marineris/texture.jpg')).toBe(true);
+    expect(ownsFile('F3', 'public/data/columbia-hills/targets.geojson')).toBe(false);
+    expect(ownsFile('F6', 'public/data/columbia-hills/targets.geojson')).toBe(true);
+    expect(ownsFile('F6', 'public/data/columbia-hills/photos/home-plate.jpg')).toBe(true);
+    expect(ownsFile('F3', 'public/data/mars/x.jpg')).toBe(false);
+  });
+
   it('нові папки: notes — F1, prep — F6', () => {
     expect(ownsFile('F1', 'src/features/notes/NotesPanel.tsx')).toBe(true);
     expect(ownsFile('F6', 'src/features/prep/ChecklistPanel.tsx')).toBe(true);

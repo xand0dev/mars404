@@ -46,9 +46,39 @@ export interface RegionGrid {
   crs: string;
 }
 
+/**
+ * Режим району (SPEC §6.0, рішення 14.11): `eva` — планування виходу (маршрут, бюджет, GO / NO-GO);
+ * `overview` — лише рельєф для огляду (Olympus Mons, Valles Marineris), планування приховане.
+ * Немає поля — `eva` (пакети до 15.11).
+ */
+export type RegionKind = 'eva' | 'overview';
+
+/** Щільніший рельєф лише для 3D: той самий bbox, що й `grid`, інша роздільність. */
+export interface RenderGrid {
+  width: number;
+  height: number;
+}
+
+/**
+ * Рельєф довкола району (кільце контексту в 3D): квадрат з тим самим центром, більший за `grid`.
+ * Координати — у тих самих локальних метрах, що й `grid` (originM — північно-західний кут, може бути від'ємним).
+ */
+export interface RegionContext {
+  /** Файл float32 відносно папки регіону */
+  file: string;
+  width: number;
+  height: number;
+  metersPerPixel: number;
+  originM: XY;
+  /** Сирий sentinel у файлі; немає — той самий, що `Region.noData` */
+  noData?: number;
+}
+
 export interface Region {
   schemaVersion: 1;
-  id: 'gale';
+  id: SiteId;
+  /** Немає — 'eva'. Читати через `regionKind(region)`. */
+  kind?: RegionKind;
   name: string;
   status: Evidence;
   grid: RegionGrid;
@@ -63,7 +93,13 @@ export interface Region {
     traverse?: string;
     /** photos.geojson (F6), SPEC §6.0 */
     photos?: string;
+    /** float32 renderGrid.width × renderGrid.height — лише для 3D (без планування) */
+    elevationRender?: string;
   };
+  /** Розмір `files.elevationRender`; обидва поля або жодного. */
+  renderGrid?: RenderGrid;
+  /** Кільце рельєфу довкола району (лише 3D). */
+  context?: RegionContext;
   /** Сирий sentinel у elevation.f32 */
   noData: number;
   base: XY;
@@ -270,7 +306,9 @@ export interface ChecklistItem {
   done: boolean;
 }
 
-export type SiteId = 'gale';
+/** Райони з даними (SPEC §6.0). Папка пакета — `public/data/<SiteId>/`. */
+export const SITE_IDS = ['gale', 'columbia-hills', 'olympus-mons', 'valles-marineris'] as const;
+export type SiteId = (typeof SITE_IDS)[number];
 
 export interface MissionData {
   site: SiteId | null;
