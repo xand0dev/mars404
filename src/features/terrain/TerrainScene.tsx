@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Line, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { BufferAttribute, BufferGeometry, DataTexture, NearestFilter, RGBAFormat, Vector3, type Texture } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DataTexture, LinearFilter, NearestFilter, RGBAFormat, ShaderMaterial, Vector3, type Texture } from 'three';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
@@ -14,6 +14,8 @@ import { LABEL_HEIGHT, Label3D } from './Label3D';
 import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
 import { labelAspect, labelledTargetIds, stackLabels } from './lib/labels';
 import { useOptionalTexture } from './useRegionTexture';
+import { renderPoint, renderShape, type RenderHeights } from './lib/hd';
+import { BLOCKED_RGB, HALO_RGB } from './lib/overlay';
 
 /** Підйом ліній і маркерів над поверхнею, м (лише візуально, щоб не тонули в меші). */
 const LIFT_M = 1.5;
@@ -26,6 +28,10 @@ export interface SceneData {
   baseRGBA: Uint8Array;
   /** RGBA blocked/NoData/ореол поверх усього */
   topRGBA: Uint8Array;
+  /** Щільний рельєф лише для 3D (files.elevationRender); немає — меш із сітки планування */
+  render?: RenderHeights | null;
+  /** Маска зон для гладкого шейдера (lib/hd buildZoneMask); немає — клітинкова накладка topRGBA */
+  zoneRGBA?: Uint8Array | null;
 }
 
 export interface SceneProps {
@@ -116,42 +122,129 @@ function GridLayerOverlay({ rgba, grid, geometry, order }: { rgba: Uint8Array; g
   );
 }
 
+const ZONE_VERT = `
+varying vec2 vUv;
+#include <common>
+#include <logdepthbuf_pars_vertex>
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  #include <logdepthbuf_vertex>
+}`;
+
+// Межа зони — там, де інтерпольована маска перетинає 0,5: гладкий контур замість сходинок 10 м.
+// Blocked — штрихування й контур; ореол — легка заливка й яскравий контур; NoData — темна заливка.
+const ZONE_FRAG = `
+uniform sampler2D zones;
+uniform vec2 cells;
+uniform vec3 blockedColor;
+uniform vec3 haloColor;
+varying vec2 vUv;
+#include <logdepthbuf_pars_fragment>
+float cover(float v) { float w = max(fwidth(v), 1e-4) * 0.75; return smoothstep(0.5 - w, 0.5 + w, v); }
+float edge(float v, float px) { float w = max(fwidth(v), 1e-4); return 1.0 - smoothstep(0.0, w * px, abs(v - 0.5)); }
+void main() {
+  #include <logdepthbuf_fragment>
+  vec4 z = texture2D(zones, vUv);
+  float b = cover(z.r);
+  float n = cover(z.g);
+  float h = cover(z.b);
+  float stripe = step(0.62, fract((vUv.x + vUv.y) * cells.x * 1.1));
+  vec4 col = vec4(0.0);
+  col = mix(col, vec4(haloColor, 0.05), h);
+  col = mix(col, vec4(haloColor, 1.0), edge(z.b, 2.0) * step(0.02, z.b));
+  col = mix(col, vec4(blockedColor, 0.34 * stripe + 0.06), b);
+  col = mix(col, vec4(blockedColor * 1.35, 0.75), edge(z.r, 1.2) * step(0.02, z.r));
+  col = mix(col, vec4(0.06, 0.06, 0.08, 0.8), n);
+  if (col.a < 0.01) discard;
+  gl_FragColor = col;
+}`;
+
+const rgb = (c: readonly number[]) => new Color(...(c.map((v) => v / 255) as [number, number, number]));
+
+/** Зони (blocked / NoData / ореол) гладким шейдером поверх щільного меша. */
+function ZoneOverlay({ rgba, grid, geometry }: { rgba: Uint8Array; grid: PlanningGrid; geometry: BufferGeometry }) {
+  const tex = useMemo(() => {
+    const t = new DataTexture(rgba, grid.width, grid.height, RGBAFormat);
+    t.magFilter = LinearFilter;
+    t.minFilter = LinearFilter;
+    t.needsUpdate = true;
+    return t;
+  }, [rgba, grid.width, grid.height]);
+  const material = useMemo(
+    () =>
+      new ShaderMaterial({
+        uniforms: {
+          zones: { value: tex },
+          cells: { value: [grid.width, grid.height] },
+          blockedColor: { value: rgb(BLOCKED_RGB).multiplyScalar(1.6) },
+          haloColor: { value: rgb(HALO_RGB) },
+        },
+        vertexShader: ZONE_VERT,
+        fragmentShader: ZONE_FRAG,
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -8,
+        polygonOffsetUnits: -8,
+      }),
+    [tex, grid.width, grid.height],
+  );
+  useEffect(
+    () => () => {
+      tex.dispose();
+      material.dispose();
+    },
+    [tex, material],
+  );
+  return <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay} material={material} />;
+}
+
 export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null }: SceneProps) {
   const { grid, heights, noData } = data;
+  const render = data.render ?? null;
   const geometry = useMemo(() => {
-    const g = buildTerrainGeometry(grid, heights);
+    const g = render ? buildTerrainGeometry(renderShape(grid, render), render.data) : buildTerrainGeometry(grid, heights);
     const geo = new BufferGeometry();
     geo.setAttribute('position', new BufferAttribute(g.positions, 3));
     geo.setAttribute('uv', new BufferAttribute(g.uvs, 2));
     geo.setIndex(new BufferAttribute(g.indices, 1));
     geo.computeVertexNormals();
     return geo;
-  }, [grid, heights]);
+  }, [grid, heights, render]);
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   const baseTex = useDataTexture(data.baseRGBA, grid.width, grid.height);
   const topTex = useDataTexture(data.topRGBA, grid.width, grid.height);
 
-  const at = (xy: XY) => surfacePoint(grid, heights, noData, xy, LIFT_M);
+  // Точка на поверхні: висота для підпису — з сітки планування, положення — зі щільного меша (щоб маркери не тонули).
+  const sp = (xy: XY, lift: number) => {
+    const s = surfacePoint(grid, heights, noData, xy, lift);
+    if (!s || !render) return s;
+    const pos = renderPoint(grid, render, xy, lift);
+    return pos ? { ...s, position: pos } : s;
+  };
+  const at = (xy: XY) => sp(xy, LIFT_M);
 
+  /* eslint-disable react-hooks/exhaustive-deps -- sp() залежить від grid / heights / noData / render, вони в залежностях */
   const routePts = useMemo(() => {
     if (!plan) return [];
     return plan.path.flatMap((p) => {
-      const s = surfacePoint(grid, heights, noData, p, LIFT_M);
+      const s = sp(p, LIFT_M);
       return s ? [s.position] : [];
     });
-  }, [plan, grid, heights, noData]);
+  }, [plan, grid, heights, noData, render]);
 
   const traversePts = useMemo(
     () =>
       traverse
         .map((l) => l.flatMap((p) => {
           // Точки траверсу не в центрах клітинок: на реальному Gale до 1.5 м під поверхнею меша — підйом LIFT_M.
-          const s = surfacePoint(grid, heights, noData, p, LIFT_M);
+          const s = sp(p, LIFT_M);
           return s ? [s.position] : [];
         }))
         .filter((l) => l.length >= 2),
-    [traverse, grid, heights, noData],
+    [traverse, grid, heights, noData, render],
   );
 
   // F2-AC6: червоні серії трохи вище маршруту, щоб не мерехтіли з білою лінією.
@@ -160,35 +253,36 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       noReturn
         .map((l) =>
           l.flatMap((p) => {
-            const s = surfacePoint(grid, heights, noData, p, LIFT_M * 1.2);
+            const s = sp(p, LIFT_M * 1.2);
             return s ? [s.position] : [];
           }),
         )
         .filter((l) => l.length >= 2),
-    [noReturn, grid, heights, noData],
+    [noReturn, grid, heights, noData, render],
   );
 
   const segPts = useMemo(() => {
     const s = plan && selectedSegment !== null ? plan.segments[selectedSegment] : undefined;
     if (!s) return null;
-    const a = surfacePoint(grid, heights, noData, s.from, LIFT_M * 1.5);
-    const b = surfacePoint(grid, heights, noData, s.to, LIFT_M * 1.5);
+    const a = sp(s.from, LIFT_M * 1.5);
+    const b = sp(s.to, LIFT_M * 1.5);
     return a && b ? [a.position, b.position] : null;
-  }, [plan, selectedSegment, grid, heights, noData]);
+  }, [plan, selectedSegment, grid, heights, noData, render]);
 
   // Відрізок F4 — один крок сітки (~10 м): поруч вертикальний маяк і кільце, щоб його було видно з будь-якої камери.
   const segMark = useMemo(() => {
     const m = segmentMarker(plan, selectedSegment);
-    const p = m ? surfacePoint(grid, heights, noData, m.mid, LIFT_M) : null;
+    const p = m ? sp(m.mid, LIFT_M) : null;
     return m && p ? { label: m.label, position: p.position } : null;
-  }, [plan, selectedSegment, grid, heights, noData]);
+  }, [plan, selectedSegment, grid, heights, noData, render]);
 
   // Точка неповернення — червоний маяк з кільцем, як у обраного відрізка, але нижчий: підписи не злипаються.
   const ponrMark = useMemo(() => {
-    const p = ponr ? surfacePoint(grid, heights, noData, ponr.xy, LIFT_M) : null;
+    const p = ponr ? sp(ponr.xy, LIFT_M) : null;
     return ponr && p ? { label: ponr.label, position: p.position } : null;
-  }, [ponr, grid, heights, noData]);
+  }, [ponr, grid, heights, noData, render]);
 
+  /* eslint-enable react-hooks/exhaustive-deps */
   const pov = useMemo(() => {
     // Висота форми меша (NoData уже заповнено сусідами) — щоб очі не опинились під поверхнею.
     const ground = (xy: XY) => {
@@ -231,7 +325,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- at() залежить від grid / heights / noData
-  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach, segMark, ponrMark]);
+  }, [targets, labelled, selectedIds, base, grid, heights, noData, render, markerR, inReach, segMark, ponrMark]);
   const [levels, setLevels] = useState<Record<string, number>>({});
   const levelsKey = useRef('');
   const proj = useMemo(() => new Vector3(), []);
@@ -251,8 +345,9 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
 
   return (
     <group>
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[-1, 2, -0.6]} intensity={1.6} />
+      {/* Низьке сонце з північного заходу: рельєф читається тінями; HiRISE сірий — тонуємо в марсіанський (лише відображення). */}
+      <hemisphereLight args={['#f4dcc0', '#3a2418', render ? 0.6 : 0.55]} />
+      <directionalLight position={render ? [-1, 0.85, -0.7] : [-1, 2, -0.6]} intensity={render ? 2.1 : 1.6} />
       <mesh
         geometry={geometry}
         onClick={
@@ -266,7 +361,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
             : undefined
         }
       >
-        <meshStandardMaterial map={texture ?? baseTex} roughness={1} metalness={0} />
+        <meshStandardMaterial map={texture ?? baseTex} color={texture && render ? '#f0c9a2' : '#ffffff'} roughness={1} metalness={0} />
       </mesh>
       {layerUrls.map((l, k) => (
         <LayerOverlay key={l.id} url={l.url} geometry={geometry} order={k} />
@@ -274,9 +369,13 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       {gridLayers.map((l, k) => (
         <GridLayerOverlay key={l.id} rgba={l.rgba} grid={grid} geometry={geometry} order={layerUrls.length + k} />
       ))}
-      <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay}>
-        <meshBasicMaterial map={topTex} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-8} polygonOffsetUnits={-8} />
-      </mesh>
+      {data.zoneRGBA ? (
+        <ZoneOverlay rgba={data.zoneRGBA} grid={grid} geometry={geometry} />
+      ) : (
+        <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay}>
+          <meshBasicMaterial map={topTex} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-8} polygonOffsetUnits={-8} />
+        </mesh>
+      )}
 
       {traversePts.map((l, k) => (
         <Line
@@ -291,7 +390,13 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
           renderOrder={RENDER_ORDER.lines}
         />
       ))}
-      {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} transparent renderOrder={RENDER_ORDER.lines} />}
+      {routePts.length >= 2 && (
+        <>
+          {/* Темне обведення під лінією — маршрут видно і на світлому ґрунті, і на ореолі (#94). */}
+          <Line points={routePts} color="#140c08" lineWidth={7} transparent opacity={0.7} depthWrite={false} renderOrder={RENDER_ORDER.lines} />
+          <Line points={routePts} color={CSS.routeHd} lineWidth={3.5} depthTest={false} transparent renderOrder={RENDER_ORDER.lines + 1} />
+        </>
+      )}
       {noReturnPts.map((l, k) => (
         <Line key={k} points={l} color={CSS.noReturn} lineWidth={5} transparent renderOrder={RENDER_ORDER.noReturn} />
       ))}

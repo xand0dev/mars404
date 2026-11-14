@@ -30,6 +30,8 @@ import { TerrainInfo } from './TerrainInfo';
 import { TerrainScene } from './TerrainScene';
 import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
+import { useRenderHeights } from './useRenderHeights';
+import { buildZoneMask } from './lib/hd';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -112,7 +114,7 @@ function GlobeStage({ children }: { children: ReactNode }) {
 
 function textureLabel(hasRegion: boolean, status: ReturnType<typeof useOptionalTexture>['status']): string {
   if (!hasRegion) return 'height colours';
-  if (status === 'ready') return 'HiRISE texture';
+  if (status === 'ready') return 'HiRISE texture (greyscale, tinted for display)';
   if (status === 'loading') return 'HiRISE loading…';
   if (status === 'error') return 'height colours (texture failed to load)';
   return 'height colours';
@@ -188,6 +190,7 @@ export function MapView({ globe }: MapViewProps) {
   const textureUrl = region ? regionFileUrl(region.id, region.files.texture) : null;
   const hirise = useOptionalTexture(textureUrl, site !== null && show3D);
   const texture = hirise.status === 'ready' ? hirise.texture : null;
+  const render = useRenderHeights(region, site !== null && show3D);
 
   const sceneData = useMemo(() => {
     if (!cells || !heights) return null;
@@ -199,10 +202,12 @@ export function MapView({ globe }: MapViewProps) {
       // Ореол — лише в напівпрозорій верхній накладці, щоб під ним лишався колір висоти.
       baseRGBA: buildOverlay(grid, cells.classes, { heights }).data,
       topRGBA: top.data,
+      render,
+      zoneRGBA: buildZoneMask(grid.width, grid.height, cells.classes, mask),
       haloCells: top.haloCells,
       warnings: top.warnings,
     };
-  }, [cells, heights, grid, noData, mask]);
+  }, [cells, heights, grid, noData, mask, render]);
 
   const raster2D = useMemo(
     () => (reason && cells && heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null),
