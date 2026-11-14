@@ -383,4 +383,36 @@ describe('RoutePanel', () => {
       }
     });
   });
+
+  describe('Точка неповернення в пульті: на повзунку й «Show on map»', () => {
+    const dock = () => screen.getByRole('region', { name: 'Route controls' });
+    const buildWithAbort = async (firstBad: number | null) => {
+      act(() => store().setSite('gale'));
+      store().toggleTarget('mock-a');
+      render(<RoutePanel />);
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Build route' }));
+      await screen.findByText(/route found/i);
+      const n = store().plan!.segments.length;
+      act(() => store().setReach({ status: 'incomplete', mask: new Uint8Array(0), returnInS: 600, deficits: [], swap: null, warnings: [],
+        abort: { segments: Array.from({ length: n }, (_, i) => ({ returnS: 100, ok: firstBad === null || i < firstBad })), pointOfNoReturnS: firstBad === null ? null : 300, emergencyO2G: 56 } }));
+      return n;
+    };
+
+    it('повзунок знає, де точка неповернення (частка маршруту)', async () => {
+      const n = await buildWithAbort(3);
+      const slider = within(dock()).getByRole('slider', { name: 'Position on route' });
+      expect(slider.style.getPropertyValue('--ponr')).toBe(`${(3 / (n - 1)) * 100}%`);
+    });
+
+    it('без точки неповернення — позначки немає', async () => {
+      await buildWithAbort(null);
+      expect(within(dock()).getByRole('slider', { name: 'Position on route' }).style.getPropertyValue('--ponr')).toBe('');
+    });
+
+    it('«Show on map» обирає відрізок точки неповернення — маркер карти стрибає туди', async () => {
+      await buildWithAbort(3);
+      await userEvent.click(screen.getByRole('button', { name: 'Show point of no return on map' }));
+      expect(store().selectedSegment).toBe(3);
+    });
+  });
 });
