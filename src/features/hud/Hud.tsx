@@ -48,6 +48,7 @@ export function Hud() {
   return (
     <Panel title="HUD" featureId="F7" owner="Оля" mock={v.mock}>
       <div className="hud">
+        <div className="hud__main">
         <p className="hud__return">
           Return in <strong>{v.minutes}</strong> min
         </p>
@@ -73,6 +74,8 @@ export function Hud() {
             ))}
           </ul>
         )}
+        </div>
+        <div className="hud__side">
         <div className="hud__controls">
           <label className="hud__elapsed">
             <span>Elapsed, s</span>
@@ -101,6 +104,7 @@ export function Hud() {
             </span>
           )}
         </p>
+        </div>
         <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} />
       </div>
     </Panel>

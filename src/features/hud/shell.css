@@ -8,7 +8,6 @@
   .shell__bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
-  .shell__hud { position: sticky; top: 0; z-index: 2; }
   .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
   .shell__top, .shell__hud, .shell__bottom { grid-column: 1 / -1; }
 }

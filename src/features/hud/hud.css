@@ -16,10 +16,12 @@
 .hud__elapsed input { width: 9rem; max-width: 100%; color: var(--text); }
 .hud__swap { border-color: var(--accent); font-weight: 600; max-width: 100%; white-space: normal; text-align: left; }
 .hud__left { margin: 0; font-size: var(--fs-small); color: var(--text-muted); }
+/* Компонування: зверху «Return in» + статус ліворуч, «Elapsed» і залишки праворуч; GO / NO-GO — рядком на всю ширину. */
+.hud__main, .hud__side { display: grid; gap: 6px; min-width: 0; align-content: start; }
 @media (min-width: 768px) {
-  .hud { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: calc(var(--gap) * 2); }
-  .hud__return { grid-row: span 2; }
-  .hud__left, .hud__warnings, .hud__abort { grid-column: 1 / -1; }
+  .hud { grid-template-columns: minmax(0, 1fr) auto; column-gap: calc(var(--gap) * 2); row-gap: 10px; align-items: start; }
+  .hud__side { justify-items: end; text-align: right; }
+  .gonogo { grid-column: 1 / -1; }
 }
 
 /* GO / NO-GO (F7-AC7, SPEC §7.10) */
@@ -39,28 +41,32 @@
 .gonogo__label { position: relative; }
 .gonogo__hint, .gonogo__muted { font-size: var(--fs-small); color: var(--text-muted); margin: 0; }
 .gonogo__record { margin: 0; font-size: var(--fs-small); color: var(--text); }
-.gonogo__stations { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.gonogo__station { display: grid; grid-template-columns: 3.2em 7.5em minmax(0, 1fr); gap: 2px 8px; align-items: baseline; font-size: var(--fs-small); }
-.gonogo__id { font-family: ui-monospace, 'Courier New', monospace; font-weight: 700; color: var(--text-muted); }
+.gonogo__stations { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 6px; }
+@media (max-width: 600px) { .gonogo__stations { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gonogo__station { padding: 5px 6px; } }
+.gonogo__station { display: flex; flex-wrap: wrap; align-items: baseline; align-content: flex-start; gap: 0 6px; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); border-left: 3px solid var(--text-muted); font-size: var(--fs-small); line-height: 1.3; min-width: 0; }
+.gonogo__station--go { border-left-color: var(--ok); }
+.gonogo__station--caution { border-left-color: var(--warn); }
+.gonogo__station--nogo { border-left-color: var(--danger); }
+.gonogo__station--hold { border-left-color: var(--info); }
+.gonogo__id { font-family: ui-monospace, 'Courier New', monospace; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
 .gonogo__call { font-weight: 700; white-space: nowrap; }
 .gonogo__station--go .gonogo__call { color: var(--ok); }
 .gonogo__station--caution .gonogo__call { color: var(--warn); }
 .gonogo__station--nogo .gonogo__call { color: var(--danger); }
 .gonogo__station--hold .gonogo__call { color: var(--info); }
+.gonogo__reason, .gonogo__fix { flex-basis: 100%; }
+.gonogo__fixbtn { flex-basis: auto; }
 .gonogo__reason { color: var(--text); }
-.gonogo__fix { grid-column: 3; color: var(--text-muted); }
-.gonogo__fixbtn { grid-column: 3; justify-self: start; font-size: var(--fs-small); }
-@media (max-width: 480px) {
-  .gonogo__station { grid-template-columns: 3.2em minmax(0, 1fr); }
-  .gonogo__reason, .gonogo__fix, .gonogo__fixbtn { grid-column: 2; }
-}
+.gonogo__fix { color: var(--text-muted); }
+.gonogo__fixbtn { font-size: var(--fs-small); margin-top: 4px; max-width: 100%; white-space: normal; text-align: left; }
 
 /* Glove mode: «Return in» і вердикт — зверху HUD */
 .shell--glove .hud { display: flex; flex-direction: column; align-items: stretch; }
-.shell--glove .hud > * { order: 3; }
-.shell--glove .hud__return { order: 0; }
-.shell--glove .gonogo { order: 1; border-top: none; padding-top: 0; }
-.shell--glove .hud__status { order: 2; }
+.shell--glove .hud__main, .shell--glove .hud__side { display: contents; }
+.shell--glove .hud .hud__main > *, .shell--glove .hud .hud__side > * { order: 3; }
+.shell--glove .hud .hud__main > .hud__return { order: 0; }
+.shell--glove .hud > .gonogo { order: 1; border-top: none; padding-top: 0; }
+.shell--glove .hud .hud__main > .hud__status { order: 2; }
 .shell--glove .gonogo__verdict { font-size: 1.6rem; }
 .gonogo__more > summary { list-style: none; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: var(--surface-2); cursor: pointer; }
 .gonogo__more > summary::-webkit-details-marker { display: none; }

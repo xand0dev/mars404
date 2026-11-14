@@ -206,7 +206,7 @@ function HoldButton({ onConfirm }: { onConfirm: () => void }) {
         <span className="gonogo__label">Hold to confirm EVA start (1.5 s)</span>
       </button>
       <span id="gonogo-hold-hint" className="gonogo__hint">
-        Press and hold for 1.5 seconds to accept the CAUTION stations.
+        Hold 1.5 s to accept CAUTION.
       </span>
     </>
   );
