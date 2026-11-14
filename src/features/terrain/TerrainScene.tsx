@@ -35,6 +35,8 @@ export interface SceneProps {
   gridLayers: { id: string; rgba: Uint8Array }[];
   /** Траверс марсохода, локальні метри (T12) */
   traverse: XY[][];
+  /** F2-AC6: серії відрізків без повернення (локальні метри) */
+  noReturn: XY[][];
   targets: Target[];
   selectedIds: string[];
   plan: RoutePlan | null;
@@ -104,7 +106,7 @@ function GridLayerOverlay({ rgba, grid, geometry, order }: { rgba: Uint8Array; g
   );
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
   const { grid, heights, noData } = data;
   const geometry = useMemo(() => {
     const g = buildTerrainGeometry(grid, heights);
@@ -140,6 +142,20 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, t
         }))
         .filter((l) => l.length >= 2),
     [traverse, grid, heights, noData],
+  );
+
+  // F2-AC6: червоні серії трохи вище маршруту, щоб не мерехтіли з білою лінією.
+  const noReturnPts = useMemo(
+    () =>
+      noReturn
+        .map((l) =>
+          l.flatMap((p) => {
+            const s = surfacePoint(grid, heights, noData, p, LIFT_M * 1.2);
+            return s ? [s.position] : [];
+          }),
+        )
+        .filter((l) => l.length >= 2),
+    [noReturn, grid, heights, noData],
   );
 
   const segPts = useMemo(() => {
@@ -208,6 +224,9 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, t
         />
       ))}
       {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} transparent renderOrder={RENDER_ORDER.lines} />}
+      {noReturnPts.map((l, k) => (
+        <Line key={k} points={l} color={CSS.noReturn} lineWidth={5} transparent renderOrder={RENDER_ORDER.noReturn} />
+      ))}
       {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} transparent renderOrder={RENDER_ORDER.segment} />}
 
       {segMark && (

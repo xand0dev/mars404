@@ -9,6 +9,7 @@
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | docs/SPEC.md; каркас F0 з нуля за SPEC: contracts, store, mocks, заглушки фіч, CI, guard, automerge, deploy, CONSTITUTION, AGENTS, specs | усе дерево репо, крім docs/SPEC.md (лише правки §5.3, §9, §10) | npm ci + npm run check у чистому клоні; браузер: без помилок консолі, без горизонтального скролу на 400, 1024 і 1440 px | bootstrap-коміт у main |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Contract #26: emergencyO2G, AbortPlan, SurfacePhoto, photos у store; evaluateGoNoGo (§7.10), EVA-символіка (§7.11) у SPEC | src/contracts/*, src/store/*, src/mocks/*, src/core/abort.ts, src/core/reachability.ts, тести F2/F7 (поле abort), docs/SPEC.md | npm run check: 361 тест, lint, typecheck, build | contract/abort-photos-gonogo |
 
 ## F1
 
@@ -30,6 +31,8 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2: звірка F8 (#13) з F2; примусовий 2D-план `?2d` для плану Б; виправлення: власне розмонтування Canvas більше не позначається як втрата контексту | src/features/terrain/**, specs/F2/** | npm run check зелений; браузер: `?2d` → 2D з інфо-підписом, глобус 3D; без `?2d` справжня втрата контексту → 2D; невалідна сітка → валідна повертає 3D; без помилок консолі | draft PR #15 |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2: звірка F5 (#22, уже в main) з F2; влито main (F1, F4, F5); ореол насиченіший, з контуром краю в 3D і 2D | src/features/terrain/**, specs/F2/** | npm run check зелений (з main); браузер: справжній ореол F5 до й після «O₂ −40%» у 3D і `?2d`, без помилок консолі | draft PR #15 |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2: перевірка з пакетом F3 (#23, локальне злиття); лінії й маркери над накладкою ореолу/blocked; шари slope/terrain із сітки за legend; «not drawn» у легенді | src/features/terrain/**, specs/F2/** | npm run check зелений; браузер з реальним Gale 256×256: траверс над ореолом, slope у 3D (Top) і `?2d`, без помилок консолі | draft PR #15 |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC6 (#27): червоні відрізки без повернення з `reach.abort` (SPEC §7.8) у 3D і 2D, легенда «⛔ No return with emergency O₂ (N g, assumption)»; до contract-PR #26 — локальний тип за SPEC §6 | src/features/terrain/**, specs/F2/** | npm run check зелений; браузер: маршрут F4 + тестовий abort — червоні серії в 3D (Top) і `?2d`, без помилок консолі | draft PR feat/F2-abort |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC6: перехід на `AbortPlan` з контракту (#43), «assumption» з `model.evidence.emergencyO2G` | src/features/terrain/**, specs/F2/** | npm run check зелений (з main); браузер: тестовий abort — червоні відрізки й легенда | PR #38 |
 
 ## F3
 

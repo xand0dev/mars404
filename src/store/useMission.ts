@@ -15,6 +15,7 @@ export function initialMission(): MissionData {
     site: null,
     layers: {},
     targets: mockTargets,
+    photos: [],
     selectedTargetIds: [],
     selectedSegment: null,
     region: null,
@@ -53,10 +54,10 @@ export const useMission = create<MissionState>()((set) => ({
 
   toggleLayer: (id) => set((s) => ({ layers: { ...s.layers, [id]: !s.layers[id] } })),
 
-  setRegionData: ({ region, grid, targets }) =>
+  setRegionData: ({ region, grid, targets, photos = [] }) =>
     set((s) => {
-      const next = { ...s, region, grid, targets, model: region.model, limits: region.limits, base: region.base };
-      return { region, grid, targets, model: region.model, limits: region.limits, base: region.base, ...resetRun(next) };
+      const next = { ...s, region, grid, targets, photos, model: region.model, limits: region.limits, base: region.base };
+      return { region, grid, targets, photos, model: region.model, limits: region.limits, base: region.base, ...resetRun(next) };
     }),
 
   toggleTarget: (id) =>

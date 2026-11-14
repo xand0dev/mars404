@@ -74,6 +74,9 @@ describe('порядок малювання 3D', () => {
     expect(RENDER_ORDER.lines).toBeGreaterThan(RENDER_ORDER.overlay);
     expect(RENDER_ORDER.markers).toBeGreaterThan(RENDER_ORDER.overlay);
     expect(RENDER_ORDER.segment).toBeGreaterThan(RENDER_ORDER.lines);
+    // F2-AC6: червоне «no return» поверх маршруту, але під вибраним відрізком.
+    expect(RENDER_ORDER.noReturn).toBeGreaterThan(RENDER_ORDER.lines);
+    expect(RENDER_ORDER.noReturn).toBeLessThan(RENDER_ORDER.segment);
     expect(RENDER_ORDER.layers).toBeLessThan(RENDER_ORDER.overlay);
   });
 });
