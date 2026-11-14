@@ -56,7 +56,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - [x] T6 Тести AC3 → `LayersPanel`: 5 шарів (terrain, optical, thermal, slope, traverse), `aria-pressed` → `toggleLayer`, легенда текстом, одиниці, походження (product ID/URL, нативна й цільова роздільність, метод, credit), статус словом.
   - 14.11: `loadRegion.ts` (чиста функція) + `DataLoader` + локальний `dataStatus`. Бита висота чи walkable → mock із причиною; битий slope/hazard → NaN (клітинки заблоковані) і помилка шару; бита накладка, текстура чи траверс → лише помилка шару. Відсутній `targets.geojson` (F6 ще не додала) → `targets = []` і попередження. Vite і SPA-fallback віддають `index.html` зі статусом 200 → `httpGet` вважає це відсутнім файлом.
   - AC5 (#35): `photos.geojson` парситься (`lonLatToXY`, поза сіткою — попередження) і передається в `setRegionData`; store прийме `photos` після contract-PR #26 (до того — локальний тип `LoadedPhoto` з TODO). `model.emergencyO2G = 360` з evidence (NTRS 20140009556, assumption). Перевірку «демо-цілі в ореолі» можна зробити лише після `targets.geojson` від F6.
-- [ ] T7 `npm run check`, браузер 400 px і десктоп, скриншоти, таблиця AC → доказ у PR, рядок у `docs/AI_LOG.md`, джерела в `docs/SOURCES.md`.
+- [x] T7 `npm run check`, браузер 400 px і десктоп, скриншоти, таблиця AC → доказ у PR, рядок у `docs/AI_LOG.md`, джерела в `docs/SOURCES.md`.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
@@ -65,3 +65,9 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 | Bbox навколо Curiosity: NoData <5% і ≥5 зупинок з фото? | Максим, Настя | сб 14:00 | перевірений bbox 137.400–137.422 / −4.750…−4.728 |
 | База (хабітат) у bbox | Максим, Настя | сб 14:00 | центр прохідної клітинки, assumption |
 | Коефіцієнти hazard від схилу | Максим, Влад | сб 21:00 | малі коефіцієнти, assumption на екрані |
+
+## Перевірка в браузері (14.11)
+Edge через Playwright, dev-сервер, 1440×900 і 400×860. Відкрито Gale → «Real grid 256×256 · 10 m/cell · verified», 6 шарів; Thermal IR night вмикається мишею (`aria-pressed=true`), Slope — Enter і пробіл; кнопки 40 px; на 400 px немає горизонтального скролу. У консолі лише очікувані попередження «No targets/photos file yet».
+- `screenshots/f3-desktop-gale.png` — реальний рельєф, ореол, blocked.
+- `screenshots/f3-desktop-top-thermal-traverse.png` — THEMIS night + траверс, вид Top.
+- `screenshots/f3-mobile400-layers-panel.png` — панель шарів на 400 px.

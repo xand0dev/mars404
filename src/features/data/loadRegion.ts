@@ -1,7 +1,7 @@
 // F3: читання пакета public/data/gale без React (SPEC §6.0, §7.2). Кожен файл перевіряється окремо:
 // бита висота чи walkable → лишається mock; битий slope/hazard → NaN (клітинки заблоковані) і помилка шару;
 // бита накладка/текстура/траверс → лише помилка шару.
-import type { PlanningGrid, Region, Target, TargetsGeoJSON, XY } from '../../contracts';
+import type { PlanningGrid, Region, SurfacePhoto, SurfacePhotosGeoJSON, Target, TargetsGeoJSON, XY } from '../../contracts';
 import { isNoDataValue, lonLatToXY, xyToCell } from '../../contracts/planning';
 
 /** Байти файлу відносно папки регіону; файла немає → FileMissingError. */
@@ -21,23 +21,8 @@ export interface LayerIssue {
   message: string;
 }
 
-// TODO(#26): замінити на SurfacePhoto з src/contracts, щойно contract-PR змерджено (поля — SPEC §6).
-export interface LoadedPhoto {
-  id: string;
-  coordinates: XY;
-  lonLat: readonly [lon: number, lat: number];
-  url: string;
-  alt: string;
-  sourceUrl: string;
-  credit: string;
-  sol: number;
-  camera: string;
-  locationAccuracy: 'rover-stop' | 'approximate';
-  status: Region['status'];
-}
-
 export type RegionLoad =
-  | { kind: 'real'; region: Region; grid: PlanningGrid; targets: Target[]; photos: LoadedPhoto[]; issues: LayerIssue[]; warnings: string[] }
+  | { kind: 'real'; region: Region; grid: PlanningGrid; targets: Target[]; photos: SurfacePhoto[]; issues: LayerIssue[]; warnings: string[] }
   | { kind: 'mock'; region: Region | null; reason: string; issues: LayerIssue[]; warnings: string[] };
 
 const GRID_FILES = ['elevation', 'slope', 'walkable', 'hazard'] as const;
@@ -177,11 +162,11 @@ export async function loadRegion(get: GetFile): Promise<RegionLoad> {
     else issues.push({ id: 'targets', file: region.files.targets, message: describe(e) });
   }
 
-  let photos: LoadedPhoto[] = [];
-  const photosFile = (region.files as Record<string, string | undefined>).photos;
+  let photos: SurfacePhoto[] = [];
+  const photosFile = region.files.photos;
   if (photosFile) {
     try {
-      photos = placePoints<Omit<LoadedPhoto, 'coordinates' | 'lonLat'>>(region, decodeJSON(await get(photosFile)), 'Photo', warnings).map((p) => ({
+      photos = placePoints<SurfacePhotosGeoJSON['features'][number]['properties']>(region, decodeJSON(await get(photosFile)), 'Photo', warnings).map((p) => ({
         ...p.props,
         id: p.id,
         coordinates: p.coordinates,

@@ -43,6 +43,25 @@ describe('DataLoader', () => {
     expect(s.grid.width).toBe(256);
     expect(s.region?.status).toBe('verified');
     expect(s.base).toEqual(s.region?.base);
+    expect(s.model.emergencyO2G).toBe(s.region?.model.emergencyO2G);
+  });
+
+  it('F3-AC5: Given photos.geojson, Then photos у store з coordinates', async () => {
+    const reg = JSON.parse(new TextDecoder().decode(await disk('region.json')));
+    const fc = {
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', id: 'p1', geometry: { type: 'Point', coordinates: [137.40674, -4.73802] },
+          properties: { id: 'p1', url: 'photos/p1.jpg', alt: 'Navcam', sourceUrl: 'https://mars.nasa.gov/raw', credit: 'NASA/JPL-Caltech', sol: 3100, camera: 'NAV_LEFT_B', locationAccuracy: 'rover-stop', status: 'verified' } },
+      ],
+    };
+    const enc = (v: unknown) => new TextEncoder().encode(JSON.stringify(v)).buffer as ArrayBuffer;
+    const withPhotos: GetFile = (p) => (p === reg.files.photos ? Promise.resolve(enc(fc)) : disk(p));
+    render(<DataLoader get={withPhotos} />);
+    act(() => useMission.getState().setSite('gale'));
+    await waitFor(() => expect(useDataStatus.getState().phase).toBe('real'));
+    expect(useMission.getState().photos.map((p) => p.id)).toEqual(['p1']);
+    expect(useMission.getState().photos[0]!.coordinates.every(Number.isFinite)).toBe(true);
   });
 
   it('Given site змінився до кінця завантаження, Then setRegionData не викликано', async () => {

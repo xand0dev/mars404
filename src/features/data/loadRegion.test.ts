@@ -175,7 +175,7 @@ describe('F3-AC5: photos і emergencyO2G', () => {
   });
 
   it('Then region.json має model.emergencyO2G з evidence', async () => {
-    const reg = (await realRegion()) as Region & { model: { emergencyO2G: number; evidence: Record<string, { status: string; url?: string }> } };
+    const reg = await realRegion();
     expect(reg.model.emergencyO2G).toBe(360);
     expect(reg.model.evidence.emergencyO2G).toMatchObject({ status: 'assumption', url: expect.stringContaining('ntrs.nasa.gov') });
   });

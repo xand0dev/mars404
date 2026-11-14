@@ -18,9 +18,7 @@ export function DataLoader({ get = httpGet }: { get?: GetFile }) {
       (r) => {
         if (!alive || useMission.getState().site !== 'gale') return;
         if (r.kind === 'real') {
-          // photos: store прийме їх після contract-PR #26 (SPEC §6: setRegionData({ …, photos? })).
-          const data = { region: r.region, grid: r.grid, targets: r.targets, photos: r.photos };
-          useMission.getState().setRegionData(data);
+          useMission.getState().setRegionData({ region: r.region, grid: r.grid, targets: r.targets, photos: r.photos });
           useDataStatus.setState({ phase: 'real', issues: r.issues, warnings: r.warnings });
         } else {
           useDataStatus.setState({ phase: 'mock', reason: r.reason, issues: r.issues, warnings: r.warnings });
