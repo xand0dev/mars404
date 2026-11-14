@@ -70,9 +70,19 @@ describe('BudgetEngine + BudgetPanel', () => {
     expect(store().reach?.returnInS).toBeNull();
   });
 
-  it('дефіцит — role="alert" з назвою ресурсу', () => {
+  it('дефіцит — role="status" з назвою ресурсу; єдиний alert дефіциту — у HUD (#9)', () => {
     renderBudget();
     act(() => store().setTime(3500));
-    expect(screen.getByRole('alert')).toHaveTextContent(/deficit: time/i);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('status').some((el) => /deficit: time/i.test(el.textContent ?? ''))).toBe(true);
+  });
+
+  it('дефіцит O₂ — людська назва ресурсу, а не ключ (#9)', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-c'));
+    act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 0, o2: 600, energy: 0, dose: null, dist: 0 } }));
+
+    const deficit = screen.getByText(/^Deficit:/);
+    expect(deficit).toHaveTextContent(/^Deficit: O₂ —/);
   });
 });
