@@ -16,6 +16,8 @@ export function useOptionalTexture(url: string | null, enabled = true): TextureS
       url,
       (t) => {
         t.colorSpace = SRGBColorSpace;
+        // Під косим кутом камери анізотропна фільтрація прибирає «мило» вдалині.
+        t.anisotropy = 8;
         tex = t;
         if (alive) setState({ url, value: { status: 'ready', texture: t } });
         else t.dispose();

@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetMission } from '../../store/useMission';
+import { act } from 'react';
+import { resetMission, useMission } from '../../store/useMission';
+import { Panel } from '../../ui';
 import { GLOVE_KEY } from './glove';
 import { Hud } from './Hud';
 import { Shell } from './Shell';
@@ -12,7 +14,7 @@ const page = () =>
       hud={<Hud />}
       map={<section aria-label="Gale terrain">map</section>}
       side={<section aria-label="Layers">layers</section>}
-      bottom={<section aria-label="Route">route</section>}
+      status={<section aria-label="Route">route</section>}
     />,
   );
 const toggle = () => screen.getByRole('button', { name: 'Glove mode' });
@@ -67,7 +69,7 @@ describe('F7-AC9 · перемикач Glove mode', () => {
 describe('F7-AC9 · у режимі другорядне згорнуто, головне — зверху', () => {
   beforeEach(() => localStorage.setItem(GLOVE_KEY, '1'));
 
-  it('side і bottom — у закритому «More panels», який можна розгорнути', () => {
+  it('план і стан — у закритому «More panels», який можна розгорнути', () => {
     page();
     const more = screen.getByText('More panels').closest('details') as HTMLDetailsElement;
     expect(more.open).toBe(false);
@@ -97,5 +99,74 @@ describe('F7-AC9 · у режимі другорядне згорнуто, го�
     const more = screen.getByText('More panels');
     expect(hero.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(verdict.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+// T23–T24: права колонка — панелі, що згортаються; відкрита та, що потрібна для наступного кроку.
+describe('права колонка: панелі згортаються, відкрита панель кроку', () => {
+  const panels = () =>
+    render(
+      <Shell
+        hud={<p>hud</p>}
+        map={<p>map</p>}
+        side={
+          <>
+            <Panel title="Location" featureId="F1" owner="Іван">loc</Panel>
+            <Panel title="Layers" featureId="F3" owner="Максим">layers</Panel>
+            <Panel title="Science targets" featureId="F6" owner="Настя">targets</Panel>
+          </>
+        }
+        status={<Panel title="Resources" featureId="F5" owner="Влад">res</Panel>}
+      />,
+    );
+  const expanded = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-expanded');
+
+  it('без сайту відкриті Location і Resources, решта згорнута; кроки демо в шапці', () => {
+    panels();
+    expect(expanded('Location')).toBe('true');
+    expect(expanded('Resources')).toBe('true');
+    expect(expanded('Layers')).toBe('false');
+    expect(expanded('Science targets')).toBe('false');
+    expect(within(screen.getByRole('list', { name: 'Demo steps' })).getByText('Location').closest('li')).toHaveAttribute('aria-current', 'step');
+  });
+
+  it('обрали сайт → відкрита Science targets; клік по заголовку перемикає панель', () => {
+    panels();
+    act(() => useMission.setState({ site: 'gale' }));
+    expect(expanded('Location')).toBe('false');
+    expect(expanded('Science targets')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Layers' }));
+    expect(expanded('Layers')).toBe('true');
+  });
+});
+
+// UX: перший візит — підказка «How it works» з 4 кроками; «Got it» ховає її назавжди, кнопка в шапці відкриває знову.
+describe('підказка першого візиту', () => {
+  const dialog = () => screen.queryByRole('dialog', { name: 'Plan a walk on Mount Sharp in 4 steps' });
+
+  it('перший візит → підказка з 4 кроками, поточний — Location', () => {
+    page();
+    expect(dialog()).toBeInTheDocument();
+    const steps = within(dialog() as HTMLElement).getAllByRole('listitem');
+    expect(steps).toHaveLength(4);
+    expect(steps[0]).toHaveAttribute('aria-current', 'step');
+  });
+
+  it('«Got it» ховає й запам\'ятовує; після перезавантаження підказки немає; «How it works» відкриває знову', () => {
+    const { unmount } = page();
+    fireEvent.click(screen.getByRole('button', { name: 'Got it' }));
+    expect(dialog()).toBeNull();
+    expect(localStorage.getItem('mars404.onboarded')).toBe('1');
+    unmount();
+    page();
+    expect(dialog()).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'How it works' }));
+    expect(dialog()).toBeInTheDocument();
+  });
+
+  it('Escape закриває підказку', () => {
+    page();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(dialog()).toBeNull();
   });
 });

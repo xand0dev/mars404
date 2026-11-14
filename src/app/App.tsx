@@ -1,4 +1,4 @@
-// Композиція (F0). Слоти всіх фіч уже змонтовані; власники фіч цей файл не змінюють.
+// Композиція (F0). Ліворуч — підготовка виходу (у порядку кроків демо), у центрі — карта, праворуч — стан місії.
 import { BudgetEngine, BudgetPanel } from '../features/budget';
 import { DataLoader, LayersPanel } from '../features/data';
 import { GlobeScene, SitePanel } from '../features/globe';
@@ -27,14 +27,14 @@ export function App() {
             <SitePanel />
             <LayersPanel />
             <TargetsPanel />
-            <ChecklistPanel />
-            <NotesPanel />
+            <RoutePanel />
           </>
         }
-        bottom={
+        status={
           <>
-            <RoutePanel />
             <BudgetPanel />
+            <ChecklistPanel />
+            <NotesPanel />
           </>
         }
       />

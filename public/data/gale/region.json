@@ -25,10 +25,11 @@
     "slope": "slope.f32",
     "walkable": "walkable.u8",
     "hazard": "hazard.f32",
-    "texture": "hirise.jpg",
+    "texture": "hirise_4096.jpg",
     "targets": "targets.geojson",
     "traverse": "traverse.geojson",
-    "photos": "photos/photos.geojson"
+    "photos": "photos/photos.geojson",
+    "elevationRender": "elevation_render.f32"
   },
   "noData": -9999.0,
   "base": [
@@ -434,11 +435,44 @@
       "title": "Radiation dose limit",
       "status": "assumption",
       "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
+    },
+    {
+      "id": "trek-gale-dem-1m-render",
+      "title": "Gale DEM 1 m → 2.5 m render mesh (3D only)",
+      "status": "derived",
+      "note": "Area-weighted mean of valid 1 m pixels of Gale_DEM_SMG_1m into 1024×1024 cells of 2.5 m (pipeline/render_hd.py). Used only for the 3D mesh; planning stays on the 10 m grid. Same input as elevation.f32 (sha256 70a372a0…).",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer",
+      "credit": "NASA/JPL/University of Arizona (HiRISE), NASA Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-mola-hrsc-200m-context",
+      "title": "Mars MOLA + HRSC blended DEM 200 m — 61 km context around the EVA site (3D only)",
+      "status": "verified",
+      "note": "exportImage 256×256 (240 m cells, bilinear by Trek) on bbox 136.886698…137.926782 E, −5.256285…−4.219755; min −4633 m, max +483 m (Mount Sharp slopes). Not used for planning.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer",
+      "credit": "NASA/JPL/GSFC (MOLA), ESA/DLR/FU Berlin (HRSC), USGS Astrogeology, via NASA Mars Trek",
+      "accessedAt": "2026-11-14"
     }
   ],
   "hazardFromSlope": {
     "kind": "slope-linear",
     "slopeDegAtMax": 25,
     "maxHazard": 0.5
+  },
+  "renderGrid": {
+    "width": 1024,
+    "height": 1024
+  },
+  "context": {
+    "file": "context.f32",
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 240.0,
+    "originM": [
+      -29440.0,
+      32000.0
+    ],
+    "noData": -9999.0
   }
 }

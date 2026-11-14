@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ReachabilityResult } from '../../../contracts';
 import { planThrough, smallGrid } from './fixtures';
-import { noReturnRuns, readAbort } from './abort';
+import { noReturnRuns, pointOfNoReturnMarker, readAbort } from './abort';
 
 const grid = smallGrid();
 // 5 відрізків: (0,0)→(0,1)→(0,2)→(0,3)→(1,3)→(2,3)
@@ -46,5 +46,19 @@ describe('F2-AC6 noReturnRuns — які відрізки червоні', () =>
     const r = noReturnRuns(plan, { segments: [seg(false)], pointOfNoReturnS: 0, emergencyO2G: 360 });
     expect(r.runs).toEqual([]);
     expect(r.warning).toMatch(/abort/i);
+  });
+});
+
+describe('F2-AC6 pointOfNoReturnMarker — знак точки неповернення на карті (2D і 3D)', () => {
+  it('стоїть на початку першого відрізка без повернення; підпис — хвилини від старту', () => {
+    const abort = { segments: plan.segments.map((_, i) => seg(i !== 2)), pointOfNoReturnS: 845, emergencyO2G: 56 };
+    const m = pointOfNoReturnMarker(plan, abort)!;
+    expect(m.xy).toEqual(plan.segments[2]?.from);
+    expect(m.label).toBe('Point of no return · 14 min');
+  });
+  it('усі ok, abort = null або застарілий abort → знака немає', () => {
+    expect(pointOfNoReturnMarker(plan, { segments: plan.segments.map(() => seg(true)), pointOfNoReturnS: null, emergencyO2G: 56 })).toBeNull();
+    expect(pointOfNoReturnMarker(plan, null)).toBeNull();
+    expect(pointOfNoReturnMarker(plan, { segments: [seg(false)], pointOfNoReturnS: 0, emergencyO2G: 56 })).toBeNull();
   });
 });

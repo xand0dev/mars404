@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { assessReach, buildReachTrees, emptyPlan, planRoute } from '../../core';
 import type { Annotation, Region, Source } from '../../contracts';
@@ -10,6 +10,8 @@ import { BudgetEngine } from './BudgetEngine';
 import { BudgetPanel } from './BudgetPanel';
 
 const store = () => useMission.getState();
+/** Панель без пульта (пульт — портал у <body> з тими самими числами). */
+const panel = () => within(screen.getByRole('region', { name: 'Resources' }));
 const renderBudget = (site: 'gale' | null = 'gale') => {
   act(() => store().setSite(site));
   return render(
@@ -25,7 +27,7 @@ beforeEach(() => resetMission());
 describe('BudgetEngine + BudgetPanel', () => {
   it('F5-AC1: у базі без цілей — «Return in 48 min», статус incomplete з текстом', () => {
     renderBudget();
-    expect(screen.getByText('Return in 48 min')).toBeInTheDocument();
+    expect(panel().getByText('Return in 48 min')).toBeInTheDocument();
     expect(screen.getByText(/return not fully assessed/i)).toBeInTheDocument();
     expect(store().reach?.status).toBe('incomplete');
     expect(store().budget).toEqual({ time: 3600, o2: 720, energy: 600, dose: null });
@@ -37,21 +39,21 @@ describe('BudgetEngine + BudgetPanel', () => {
 
     expect(store().limits.o2).toBeCloseTo(432, 6);
     expect(screen.getByRole('button', { name: 'O₂ −40%' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText('Return in 28 min')).toBeInTheDocument();
+    expect(panel().getByText('Return in 28 min')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
     expect(store().limits.o2).toBe(720);
-    expect(screen.getByText('Return in 48 min')).toBeInTheDocument();
+    expect(panel().getByText('Return in 48 min')).toBeInTheDocument();
   });
 
   it('обрані цілі без чинного плану — жодного числа, «Build route» / «Calculating…»', () => {
     renderBudget();
     act(() => store().toggleTarget('mock-a'));
-    expect(screen.getByText('Build route to assess return')).toBeInTheDocument();
-    expect(screen.queryByText(/Return in \d+ min/)).not.toBeInTheDocument();
+    expect(panel().getByText('Build route to assess return')).toBeInTheDocument();
+    expect(panel().queryByText(/Return in \d+ min/)).not.toBeInTheDocument();
 
     act(() => store().setPlan(emptyPlan('pending', 1)));
-    expect(screen.getByText('Calculating…')).toBeInTheDocument();
+    expect(panel().getByText('Calculating…')).toBeInTheDocument();
   });
 
   it('F5-AC3: ціль поза ореолом після «O₂ −40%» — попередження і кандидат заміни', async () => {
@@ -92,7 +94,7 @@ describe('BudgetEngine + BudgetPanel', () => {
 
   it('#32: місце не обрано — «Return in — min», як у HUD (#9 п.3)', () => {
     renderBudget(null);
-    expect(screen.getByText('Return in — min')).toBeInTheDocument();
+    expect(panel().getByText('Return in — min')).toBeInTheDocument();
   });
 
   it('#32: шкали показують резерв і планову витрату (Gauge F7)', () => {
@@ -102,7 +104,7 @@ describe('BudgetEngine + BudgetPanel', () => {
     act(() => store().toggleTarget('mock-a'));
     act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 900, o2: 180, energy: 10, dose: null, dist: 900 } }));
     expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('plan 180 g');
-    expect(screen.getByText('Return in 33 min')).toBeInTheDocument();
+    expect(panel().getByText('Return in 33 min')).toBeInTheDocument();
   });
 
   it('#32: дефіцит позначено на шкалі ресурсу й рівнем deficit (⛔) у статусі', () => {
@@ -112,7 +114,7 @@ describe('BudgetEngine + BudgetPanel', () => {
     // 3500 с: час 100 < 720 резерву, O₂ 720 − 700 = 20 < 144 резерву — обидва в дефіциті.
     const marked = [...container.querySelectorAll('.ui-gauge--deficit')].map((el) => el.textContent?.split(':')[0]);
     expect(marked).toEqual(['Time', 'O₂']);
-    expect(screen.getByText('Return in 0 min')).toBeInTheDocument();
+    expect(panel().getByText('Return in 0 min')).toBeInTheDocument();
     const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
     expect(status).toHaveTextContent('⛔');
   });
@@ -219,6 +221,176 @@ describe('BudgetEngine + BudgetPanel', () => {
       ).reach.abort;
       expect(expected).not.toEqual(plainAbort);
       expect(store().reach?.abort).toEqual(expected);
+    });
+  });
+
+  describe('Life support: головне число, статус словом, що обмежує', () => {
+    const lifeStatus = () => screen.getByTestId('life-support-status').textContent;
+    const resourceStatus = (key: string) => screen.getByTestId(`resource-status-${key}`).textContent;
+    const planWith = (o2: number) => ({ ...emptyPlan('ok', 1), totals: { time: 900, o2, energy: 10, dose: null, dist: 900 } });
+
+    it('у базі без цілей — «Life support», «WITHIN MODEL», ресурси OK, доза NO DATA', () => {
+      renderBudget();
+      expect(screen.getByText('Life support')).toBeInTheDocument();
+      expect(lifeStatus()).toBe('WITHIN MODEL');
+      expect(resourceStatus('o2')).toBe('OK');
+      expect(resourceStatus('time')).toBe('OK');
+      expect(resourceStatus('dose')).toBe('NO DATA');
+    });
+
+    it('запас < 15 хв (поріг GO / NO-GO, SPEC §7.10) — «LOW MARGIN»', () => {
+      renderBudget();
+      act(() => store().setTime(2300));
+      expect(panel().getByText('Return in 9 min')).toBeInTheDocument();
+      expect(lifeStatus()).toBe('LOW MARGIN');
+    });
+
+    it('дефіцит — «RETURN NOW» і «DEFICIT» на ресурсі', () => {
+      renderBudget();
+      act(() => store().setTime(3500));
+      expect(lifeStatus()).toBe('RETURN NOW');
+      expect(resourceStatus('time')).toBe('DEFICIT');
+    });
+
+    it('чинний план — «limited by: time»; після «O₂ −40%» — «limited by: O₂»', async () => {
+      renderBudget();
+      act(() => store().toggleTarget('mock-a'));
+      act(() => store().setPlan(planWith(50)));
+      expect(screen.getByText('limited by: time')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+      expect(screen.getByText('limited by: O₂')).toBeInTheDocument();
+    });
+
+    it('сценарії підписані «What if»', () => {
+      renderBudget();
+      const whatIf = panel().getByRole('group', { name: 'What if' });
+      expect(within(whatIf).getByRole('button', { name: 'O₂ −40%' })).toBeInTheDocument();
+      expect(within(whatIf).getByRole('button', { name: 'Reset' })).toBeInTheDocument();
+    });
+
+    it('невалідна модель — «NOT ASSESSED»', () => {
+      renderBudget();
+      act(() => useMission.setState({ model: { ...mockModel, speedMps: 0 } }));
+      expect(lifeStatus()).toBe('NOT ASSESSED');
+    });
+  });
+
+  describe('Пульт EVA (планшет): Return in і What if під пальцем', () => {
+    const dock = () => screen.getByRole('region', { name: 'Life support controls' });
+
+    it('показує Return in зі статусом і що обмежує; O₂ −40% і Reset з пульта', async () => {
+      renderBudget();
+      expect(dock()).toHaveTextContent('Return in 48 min');
+      expect(dock()).toHaveTextContent('WITHIN MODEL');
+
+      await userEvent.click(within(dock()).getByRole('button', { name: 'O₂ −40% from dock' }));
+      expect(store().limits.o2).toBeCloseTo(432, 6);
+      expect(within(dock()).getByRole('button', { name: 'O₂ −40% from dock' })).toHaveAttribute('aria-pressed', 'true');
+
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Reset limits from dock' }));
+      expect(store().limits.o2).toBe(720);
+    });
+
+    it('згортання: aria-expanded і data-eva-dock на <html>, стан пам’ятається', async () => {
+      renderBudget();
+      const toggle = within(dock()).getByRole('button', { name: 'Collapse controls' });
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await userEvent.click(toggle);
+      expect(document.documentElement.dataset.evaDock).toBe('collapsed');
+      expect(within(dock()).getByRole('button', { name: 'Expand controls' })).toHaveAttribute('aria-expanded', 'false');
+      expect(localStorage.getItem('mars404.evaDock')).toBe('collapsed');
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Expand controls' }));
+      expect(document.documentElement.dataset.evaDock).toBe('open');
+    });
+
+    it('без обраного місця пульта немає', () => {
+      renderBudget(null);
+      expect(screen.queryByRole('region', { name: 'Life support controls' })).not.toBeInTheDocument();
+    });
+  });
+
+  it('джерела лімітів і резерв — у згорнутому «Sources of limits»', () => {
+    renderBudget();
+    const details = screen.getByText('Sources of limits').closest('details')!;
+    expect(within(details).getByTestId('limit-evidence-o2')).toBeInTheDocument();
+    expect(within(details).getByText(/Reserve 20%/)).toBeInTheDocument();
+  });
+
+  describe('Шторка пульта: тап або потягнути вгору — деталі', () => {
+    beforeEach(() => localStorage.clear());
+    const handle = () => screen.getByRole('button', { name: /details/i });
+    const details = () => screen.getByRole('region', { name: 'Life support details' });
+
+    it('тап по ручці: пульт ↔ деталі', async () => {
+      renderBudget();
+      expect(handle()).toHaveAttribute('aria-expanded', 'false');
+      await userEvent.click(handle());
+      expect(document.documentElement.dataset.evaDock).toBe('expanded');
+      expect(handle()).toHaveAttribute('aria-expanded', 'true');
+      await userEvent.click(handle());
+      expect(document.documentElement.dataset.evaDock).toBe('open');
+    });
+
+    it('ручка — лише смужка без тексту; тягнути на будь-яку висоту, висота пам’ятається', () => {
+      renderBudget();
+      expect(handle()).toHaveTextContent('');
+      fireEvent.pointerDown(handle(), { clientY: 600, pointerId: 1 });
+      fireEvent.pointerMove(handle(), { clientY: 450, pointerId: 1 });
+      fireEvent.pointerUp(handle(), { clientY: 450, pointerId: 1 });
+      expect(document.documentElement.dataset.evaDock).toBe('expanded');
+      expect(document.documentElement.style.getPropertyValue('--eva-sheet-h')).toBe('226px');
+      expect(localStorage.getItem('mars404.evaSheetH')).toBe('226');
+    });
+
+    it('потягнути вниз нижче порогу — назад до пульта; з пульта вниз — згорнути', () => {
+      renderBudget();
+      fireEvent.pointerDown(handle(), { clientY: 600, pointerId: 1 });
+      fireEvent.pointerMove(handle(), { clientY: 400, pointerId: 1 });
+      fireEvent.pointerUp(handle(), { clientY: 400, pointerId: 1 });
+      expect(document.documentElement.dataset.evaDock).toBe('expanded');
+
+      fireEvent.pointerDown(handle(), { clientY: 400, pointerId: 1 });
+      fireEvent.pointerMove(handle(), { clientY: 590, pointerId: 1 });
+      fireEvent.pointerUp(handle(), { clientY: 590, pointerId: 1 });
+      expect(document.documentElement.dataset.evaDock).toBe('open');
+
+      fireEvent.pointerDown(handle(), { clientY: 600, pointerId: 1 });
+      fireEvent.pointerMove(handle(), { clientY: 680, pointerId: 1 });
+      fireEvent.pointerUp(handle(), { clientY: 680, pointerId: 1 });
+      expect(document.documentElement.dataset.evaDock).toBe('collapsed');
+    });
+
+    it('клавіатура: ↑ — деталі, ↓ — назад до пульта', () => {
+      renderBudget();
+      fireEvent.keyDown(handle(), { key: 'ArrowUp' });
+      expect(document.documentElement.dataset.evaDock).toBe('expanded');
+      fireEvent.keyDown(handle(), { key: 'ArrowDown' });
+      expect(document.documentElement.dataset.evaDock).toBe('open');
+    });
+
+    it('у кожного ресурсу свій колір — мітка data-resource у шторці й на панелі', () => {
+      const { container } = renderBudget();
+      expect(within(details()).getByRole('listitem', { name: 'O₂' })).toHaveAttribute('data-resource', 'o2');
+      expect(container.querySelector('.life-resource[data-resource="time"]')).not.toBeNull();
+    });
+
+    it('кожен ресурс: зараз, витрата маршруту, лишиться після маршруту; доза — no data', () => {
+      renderBudget();
+      act(() => store().toggleTarget('mock-a'));
+      act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 900, o2: 180, energy: 10, dose: null, dist: 900 } }));
+      const o2 = within(details()).getByRole('listitem', { name: 'O₂' });
+      expect(o2).toHaveTextContent('720 g');
+      expect(o2).toHaveTextContent('route 180 g');
+      expect(o2).toHaveTextContent('540 g after route');
+      expect(within(details()).getByRole('listitem', { name: 'Time' })).toHaveTextContent('45 min after route');
+      expect(within(details()).getByRole('listitem', { name: 'Dose' })).toHaveTextContent('no data');
+      expect(details()).toHaveTextContent('Emergency O₂ 360 g kept for the way back');
+    });
+
+    it('без плану — «after route» не вигадується', () => {
+      renderBudget();
+      expect(within(details()).getByRole('listitem', { name: 'O₂' })).not.toHaveTextContent('after route');
     });
   });
 });

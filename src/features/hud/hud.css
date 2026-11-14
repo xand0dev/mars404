@@ -1,74 +1,124 @@
-/* F7: HUD. «Return in N min» — найбільший текст (F7-AC1). */
-.hud { display: grid; gap: 8px; }
-.hud__return { font-size: var(--fs-hero); line-height: 1.1; font-weight: 700; margin: 0; }
-.hud__return strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+/* F7 · смуга HUD (T26). «Return in N min» — найбільший текст (F7-AC1). Колір лише доповнює іконку й слово (§7.7). */
+/* Заголовок панелі HUD не займає рядок: назва — для екранних читалок, бейджі — у куті. */
+.ui-panel:has(> .hud) { position: relative; padding-top: var(--space-4); border-color: #2a1517; background: radial-gradient(600px 220px at 0% 0%, rgb(224 16 26 / 0.16), transparent 70%), linear-gradient(180deg, #0f0f12, var(--surface)); box-shadow: inset 0 1px 0 rgb(255 42 42 / 0.25), 0 24px 48px -28px rgb(224 16 26 / 0.35); }
+.ui-panel:has(> .hud) > header { position: absolute; bottom: var(--space-3); right: var(--space-3); margin: 0; min-height: 0; z-index: 1; }
+/* Бейджі HUD — праворуч у рядку станцій; на вузькому екрані — над ним, щоб не перекривати чипи. */
+/* Компонування HUD — за шириною його панелі (container queries): у правій колонці — стовпчиком, на всю ширину — смугою. */
+@container (max-width: 1099px) { .ui-panel:has(> .hud) > header { top: var(--space-3); bottom: auto; padding: 0; } }
+.ui-panel:has(> .hud) > header h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.hud {
+  display: grid; gap: var(--space-2) var(--space-5); align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'hero' 'verdict' 'info' 'side' 'stations';
+}
+/* Показ приладу: «RETURN IN» і «MIN» — дрібні позначки, число — найбільше на екрані. */
+.hud__return { grid-area: hero; display: flex; align-items: baseline; gap: 0.45em; margin: 0; white-space: nowrap; align-self: center; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-dim); }
+/* Немає оцінки — «—» приглушене, а не помаранчева риска. */
+.hud__return strong.hud__value--empty { color: var(--text-dim); font-size: 1.6rem; font-weight: 600; text-shadow: none; }
+.hud__return strong { font-family: var(--font); font-size: var(--fs-hero); line-height: 0.9; font-weight: 800; letter-spacing: -0.045em; color: var(--accent); text-shadow: 0 0 28px rgb(224 16 26 / 0.55); font-variant-numeric: tabular-nums; }
+.hud__info { grid-area: info; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
+.hud__side { grid-area: side; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .hud__status { font-size: var(--fs-body); }
+.hud__status .ui-note { margin: 0; }
 .hud__next-label { color: var(--text-muted); }
-.hud__abort { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.hud__abort { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
 .hud__abort--ponr strong { color: var(--danger); }
 .hud__abort--clear strong { color: var(--ok); }
 .hud__abort-icon { color: var(--ok); font-weight: 700; }
-.hud__abort-reserve { font-size: var(--fs-small); color: var(--text-muted); }
-.hud__assumption { font-family: var(--font); font-size: 0.75rem; padding: 1px 6px; border-radius: 999px; background: var(--surface-2); color: var(--warn); }
+.hud__abort-reserve { font-size: var(--fs-small); color: var(--text-muted); font-family: var(--font-mono); }
+.hud__assumption { display: inline-flex; align-items: center; min-height: 18px; font-family: var(--font-mono); font-size: 0.64rem; line-height: 1; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; border: 1px solid #5a3f0c; background: var(--assumption-bg); color: var(--warn); }
 .hud__warnings { margin: 0; padding-left: 1.2em; font-size: var(--fs-small); color: var(--warn); }
-.hud__controls { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: end; }
-.hud__elapsed { display: grid; gap: 4px; font-size: var(--fs-small); color: var(--text-muted); }
-.hud__elapsed input { width: 9rem; max-width: 100%; color: var(--text); }
+.hud__controls { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: end; }
+.hud__elapsed { display: grid; gap: 2px; font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-dim); }
+.hud__elapsed input { width: 8rem; max-width: 100%; color: var(--text); font-size: 1rem; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
 .hud__swap { border-color: var(--accent); font-weight: 600; max-width: 100%; white-space: normal; text-align: left; }
-.hud__left { margin: 0; font-size: var(--fs-small); color: var(--text-muted); }
-/* Компонування: зверху «Return in» + статус ліворуч, «Elapsed» і залишки праворуч; GO / NO-GO — рядком на всю ширину. */
-.hud__main, .hud__side { display: grid; gap: 6px; min-width: 0; align-content: start; }
-@media (min-width: 768px) {
-  .hud { grid-template-columns: minmax(0, 1fr) auto; column-gap: calc(var(--gap) * 2); row-gap: 10px; align-items: start; }
+.hud__left { margin: 0; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+@container (min-width: 640px) {
+  .hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'hero verdict' 'info side' 'stations stations'; }
   .hud__side { justify-items: end; text-align: right; }
-  .gonogo { grid-column: 1 / -1; }
+}
+/* Широка панель: одна смуга — «Return in» · вердикт · статус · Elapsed; станції рядком під нею. */
+@container (min-width: 1100px) {
+  .hud { grid-template-columns: auto minmax(200px, 280px) minmax(240px, 1fr) minmax(200px, 300px); grid-template-areas: 'hero verdict info side' 'stations stations stations stations'; }
+  .hud__elapsed { grid-auto-flow: column; align-items: center; gap: var(--space-2); }
+  .gonogo__stations { padding-right: 150px; }
 }
 
-/* GO / NO-GO (F7-AC7, SPEC §7.10) */
-.gonogo { grid-column: 1 / -1; display: grid; gap: 8px; border-top: 1px solid var(--surface-2); padding-top: 10px; }
-.gonogo__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
-.gonogo__title { margin: 0; font-size: var(--fs-body); letter-spacing: 1px; }
-.gonogo__verdict { margin: 0; font-weight: 800; font-size: var(--fs-title); }
-.gonogo__verdict--go { color: var(--ok); }
-.gonogo__verdict--caution { color: var(--warn); }
-.gonogo__verdict--nogo { color: var(--danger); }
-.gonogo__verdict--hold { color: var(--info); }
-.gonogo__start { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.gonogo__btn { font-weight: 700; border-color: var(--accent); }
+/* GO / NO-GO (F7-AC7, SPEC §7.10): вердикт і кнопка старту */
+.gonogo { grid-area: verdict; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
+.gonogo__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.gonogo__title { margin: 0; font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 700; letter-spacing: 0.2em; color: var(--text-dim); }
+/* Вердикт — табло: рамка й заливка кольором стану, слово й іконка всередині. */
+.gonogo__verdict { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.02em; text-transform: uppercase; padding: 5px 14px; border: 1px solid currentColor; border-radius: 999px; box-shadow: 0 0 16px -4px currentColor; }
+.gonogo__verdict--go { color: var(--ok); background: var(--ok-bg); }
+.gonogo__verdict--caution { color: var(--warn); background: var(--warn-bg); }
+.gonogo__verdict--nogo { color: var(--danger); background: var(--danger-bg); }
+.gonogo__verdict--hold { color: var(--text-muted); background: transparent; border-style: dashed; box-shadow: none; }
+.gonogo__start { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
+.gonogo__btn { font-weight: 700; border-color: var(--accent-deep); background: linear-gradient(180deg, var(--accent), var(--accent-deep)); color: #fff; box-shadow: var(--accent-glow); }
+.gonogo__btn:hover:not(:disabled) { background: linear-gradient(180deg, #ff4545, var(--accent)); border-color: var(--accent); }
+.gonogo__hold { background: var(--surface-3); color: var(--text); border-color: rgb(255 42 42 / 0.55); box-shadow: 0 0 14px -6px rgb(224 16 26 / 0.8); }
+.gonogo__hold:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
 .gonogo__hold { position: relative; overflow: hidden; touch-action: none; user-select: none; }
 .gonogo__fill { position: absolute; inset: 0; width: 0; background: var(--accent); opacity: 0.35; }
 .gonogo__hold.is-holding .gonogo__fill { width: 100%; transition: width 1.5s linear; }
 .gonogo__label { position: relative; }
 .gonogo__hint, .gonogo__muted { font-size: var(--fs-small); color: var(--text-muted); margin: 0; }
 .gonogo__record { margin: 0; font-size: var(--fs-small); color: var(--text); }
-.gonogo__stations { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 6px; }
-@media (max-width: 600px) { .gonogo__stations { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gonogo__station { padding: 5px 6px; } }
-@media (max-width: 379px) { .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.gonogo__station { display: flex; flex-wrap: wrap; align-items: baseline; align-content: flex-start; gap: 0 6px; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); border-left: 3px solid var(--text-muted); font-size: var(--fs-small); line-height: 1.3; min-width: 0; }
-.gonogo__station--go { border-left-color: var(--ok); }
-.gonogo__station--caution { border-left-color: var(--warn); }
-.gonogo__station--nogo { border-left-color: var(--danger); }
-.gonogo__station--hold { border-left-color: var(--info); }
-.gonogo__id { font-family: ui-monospace, 'Courier New', monospace; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
-.gonogo__call { font-weight: 700; white-space: nowrap; }
+
+/* Станції — чипи «код · іконка · слово» (T27). Деталі (причина, дія) — по кліку; NO-GO і станції з кнопкою-виправленням розгорнуті. */
+.gonogo-stations { grid-area: stations; min-width: 0; border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.gonogo__stations { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.gonogo__station { display: flex; flex-direction: column; flex: 0 1 auto; min-width: 0; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--line); }
+.gonogo__station.is-open { flex: 1 1 260px; max-width: 100%; }
+/* Табло станцій: GO — тонка рамка, CAUTION — бурштинова заливка, NO-GO — червона, HOLD — пунктир. Слово й іконка завжди є. */
+.gonogo__station--go { border-color: var(--line); }
+.gonogo__station--caution { border-color: #4d3a0a; background: var(--warn-bg); }
+.gonogo__station--nogo { border-color: #7a1a22; background: var(--danger-bg); box-shadow: 0 0 16px -6px rgb(224 16 26 / 0.8); }
+.gonogo__station--hold { border-color: var(--line); background: transparent; }
+.gonogo__station--hold .gonogo__id { color: var(--text-muted); }
+.gonogo__chip { display: inline-flex; align-items: center; gap: var(--space-2); background: transparent; border: none; border-radius: var(--radius-sm); padding: 0 var(--space-3) 0 var(--space-2); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; white-space: nowrap; box-shadow: none; }
+.gonogo__chip:hover:not(:disabled) { background: rgb(255 255 255 / 0.04); }
+.gonogo__chip::after { content: ''; width: 5px; height: 5px; border-right: 1.5px solid var(--text-dim); border-bottom: 1.5px solid var(--text-dim); transform: rotate(45deg) translate(-1px, -1px); }
+.gonogo__chip[aria-expanded='true']::after { transform: rotate(-135deg); }
+.gonogo__id { font-weight: 600; color: var(--text); }
+.gonogo__call { font-weight: 600; }
 .gonogo__station--go .gonogo__call { color: var(--ok); }
 .gonogo__station--caution .gonogo__call { color: var(--warn); }
 .gonogo__station--nogo .gonogo__call { color: var(--danger); }
-.gonogo__station--hold .gonogo__call { color: var(--info); }
-.gonogo__reason, .gonogo__fix { flex-basis: 100%; }
-.gonogo__fixbtn { flex-basis: auto; }
+.gonogo__station--hold .gonogo__call { color: var(--text-muted); }
+.gonogo__detail { display: none; padding: 0 var(--space-2) var(--space-2); font-size: var(--fs-small); line-height: 1.35; }
+.gonogo__station.is-open .gonogo__detail { display: grid; gap: 2px; justify-items: start; }
 .gonogo__reason { color: var(--text); }
 .gonogo__fix { color: var(--text-muted); }
-.gonogo__fixbtn { font-size: var(--fs-small); margin-top: 4px; max-width: 100%; white-space: normal; text-align: left; }
+.gonogo__fixbtn { font-size: var(--fs-small); margin-top: var(--space-1); max-width: 100%; white-space: normal; text-align: left; }
+@container (max-width: 520px) {
+  .gonogo__stations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .gonogo__station.is-open { grid-column: 1 / -1; }
+  .gonogo__station { overflow: hidden; }
+  .gonogo__chip { padding: 0 6px; gap: 4px; justify-content: flex-start; font-size: 0.68rem; letter-spacing: 0; min-width: 0; }
+  .gonogo__chip .gonogo__call { white-space: nowrap; }
+  .gonogo__chip::after { content: none; }
+  .gonogo__chip[aria-expanded='true']::after { content: none; }
+}
+@container (max-width: 260px) { .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* Glove mode: «Return in» і вердикт — зверху HUD */
-.shell--glove .hud { display: flex; flex-direction: column; align-items: stretch; }
-.shell--glove .hud__main, .shell--glove .hud__side { display: contents; }
-.shell--glove .hud__side { text-align: left; }
-.shell--glove .hud .hud__main > *, .shell--glove .hud .hud__side > * { order: 3; }
-.shell--glove .hud .hud__main > .hud__return { order: 0; }
-.shell--glove .hud > .gonogo { order: 1; border-top: none; padding-top: 0; }
-.shell--glove .hud .hud__main > .hud__status { order: 2; }
+/* Glove mode: одна колонка; «Return in» і вердикт — зверху, станції згорнуті в «Stations». */
+.shell--glove .hud { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'hero' 'verdict' 'info' 'side' 'stations'; }
+.shell--glove .hud__side { justify-items: start; text-align: left; padding-top: 0; }
 .shell--glove .gonogo__verdict { font-size: 1.6rem; }
+.shell--glove .gonogo__stations { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .gonogo__more > summary { list-style: none; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: var(--surface-2); cursor: pointer; }
 .gonogo__more > summary::-webkit-details-marker { display: none; }
+
+/* Вузька колонка: «Elapsed» в один рядок з полем, щоб HUD вміщався разом із Resources. */
+@container (max-width: 639px) {
+  .hud { row-gap: var(--space-2); }
+  .hud__elapsed { grid-auto-flow: column; justify-content: start; align-items: center; gap: var(--space-2); }
+  .hud__elapsed input { width: 7rem; }
+  .gonogo__hint { font-size: 0.72rem; }
+}
+/* Іконка точки неповернення тримається біля свого тексту, текст переноситься всередині. */
+.hud__abort > strong { flex: 1 1 12rem; min-width: 0; }

@@ -89,3 +89,22 @@ describe('budget · F5-AC4 невалідні параметри', () => {
     expect(validateBudgetInputs(mockModel, mockLimits, 0)).toEqual([]);
   });
 });
+
+describe('budget · limitedBy — який ресурс закінчиться першим', () => {
+  const model = { ...mockModel };
+  const limits = mockLimits;
+  const input = (o2Limit: number, planned: { time: number; o2: number }) => ({
+    budget: computeBudget({ ...limits, o2: o2Limit }, model, 0),
+    reserve: reserveOf({ ...limits, o2: o2Limit }, model),
+    model,
+    planned: { time: planned.time, o2: planned.o2, energy: 0, dose: null },
+  });
+
+  it('час обмежує, коли O₂ з запасом', () => {
+    expect(estimateReturn(input(720, { time: 900, o2: 50 })).limitedBy).toBe('time');
+  });
+
+  it('після «O₂ −40%» обмежує O₂', () => {
+    expect(estimateReturn(input(432, { time: 900, o2: 50 })).limitedBy).toBe('o2');
+  });
+});

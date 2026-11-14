@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useMission } from '../../store/useMission';
-import { EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
+import { DASH, EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
 import { abortLine } from './abortLine';
 import { GoNoGoPanel } from './GoNoGo';
 import { useGoNoGo } from './useGoNoGo';
@@ -47,65 +47,66 @@ export function Hud() {
 
   return (
     <Panel title="HUD" featureId="F7" owner="Оля" mock={v.mock}>
+      {/* Смуга HUD (T26): «Return in» · вердикт GO / NO-GO · статус і точка неповернення · «Elapsed» і залишки; під ними — станції. */}
       <div className="hud">
-        <div className="hud__main">
         <p className="hud__return">
-          Return in <strong>{v.minutes}</strong> min
+          Return in <strong className={v.minutes === DASH ? 'hud__value--empty' : undefined}>{v.minutes}</strong> min
         </p>
-        <div className="hud__status">
-          <StatusNote level={v.level} live={live}>
-            <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
-          </StatusNote>
-        </div>
-        {abort && (
-          <p className={`hud__abort hud__abort--${abort.kind}`}>
-            {abort.kind === 'ponr' ? <EvaSign kind="ponr" size={22} /> : <span className="hud__abort-icon" aria-hidden="true">{STATUS_ICON.ok}</span>}
-            <strong>{abort.text}</strong>
-            <span className="hud__abort-reserve">
-              {abort.emergency}
-              {abort.assumption && <> · <span className="hud__assumption">assumption</span></>}
-            </span>
-          </p>
-        )}
-        {v.warnings.length > 0 && (
-          <ul className="hud__warnings" aria-label="Model warnings">
-            {v.warnings.map((w) => (
-              <li key={w}>{w}</li>
-            ))}
-          </ul>
-        )}
+        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} onFix={() => elapsedRef.current?.focus()} />
+        <div className="hud__info">
+          <div className="hud__status">
+            <StatusNote level={v.level} live={live}>
+              <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
+            </StatusNote>
+          </div>
+          {abort && (
+            <p className={`hud__abort hud__abort--${abort.kind}`}>
+              {abort.kind === 'ponr' ? <EvaSign kind="ponr" size={22} /> : <span className="hud__abort-icon" aria-hidden="true">{STATUS_ICON.ok}</span>}
+              <strong>{abort.text}</strong>
+              <span className="hud__abort-reserve">
+                {abort.emergency}
+                {abort.assumption && <> · <span className="hud__assumption">assumption</span></>}
+              </span>
+            </p>
+          )}
+          {v.warnings.length > 0 && (
+            <ul className="hud__warnings" aria-label="Model warnings">
+              {v.warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="hud__side">
-        <div className="hud__controls">
-          <label className="hud__elapsed">
-            <span>Elapsed, s</span>
-            <input
-              ref={elapsedRef}
-              type="number"
-              min={0}
-              step={60}
-              inputMode="numeric"
-              value={draft ?? String(time)}
-              onChange={(e) => onElapsed(e.target.value)}
-              onBlur={() => setDraft(null)}
-            />
-          </label>
-          {v.swap && (
-            <button type="button" className="hud__swap" onClick={onReplace}>
-              Replace {v.swap.dropName} with {v.swap.addName}
-            </button>
-          )}
+          <div className="hud__controls">
+            <label className="hud__elapsed">
+              <span>Elapsed, s</span>
+              <input
+                ref={elapsedRef}
+                type="number"
+                min={0}
+                step={60}
+                inputMode="numeric"
+                value={draft ?? String(time)}
+                onChange={(e) => onElapsed(e.target.value)}
+                onBlur={() => setDraft(null)}
+              />
+            </label>
+            {v.swap && (
+              <button type="button" className="hud__swap" onClick={onReplace}>
+                Replace {v.swap.dropName} with {v.swap.addName}
+              </button>
+            )}
+          </div>
+          <p className="hud__left">
+            Time left {formatAmount(input.budget.time, 's')} · O₂ left {formatAmount(input.budget.o2, 'g')}
+            {input.plan?.status === 'ok' && (
+              <span className="hud__plan">
+                {' '}· Plan {formatAmount(input.plan.totals.time, 's')} · {formatAmount(input.plan.totals.o2, 'g')} O₂
+              </span>
+            )}
+          </p>
         </div>
-        <p className="hud__left">
-          Time left {formatAmount(input.budget.time, 's')} · O₂ left {formatAmount(input.budget.o2, 'g')}
-          {input.plan?.status === 'ok' && (
-            <span className="hud__plan">
-              {' '}· Plan {formatAmount(input.plan.totals.time, 's')} · {formatAmount(input.plan.totals.o2, 'g')} O₂
-            </span>
-          )}
-        </p>
-        </div>
-        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} />
       </div>
     </Panel>
   );

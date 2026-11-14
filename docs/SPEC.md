@@ -159,7 +159,7 @@ export interface Layer {
 }
 
 export interface Region {
-  schemaVersion: 1; id: 'gale'; name: string; status: Evidence;
+  schemaVersion: 1; id: SiteId; kind?: 'eva' | 'overview'; name: string; status: Evidence;
   grid: {
     width: number; height: number; metersPerPixel: number;
     originM: XY;                                              // північно-західний зовнішній кут
@@ -284,6 +284,10 @@ export interface ChecklistItem { id: string; label: string; reason: string; done
 `src/contracts/gonogo.ts` — чиста функція `evaluateGoNoGo(state) → { verdict, during, stations[] }` за §7.10. Її викликає HUD (F7) і тести; власних розрахунків маршруту чи бюджету вона не робить.
 
 ### 6.0 Файли даних
+
+- **Райони (15.11).** `SiteId = 'gale' | 'columbia-hills' | 'olympus-mons' | 'valles-marineris'`; пакет кожного — `public/data/<SiteId>/` з тією самою схемою `region.json`. `Region.kind`: `eva` (немає поля — теж `eva`) — маршрут, бюджет і GO / NO-GO; `overview` — лише рельєф для огляду, планування приховане, але файли планування все одно є (зі схилу, цілей може бути 0). Читати через `regionKind()`, URL — через `siteDataUrl(site, path)`.
+- **`files.elevationRender` + `renderGrid`** (пише F3, необов'язково): float32 `renderGrid.width × renderGrid.height` на тому самому bbox, що й `grid`, — щільніший рельєф лише для 3D. Планування завжди за `grid`.
+- **`context`** (пише F3, необов'язково): `{ file, width, height, metersPerPixel, originM, noData? }` — рельєф довкола району в тих самих локальних метрах (`originM` — північно-західний кут, може бути від'ємним). F2 малює його тьмяним кільцем без взаємодії.
 
 - **`targets.geojson`** (пише F6): `FeatureCollection` точок, `geometry.coordinates = [lon, lat]` у градусах, `properties` = `Target` без `coordinates` і `lonLat`. `DataLoader` (F3) перетворює `[lon, lat]` через `lonLatToXY` і заповнює `Target.coordinates` та `lonLat`; ціль поза сіткою відкидається з попередженням.
 - **`traverse.geojson`** (пише F3): `LineString` `[lon, lat, elev]`. F2 читає його за `region.files.traverse` і перетворює через `lonLatToXY`.
@@ -495,12 +499,12 @@ export interface ChecklistItem { id: string; label: string; reason: string; done
 | F0 Каркас, contracts, store, CI, інтеграція | Олександр | xand0dev | `feat/F0` | спільні файли §5.3, `src/features/*/index.ts` (заглушки) | — | — |
 | F1 Глобус і вибір місця | Іван | gonivanko | `feat/F1` | `src/features/globe/**`, `src/features/notes/**`, `public/data/mars/**`, `pipeline/globe/**` | site, annotations | `setSite`, `addAnnotation`, `removeAnnotation`, `setAnnotations` |
 | F2 3D-рельєф і 2D-план | Олександр | xand0dev | `feat/F2` | `src/features/terrain/**` | site, grid, region, layers, targets, selectedTargetIds, plan, selectedSegment, reach, base, position, annotations | `addAnnotation` (лише розміщення мітки, §7.12) |
-| F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/gale/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
+| F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/{gale,columbia-hills,olympus-mons,valles-marineris}/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
 | F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region, annotations | `setPlan`, `setWaypoints`, `setSelectedSegment` |
 | F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds, annotations | `setBudget`, `setReach`, `setLimits` |
-| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
+| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/*/targets*`, `public/data/*/photos/**`, `public/data/sites/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
-| F8 Демо й сабміт | Олександр | xand0dev | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
+| F8 Демо й сабміт | Оля | oljyaaa | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
 Кожній фічі F1–F8 (і F0) також дозволено: `specs/F<N>/**`, свій розділ у `docs/AI_LOG.md` і `docs/SOURCES.md`. **Тести лежать поруч із кодом** у своїй папці (`*.test.ts(x)`).
 
@@ -588,7 +592,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F7-AC8. Given** `src/ui`; **When** використано знаки §7.11; **Then** є компонент знака для кожного типу й стану з `aria-label`, і знаки однакові в HUD, списку цілей і легенді карти.
 - **F7-AC9. Given** увімкнено «Glove mode»; **When** відкрито сторінку на 1024 px і 400 px; **Then** усі кнопки й поля ≥ 64 px заввишки, вердикт GO / NO-GO і «Return in» видно без прокрутки, другорядні панелі згорнуті, горизонтального скролу немає; стан перемикача переживає перезавантаження.
 
-### F8 — Демо й сабміт (Олександр)
+### F8 — Демо й сабміт (Оля)
 Сценарій і відео ≤30 с з англійськими субтитрами, ≤7 слайдів (з Олею), сторінка сабміту, AI_LOG, SOURCES, релізний URL.
 - **F8-AC1. Given** релізний build; **When** відтворено сценарій §3; **Then** відео ≤30 с з англійськими субтитрами показує Gale, ≥3 типи даних, ціль з фото, маршрут, знімок «View from here», «O₂ −40%», ореол, червоні відрізки й «Point of no return», «Return in N min», заміну цілі й плашку обмежень.
 - **F8-AC2. Given** мережу вимкнено після локального запуску (`npm run preview`); **When** пройдено сценарій; **Then** усі дані локальні, а резервне відео відтворюється офлайн.

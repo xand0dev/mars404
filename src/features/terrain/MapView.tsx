@@ -22,7 +22,7 @@ import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
 import { force2DRequested, planReason, type PlanReason } from './lib/plan2d';
-import { noReturnRuns, readAbort } from './lib/abort';
+import { noReturnRuns, pointOfNoReturnMarker, readAbort } from './lib/abort';
 import { gridLayerKind, gridLayerRGBA } from './lib/layerRaster';
 import { traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
@@ -30,6 +30,8 @@ import { TerrainInfo } from './TerrainInfo';
 import { TerrainScene } from './TerrainScene';
 import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
+import { useContextHeights, useRenderHeights } from './useRenderHeights';
+import { buildZoneMask } from './lib/hd';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -112,7 +114,7 @@ function GlobeStage({ children }: { children: ReactNode }) {
 
 function textureLabel(hasRegion: boolean, status: ReturnType<typeof useOptionalTexture>['status']): string {
   if (!hasRegion) return 'height colours';
-  if (status === 'ready') return 'HiRISE texture';
+  if (status === 'ready') return 'HiRISE texture (greyscale, tinted for display)';
   if (status === 'loading') return 'HiRISE loading…';
   if (status === 'error') return 'height colours (texture failed to load)';
   return 'height colours';
@@ -157,10 +159,8 @@ export function MapView({ globe }: MapViewProps) {
 
   const marks = useMemo(() => (valid ? visibleMarks(grid, annotations) : []), [valid, grid, annotations]);
   // Точка неповернення (§7.8): початок першого відрізка без повернення.
-  const ponr = useMemo(() => {
-    const i = abort ? abort.segments.findIndex((x) => !x.ok) : -1;
-    return i >= 0 && plan ? (plan.segments[i]?.from ?? null) : null;
-  }, [abort, plan]);
+  const ponrMarker = useMemo(() => pointOfNoReturnMarker(plan, abort), [plan, abort]);
+  const ponr = ponrMarker?.xy ?? null;
   const inReach = useMemo(
     () => (xy: XY) => {
       if (!mask || mask.length !== grid.width * grid.height) return true;
@@ -190,6 +190,8 @@ export function MapView({ globe }: MapViewProps) {
   const textureUrl = region ? regionFileUrl(region.id, region.files.texture) : null;
   const hirise = useOptionalTexture(textureUrl, site !== null && show3D);
   const texture = hirise.status === 'ready' ? hirise.texture : null;
+  const render = useRenderHeights(region, site !== null && show3D);
+  const contextHeights = useContextHeights(region, site !== null && show3D);
 
   const sceneData = useMemo(() => {
     if (!cells || !heights) return null;
@@ -201,10 +203,13 @@ export function MapView({ globe }: MapViewProps) {
       // Ореол — лише в напівпрозорій верхній накладці, щоб під ним лишався колір висоти.
       baseRGBA: buildOverlay(grid, cells.classes, { heights }).data,
       topRGBA: top.data,
+      render,
+      zoneRGBA: buildZoneMask(grid.width, grid.height, cells.classes, mask),
+      context: contextHeights,
       haloCells: top.haloCells,
       warnings: top.warnings,
     };
-  }, [cells, heights, grid, noData, mask]);
+  }, [cells, heights, grid, noData, mask, render, contextHeights]);
 
   const raster2D = useMemo(
     () => (reason && cells && heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null),
@@ -250,7 +255,7 @@ export function MapView({ globe }: MapViewProps) {
   const redrawKey = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- новий ключ на будь-яку зміну сцени
-    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode, marks, mask],
+    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode, marks, mask, ponrMarker],
   );
 
   const plan2D = (r: PlanReason) =>
@@ -315,6 +320,7 @@ export function MapView({ globe }: MapViewProps) {
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas
               frameloop={fps && site !== null ? 'always' : 'demand'}
+              shadows
               camera={{ position: [0, 0, 3], fov: 45, near: 0.1, far: 100 }}
             >
               <ContextLossWatcher onLost={() => setLost(true)} />
@@ -341,6 +347,7 @@ export function MapView({ globe }: MapViewProps) {
                       marks={marks}
                       onPick={onPick}
                       inReach={inReach}
+                      ponr={ponrMarker}
                     />
                     {fps && <FpsProbe onReport={setFpsReport} />}
                   </>

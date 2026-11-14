@@ -24,8 +24,8 @@ import { Panel, StatusNote, EvidenceBadge, ItemRow, Disclosure, DataTable, EvaSi
 | Текст | `--text`, `--text-muted` |
 | Акцент і стани | `--accent`, `--ok`, `--warn`, `--danger`, `--info`, `--focus`, `--deficit-bg` |
 | Відступи | `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--space-4` 16 · `--space-5` 24 px; `--gap` 12 px |
-| Розміри | `--radius` 10 px, `--touch` 40 px |
-| Шрифт | `--font`; шкала `--fs-hero` · `--fs-title` · `--fs-body` · `--fs-small` |
+| Розміри | `--radius` 10 px, `--touch` 40 px; розкладка: `--side-w`, `--topbar-h` (міряє `Shell`) |
+| Шрифт | `--font`; шкала `--fs-hero` · `--fs-title` · `--fs-body` · `--fs-small` · `--fs-label` (заголовки панелей) |
 
 Нові кольори — лише як токени тут; у компонентах жодних «сирих» hex.
 
@@ -33,7 +33,7 @@ import { Panel, StatusNote, EvidenceBadge, ItemRow, Disclosure, DataTable, EvaSi
 
 | Компонент | Для чого | Головне |
 |---|---|---|
-| `Panel` | Секція з заголовком, власником і `MOCK` | `title`, `featureId`, `owner`, `mock` |
+| `Panel` | Секція з заголовком, власником і `MOCK` | `title`, `featureId`, `owner`, `mock`; у `PanelGroupContext` (права колонка `Shell`) заголовок — кнопка з `aria-expanded`, тіло ховається класом, не розмонтовується |
 | `StatusNote` | Статус / ризик | `level`: `info` ℹ · `ok` ✔ · `warn` ⚠ · `danger` ✖ · `pending` ⏳ · `deficit` ⛔; `live="status"` або `"alert"` (лише дефіцит) |
 | `EvidenceBadge` | Статус джерела числа | `status`: `verified` / `assumption` / `mock` / `pending` |
 | `ItemRow` | Рядок списку (цілі, мітки, пункти чекліста) | `sign` · `title` · `meta` · `actions`; у `<ul className="ui-list">`; на ≤ 520 px дії переходять під назву |

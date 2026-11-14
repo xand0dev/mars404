@@ -16,3 +16,5 @@ export { EVA_SIGN_KINDS, EVA_LEGEND_ITEMS, evaSignLabel } from './evaSignLabels'
 export type { EvaSignKind, EvaTargetState, EvaHazardLevel } from './evaSignLabels';
 export { EvidenceBadge, ItemRow, Disclosure, DataTable } from './system';
 export type { ItemRowProps, DisclosureProps, DataTableColumn, DataTableRow } from './system';
+export { PanelGroupContext, usePanelGroup } from './panelGroup';
+export type { PanelGroup } from './panelGroup';

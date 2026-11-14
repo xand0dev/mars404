@@ -9,7 +9,7 @@ export const BLOCKED_RGB: RGB = [74, 78, 105];
 /** NoData: майже чорний. */
 export const NODATA_RGB: RGB = [16, 16, 20];
 /** Ореол досяжності (reach.mask): насичений блакитний, щоб поверх коричневого ґрунту не сірів. */
-export const HALO_RGB: RGB = [0, 190, 255];
+export const HALO_RGB: RGB = [25, 230, 140];
 /** Непрозорість ореолу всередині зони; на краю — 255 (контур). */
 export const HALO_FILL_ALPHA = 150;
 
@@ -46,6 +46,8 @@ export const CSS = {
   noData: `rgb(${NODATA_RGB.join(',')})`,
   halo: `rgb(${HALO_RGB.join(',')})`,
   route: '#f3ece6',
+  /** Маршрут у 3D з обведенням (#94): теплий помаранчевий, не плутається з ореолом і blocked */
+  routeHd: '#ffb347',
   /** Підсвічений відрізок: маджента, не плутається з маршрутом, ореолом і ґрунтом */
   segment: '#ff3df2',
   /** F2-AC6: відрізок без повернення з аварійним O₂ */
