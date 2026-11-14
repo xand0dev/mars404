@@ -51,6 +51,29 @@
 
 Тестові сітки для AC1/AC2 (стіна, крутий підйом vs пологий обхід, ізольована область) будуються в тестах, `src/mocks` не змінюється.
 
+### «View from here» (#30, F4-AC6, SPEC §7.9)
+- **F4-AC6. Given** план і обраний відрізок; **When** найближчий знімок до середини відрізка ближче 300 м; **Then** видно знімок з чесним підписом (sol, ~відстань, тип місця, credit, посилання на джерело) і `alt`; далі 300 м — текст «No surface photo within 300 m»; файл не завантажився — заглушка з `alt`. Відрізки з `abort.segments[i].ok = false` — іконка й текст «no return» у таблиці (після #26 і #29).
+
+**Звідки знімки (NASA, офлайн).** Завантажують F6 (#34) і Іван (#36), F4 лише показує. Перевірено 14.11:
+
+| Що | Посилання | Що беремо |
+|---|---|---|
+| Сирі знімки Curiosity (JSON API) | `https://mars.nasa.gov/api/v1/raw_image_items/?order=sol%20desc&condition_1=msl:mission&condition_2=3008:sol:gte&condition_3=3010:sol:lte&search=NAV_LEFT_B` | `sol`, `site`, `drive`, `instrument`, `https_url` (JPG) — 436 кадрів за sol 3008–3010 |
+| Зупинки Curiosity (MMGIS) | https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints.json | `site`, `drive`, `sol`, lon/lat зупинки |
+| Галерея для людей | https://mars.nasa.gov/msl/multimedia/raw-images/ | `sourceUrl` у підписі |
+
+**Алгоритм.**
+1. Підготовка (F6 / Іван): кадр Navcam → зупинка з тими самими `site` + `drive` → координати зупинки (`locationAccuracy: 'rover-stop'`, це не місце кадру) → фільтр за bbox району → JPG у `public/data/gale/photos/` → `photos.geojson`.
+2. Показ (F4): середина обраного відрізка `(from + to) / 2` → кандидати: `photos`, а поки їх немає — `targets[].photo` з `targets[].coordinates` → горизонтальна відстань у метрах → найближчий; ≤300 м («assumption») — знімок, інакше текст.
+
+| # | Задача | Файли | AC |
+|---|---|---|---|
+| V1 | Тести пошуку: середина відрізка, найближчий, рівно 300 м — так, далі — ні, без кандидатів — `null`, цілі без фото пропускаються → red | `src/features/route/surface-photo.test.ts` | AC6 |
+| V2 | `findNearestPhoto` + кандидати з фото цілей | `src/features/route/surface-photo.ts` | AC6 |
+| V3 | Тести й компонент `ViewFromHere` у `RoutePanel`: знімок з підписом і посиланням, текст «No surface photo within 300 m», заглушка з `alt` при помилці завантаження | `src/features/route/ViewFromHere.tsx` | AC6 |
+| V4 | Після #26: кандидати з `photos` (`SurfacePhoto`) з пріоритетом над фото цілей; після #29 — «no return» у таблиці | `surface-photo.ts`, `SegmentTable.tsx` | AC6 |
+| V5 | `npm run check`, браузер 400 px + десктоп, AI_LOG, PR | — | AC6 |
+
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
