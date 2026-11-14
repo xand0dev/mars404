@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Annotation, XY } from '../../contracts';
 import { cellCenter, xyToCell } from '../../contracts/planning';
@@ -217,5 +217,170 @@ describe('RoutePanel', () => {
 
     act(() => store().setSelectedSegment(0));
     expect(details).not.toContainElement(screen.getByTestId('segment-details'));
+  });
+
+  describe('Пульт EVA (планшет): маршрут під пальцем, без прокрутки', () => {
+    const dock = () => screen.getByRole('region', { name: 'Route controls' });
+
+    it('без обраного місця пульта немає', () => {
+      render(<RoutePanel />);
+      expect(screen.queryByRole('region', { name: 'Route controls' })).not.toBeInTheDocument();
+    });
+
+    it('з пульта: Build → план; ▶ / ◀ крокують по відрізках, межі вимикають кнопки', async () => {
+      act(() => store().setSite('gale'));
+      store().toggleTarget('mock-a');
+      render(<RoutePanel />);
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Build route' }));
+      await screen.findByText(/route found/i);
+      const total = store().plan!.segments.length;
+
+      expect(within(dock()).getByRole('button', { name: 'Previous segment' })).toBeDisabled();
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Next segment' }));
+      expect(store().selectedSegment).toBe(0);
+      expect(dock()).toHaveTextContent(`Segment 1 of ${total}`);
+
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Next segment' }));
+      expect(store().selectedSegment).toBe(1);
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Previous segment' }));
+      expect(store().selectedSegment).toBe(0);
+    });
+
+    it('обраний відрізок у пульті — з причиною ризику й наявністю знімка', async () => {
+      act(() => store().setSite('gale'));
+      store().toggleTarget('mock-a');
+      render(<RoutePanel />);
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Build route' }));
+      await screen.findByText(/route found/i);
+      act(() => store().setSelectedSegment(0));
+      expect(dock()).toHaveTextContent('nominal');
+      expect(dock()).toHaveTextContent('no photo within 300 m');
+    });
+
+    it('без цілей — підказка, кнопка Build вимкнена', () => {
+      act(() => store().setSite('gale'));
+      render(<RoutePanel />);
+      expect(dock()).toHaveTextContent('Choose targets to plan a route');
+      expect(within(dock()).getByRole('button', { name: 'Build route' })).toBeDisabled();
+    });
+  });
+
+  it('порядок цілей згорнуто в «Target order»', () => {
+    store().toggleTarget('mock-a');
+    store().toggleTarget('mock-c');
+    render(<RoutePanel />);
+    const details = screen.getByText('Target order (2)').closest('details')!;
+    expect(within(details).getByRole('list', { name: 'Target order' })).toBeInTheDocument();
+  });
+
+  describe('Шторка пульта: деталі маршруту коротко', () => {
+    const details = () => screen.getByRole('region', { name: 'Route details' });
+    const build = async () => {
+      act(() => store().setSite('gale'));
+      store().toggleTarget('mock-a');
+      render(<RoutePanel />);
+      await userEvent.click(within(screen.getByRole('region', { name: 'Route controls' })).getByRole('button', { name: 'Build route' }));
+      await screen.findByText(/route found/i);
+    };
+    const setAbort = (badFrom: number | null, pnr: number | null) => {
+      const count = store().plan!.segments.length;
+      const segments = Array.from({ length: count }, (_, i) => ({ returnS: 100, ok: badFrom === null || i < badFrom }));
+      act(() => store().setReach({ status: 'incomplete', mask: new Uint8Array(0), returnInS: 600, deficits: [], swap: null, warnings: [], abort: { segments, pointOfNoReturnS: pnr, emergencyO2G: 360 } }));
+    };
+
+    it('точка неповернення одним рядком: хвилини й відрізок', async () => {
+      await build();
+      setAbort(2, 300);
+      expect(details()).toHaveTextContent('No return after 5 min');
+      expect(details()).toHaveTextContent('from segment 3');
+    });
+
+    it('повернення звідусіль — «Return possible all the way»', async () => {
+      await build();
+      setAbort(null, null);
+      expect(details()).toHaveTextContent('Return possible all the way');
+    });
+
+    it('ноги маршруту рядками й обраний відрізок з фото-приміткою', async () => {
+      await build();
+      expect(within(details()).getAllByRole('listitem')).toHaveLength(store().plan!.legs.length);
+      act(() => store().setSelectedSegment(0));
+      expect(details()).toHaveTextContent('Segment 1');
+      expect(details()).toHaveTextContent('no photo within 300 m');
+    });
+  });
+
+  it('підшторка знімка: тап по мініатюрі → великий знімок з підписом; ▶ гортає далі; Close', async () => {
+    act(() => store().setSite('gale'));
+    store().toggleTarget('mock-a');
+    render(<RoutePanel />);
+    await userEvent.click(within(screen.getByRole('region', { name: 'Route controls' })).getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+    const near = store().plan!.segments[0]!.to;
+    act(() => useMission.setState({ photos: [{ id: 'p1', coordinates: [near[0] + 30, near[1]], lonLat: [0, 0], url: 'photos/p1.jpg', alt: 'Navcam view of bedrock', sourceUrl: 'https://mars.nasa.gov/raw_images/1', credit: 'NASA/JPL-Caltech', sol: 3110, camera: 'NAV_LEFT_B', locationAccuracy: 'rover-stop', status: 'verified' }] }));
+    act(() => store().setSelectedSegment(0));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open photo from segment 1' }));
+    const sheet = screen.getByRole('dialog', { name: 'Photo from segment 1' });
+    expect(within(sheet).getByRole('img', { name: 'Navcam view of bedrock' })).toBeInTheDocument();
+    expect(sheet).toHaveTextContent(/Navcam, sol 3110, ~\d+ m from this segment \(rover stop\)/);
+
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Next segment' }));
+    expect(store().selectedSegment).toBe(1);
+    expect(screen.getByRole('dialog', { name: 'Photo from segment 2' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close photo' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  describe('Пульт як навігатор: повзунок по маршруту, Play, зведення по точці', () => {
+    const dock = () => screen.getByRole('region', { name: 'Route controls' });
+    const build = async () => {
+      act(() => store().setSite('gale'));
+      store().toggleTarget('mock-a');
+      render(<RoutePanel />);
+      await userEvent.click(within(dock()).getByRole('button', { name: 'Build route' }));
+      await screen.findByText(/route found/i);
+      return store().plan!;
+    };
+
+    it('повзунок: max = кількість відрізків, зміна → обраний відрізок', async () => {
+      const plan = await build();
+      const slider = within(dock()).getByRole('slider', { name: 'Position on route' });
+      expect(slider).toHaveAttribute('max', String(plan.segments.length));
+      fireEvent.change(slider, { target: { value: '5' } });
+      expect(store().selectedSegment).toBe(4);
+    });
+
+    it('зведення по точці: хвилини від старту, O₂ від старту, чи можна повернутись', async () => {
+      const plan = await build();
+      const count = plan.segments.length;
+      act(() => store().setReach({ status: 'incomplete', mask: new Uint8Array(0), returnInS: 600, deficits: [], swap: null, warnings: [],
+        abort: { segments: Array.from({ length: count }, (_, i) => ({ returnS: 100, ok: i < 3 })), pointOfNoReturnS: 120, emergencyO2G: 56 } }));
+      act(() => store().setSelectedSegment(1));
+      const t = plan.segments[0]!.time + plan.segments[1]!.time;
+      const o2 = plan.segments[0]!.o2 + plan.segments[1]!.o2;
+      expect(dock()).toHaveTextContent(`${Math.floor(t / 60)} min in`);
+      expect(dock()).toHaveTextContent(`${o2.toFixed(1)} g O₂ used`);
+      expect(dock()).toHaveTextContent('return OK');
+      act(() => store().setSelectedSegment(3));
+      expect(dock()).toHaveTextContent('no return from here');
+    });
+
+    it('Play проходить маршрут сам; Pause зупиняє; ◀ ▶ теж зупиняють', async () => {
+      await build();
+      vi.useFakeTimers();
+      try {
+        fireEvent.click(within(dock()).getByRole('button', { name: 'Play route' }));
+        act(() => vi.advanceTimersByTime(3 * 250));
+        expect(store().selectedSegment).toBe(2);
+        expect(within(dock()).getByRole('button', { name: 'Pause route' })).toBeInTheDocument();
+        fireEvent.click(within(dock()).getByRole('button', { name: 'Pause route' }));
+        act(() => vi.advanceTimersByTime(1000));
+        expect(store().selectedSegment).toBe(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });

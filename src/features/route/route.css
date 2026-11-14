@@ -41,3 +41,67 @@
 .traverse-word { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
 .traverse-word--ok { color: var(--ok); }
 .traverse-word--danger { color: var(--danger); }
+
+/* Пульт EVA, половина F4 (база стилів — budget.css). */
+.eva-dock--route { left: 0; width: 54%; }
+.eva-dock__step { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--space-2, 8px); }
+.eva-dock__build { flex: none; }
+html[data-eva-dock='collapsed'] .eva-dock--route { display: none; }
+@media (max-width: 719px) {
+  .eva-dock--route { width: 100%; bottom: var(--eva-dock-h); border-bottom: 1px solid var(--border, var(--line)); }
+}
+
+/* Шторка, половина F4: точка неповернення, ноги, обраний відрізок з мініатюрою. */
+.eva-pnr { margin: 0 0 var(--space-2, 8px); padding: 8px 10px; border-left: 4px solid var(--line); border-radius: 6px; background: var(--surface-2); }
+.eva-pnr--ok { border-left-color: var(--ok); }
+.eva-pnr--danger { border-left-color: var(--danger); color: var(--danger); }
+.eva-legs { list-style: none; margin: 0 0 var(--space-2, 8px); padding: 0; display: grid; gap: 6px; }
+.eva-legs li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-2, 8px); align-items: baseline; font-size: 0.9rem; }
+.eva-legs__num { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.eva-seg { display: flex; align-items: center; gap: var(--space-3, 12px); padding-top: var(--space-2, 8px); border-top: 1px solid var(--line); }
+.eva-seg p { flex: 1 1 auto; margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+.eva-seg p strong { color: var(--text); }
+.eva-seg__thumb { flex: none; width: 88px; height: 64px; padding: 0; overflow: hidden; border-radius: 6px; }
+.eva-seg__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.eva-seg__nophoto { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Підшторка знімка: над шторкою, по центру; ◀ ▶ гортають відрізки, не закриваючи знімок. */
+.eva-photo { position: fixed; z-index: 42; left: 50%; transform: translateX(-50%); bottom: calc(var(--eva-dock-h) + 52px); width: min(560px, calc(100% - 24px)); max-height: 62vh; display: flex; flex-direction: column; gap: var(--space-2, 8px); padding: var(--space-3, 12px); background: var(--surface, #15181d); border: 1px solid var(--border, var(--line)); border-radius: 12px; box-shadow: 0 -8px 32px rgb(0 0 0 / 0.45); }
+html[data-eva-dock='expanded'] .eva-photo { bottom: calc(var(--eva-sheet-h) + 52px); max-height: calc(100vh - var(--eva-sheet-h) - 80px); }
+.eva-photo figure { margin: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.eva-photo img { width: 100%; min-height: 0; max-height: 44vh; object-fit: contain; border-radius: 6px; background: #000; }
+.eva-photo figcaption, .eva-photo__empty { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+.eva-photo__nav { display: flex; gap: var(--space-2, 8px); }
+.eva-photo__nav button { min-height: 56px; min-width: 56px; }
+.eva-photo__close { margin-left: auto; }
+@media (max-width: 719px) {
+  .eva-photo { bottom: calc(var(--eva-dock-h) + var(--eva-route-h) + 40px); }
+  html[data-eva-dock='expanded'] .eva-photo { bottom: auto; top: 12px; }
+}
+
+/* Одна «Build route» на екрані: де видно пульт (< 1200 px або Glove mode), кнопку панелі ховаємо — інакше дві однакові дії. */
+@media (max-width: 1199px), (max-height: 599px) {
+  body:has(.eva-dock--route) .route-build { display: none; }
+}
+body:has(.shell--glove):has(.eva-dock--route) .route-build { display: none; }
+
+/* Пульт як навігатор: де я на маршруті — номер, повзунок під великий палець, хвилини й O₂ від старту. */
+.eva-dock__where { margin: 0; display: flex; align-items: baseline; gap: var(--space-2, 8px); min-width: 0; }
+.eva-dock__where strong { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
+.eva-dock__scrub { width: 100%; height: 28px; margin: 0; accent-color: var(--accent); cursor: pointer; touch-action: none; }
+.eva-dock__scrub::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--surface-3, #222); }
+.eva-dock__scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--text); border: 3px solid var(--accent); }
+.eva-dock__scrub::-moz-range-track { height: 8px; border-radius: 4px; background: var(--surface-3, #222); }
+.eva-dock__scrub::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--text); border: 3px solid var(--accent); }
+.eva-dock__play[aria-pressed='true'] { border-color: var(--accent); }
+
+/* Вузький екран: ◀ Play ▶ і Build route — першим рядком, повзунок і зведення — другим, на всю ширину. */
+@media (max-width: 719px) {
+  .eva-dock--route { min-height: var(--eva-route-h); }
+  .eva-dock--route .eva-dock__controls { flex-wrap: wrap; row-gap: 6px; }
+  .eva-dock--route .eva-dock__step { display: contents; }
+  .eva-dock--route .eva-dock__build { margin-left: auto; }
+  .eva-dock--route .eva-dock__readout { order: 10; flex: 1 0 100%; }
+  html[data-eva-dock='expanded'] .eva-dock--route { height: calc(var(--eva-sheet-h) * 0.6); bottom: calc(var(--eva-sheet-h) * 0.4); }
+  html[data-eva-dock='expanded'] .eva-dock--life { height: calc(var(--eva-sheet-h) * 0.4); }
+}

@@ -1,15 +1,17 @@
 // F4: маршрут A* (SPEC §7.3). Пише в store лише setPlan, setWaypoints, setSelectedSegment.
 import { useEffect, useMemo, useState } from 'react';
-import type { Annotation, RoutePlan, Target, XY } from '../../contracts';
+import type { Annotation, RoutePlan, Segment, Target, XY } from '../../contracts';
 import { applyAnnotations } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
-import { Panel, StatusNote } from '../../ui';
+import { Disclosure, Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
 import { ModelCoefficientsNote } from './ModelCoefficients';
 import { describeFailure, formatDistance, formatDose, formatEnergy, formatMinutes, formatO2, pointLabels } from './format';
 import { createDefaultRunner, createRouteClient, type RouteClient } from './route-client';
 import { segmentRisks } from './segment-risk';
+import { RouteDock } from './RouteDock';
 import { SegmentTable } from './SegmentTable';
+import { findNearestPhoto, photoCandidates } from './surface-photo';
 import { TraversePlan } from './TraversePlan';
 import { ViewFromHere } from './ViewFromHere';
 import { WaypointOrder } from './WaypointOrder';
@@ -62,6 +64,13 @@ export function RoutePanel() {
   const names = waypointNames(waypoints, targets);
   const labels = pointLabels(names);
   const canBuild = waypoints.length > 0 && base !== null;
+  const site = useMission((s) => s.site);
+  const risks = plan?.status === 'ok' ? segmentRisks({ plan, grid, annotations, abort, noData }) : [];
+  const candidates = photoCandidates(photos, targets);
+  const photoFor = (segment: Segment) => {
+    const nearest = findNearestPhoto(segment, candidates);
+    return nearest && { photo: nearest.candidate.photo, distanceM: nearest.distanceM, location: nearest.candidate.location, camera: nearest.candidate.camera };
+  };
 
   const build = () => {
     if (autoRebuild && base) getRouteClient().request({ grid: planningGrid, model, start: position ?? base, waypoints, base, noData });
@@ -72,7 +81,11 @@ export function RoutePanel() {
     <Panel title="Route" featureId="F4" owner="Влад" mock={region === null}>
       {/* Текст лічильника перевіряє src/app/App.test.tsx (F0). */}
       <p className="route-count">{waypoints.length} waypoint(s) selected</p>
-      {waypoints.length > 0 && <WaypointOrder waypoints={waypoints} names={names} onReorder={setWaypoints} />}
+      {waypoints.length > 0 && (
+        <Disclosure summary={`Target order (${waypoints.length})`}>
+          <WaypointOrder waypoints={waypoints} names={names} onReorder={setWaypoints} />
+        </Disclosure>
+      )}
       <button type="button" className="route-build" disabled={!canBuild} aria-busy={plan?.status === 'pending'} onClick={build}>
         Build route
       </button>
@@ -82,13 +95,16 @@ export function RoutePanel() {
         <>
           <TraversePlan plan={plan} labels={labels} abort={abort} />
           <ElevationProfile plan={plan} grid={grid} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
-          <SegmentTable plan={plan} risks={segmentRisks({ plan, grid, annotations, abort, noData })} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
+          <SegmentTable plan={plan} risks={risks} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           {selectedSegment !== null && plan.segments[selectedSegment] && (
             <ViewFromHere segment={plan.segments[selectedSegment]} segmentIndex={selectedSegment} photos={photos} targets={targets} />
           )}
         </>
       )}
       <ModelCoefficientsNote model={model} />
+      {site !== null && (
+        <RouteDock plan={plan} selectedSegment={selectedSegment} onSelect={setSelectedSegment} onBuild={build} canBuild={canBuild} risks={risks} labels={labels} abort={abort} photoFor={photoFor} />
+      )}
     </Panel>
   );
 }
