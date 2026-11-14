@@ -7,6 +7,7 @@ import { ElevationProfile } from './ElevationProfile';
 import { describeFailure, formatDistance, formatDose, formatEnergy, formatMinutes, formatO2, pointLabels } from './format';
 import { createDefaultRunner, createRouteClient, type RouteClient } from './route-client';
 import { SegmentTable } from './SegmentTable';
+import { ViewFromHere } from './ViewFromHere';
 import { WaypointOrder } from './WaypointOrder';
 import './route.css';
 
@@ -79,6 +80,9 @@ export function RoutePanel() {
         <>
           <ElevationProfile plan={plan} grid={grid} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           <SegmentTable plan={plan} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
+          {selectedSegment !== null && plan.segments[selectedSegment] && (
+            <ViewFromHere segment={plan.segments[selectedSegment]} segmentIndex={selectedSegment} targets={targets} />
+          )}
         </>
       )}
       {unverified.length > 0 && (

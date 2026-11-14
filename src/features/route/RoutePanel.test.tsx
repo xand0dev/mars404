@@ -11,6 +11,17 @@ const store = () => useMission.getState();
 beforeEach(() => resetMission());
 
 describe('RoutePanel', () => {
+  it('F4-AC6: вибір відрізка показує «View from here»', async () => {
+    store().toggleTarget('mock-a');
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+
+    expect(screen.queryByRole('region', { name: 'View from here' })).not.toBeInTheDocument();
+    store().setSelectedSegment(0);
+    expect(await screen.findByRole('region', { name: 'View from here' })).toHaveTextContent('No surface photo within 300 m');
+  });
+
   it('без цілей кнопка вимкнена з поясненням', () => {
     render(<RoutePanel />);
     expect(screen.getByRole('button', { name: 'Build route' })).toBeDisabled();
