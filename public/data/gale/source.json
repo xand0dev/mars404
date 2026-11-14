@@ -40,12 +40,6 @@
       "bytes": 44176,
       "sha256": "4ddd8e72dce013efa44d373cbe2f9025da95421c621971500037a3373e60db53",
       "accessedAt": "2026-11-14"
-    },
-    "hirise_4096.jpg": {
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=4096%2C4096&format=jpg&pixelType=U8&f=image",
-      "bytes": 1624971,
-      "sha256": "5372aff04c6eeb1eca9114e42fee00ff3439a271feca25ba747aad14711bf993",
-      "accessedAt": "2026-11-14"
     }
   },
   "native": {

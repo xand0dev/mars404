@@ -25,11 +25,10 @@
     "slope": "slope.f32",
     "walkable": "walkable.u8",
     "hazard": "hazard.f32",
-    "texture": "hirise_4096.jpg",
+    "texture": "hirise.jpg",
     "targets": "targets.geojson",
     "traverse": "traverse.geojson",
-    "photos": "photos/photos.geojson",
-    "elevationRender": "elevation_render.f32"
+    "photos": "photos/photos.geojson"
   },
   "noData": -9999.0,
   "base": [
@@ -435,24 +434,11 @@
       "title": "Radiation dose limit",
       "status": "assumption",
       "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
-    },
-    {
-      "id": "trek-gale-dem-1m-render",
-      "title": "Gale DEM 1 m → 2.5 m render mesh (3D only)",
-      "status": "derived",
-      "note": "Area-weighted mean of valid 1 m pixels of Gale_DEM_SMG_1m into 1024×1024 cells of 2.5 m (pipeline/render_hd.py). Used only for the 3D mesh; planning stays on the 10 m grid. Same input as elevation.f32 (sha256 70a372a0…).",
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer",
-      "credit": "NASA/JPL/University of Arizona (HiRISE), NASA Mars Trek",
-      "accessedAt": "2026-11-14"
     }
   ],
   "hazardFromSlope": {
     "kind": "slope-linear",
     "slopeDegAtMax": 25,
     "maxHazard": 0.5
-  },
-  "renderGrid": {
-    "width": 1024,
-    "height": 1024
   }
 }
