@@ -8,13 +8,15 @@ import { BudgetEngine } from './BudgetEngine';
 import { BudgetPanel } from './BudgetPanel';
 
 const store = () => useMission.getState();
-const renderBudget = () =>
-  render(
+const renderBudget = (site: 'gale' | null = 'gale') => {
+  act(() => store().setSite(site));
+  return render(
     <>
       <BudgetEngine />
       <BudgetPanel />
     </>,
   );
+};
 
 beforeEach(() => resetMission());
 
@@ -82,7 +84,42 @@ describe('BudgetEngine + BudgetPanel', () => {
     act(() => store().toggleTarget('mock-c'));
     act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 0, o2: 600, energy: 0, dose: null, dist: 0 } }));
 
-    const deficit = screen.getByText(/^Deficit:/);
-    expect(deficit).toHaveTextContent(/^Deficit: O₂ —/);
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent(/Deficit: O₂ —/);
+  });
+
+  it('#32: місце не обрано — «Return in — min», як у HUD (#9 п.3)', () => {
+    renderBudget(null);
+    expect(screen.getByText('Return in — min')).toBeInTheDocument();
+  });
+
+  it('#32: шкали показують резерв і планову витрату (Gauge F7)', () => {
+    renderBudget();
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('reserve 144 g');
+
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 900, o2: 180, energy: 10, dose: null, dist: 900 } }));
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('plan 180 g');
+    expect(screen.getByText('Return in 33 min')).toBeInTheDocument();
+  });
+
+  it('#32: дефіцит позначено на шкалі ресурсу й рівнем deficit (⛔) у статусі', () => {
+    const { container } = renderBudget();
+    act(() => store().setTime(3500));
+
+    // 3500 с: час 100 < 720 резерву, O₂ 720 − 700 = 20 < 144 резерву — обидва в дефіциті.
+    const marked = [...container.querySelectorAll('.ui-gauge--deficit')].map((el) => el.textContent?.split(':')[0]);
+    expect(marked).toEqual(['Time', 'O₂']);
+    expect(screen.getByText('Return in 0 min')).toBeInTheDocument();
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⛔');
+  });
+
+  it('#32: розрахунок маршруту — рівень pending (⏳)', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan(emptyPlan('pending', 1)));
+    const status = screen.getAllByRole('status').find((el) => /calculating/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⏳');
   });
 });
