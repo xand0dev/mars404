@@ -15,6 +15,8 @@ export interface TerrainInfoProps {
   haloShown: boolean;
   routeShown: boolean;
   segmentShown: boolean;
+  /** F2-AC6: є відрізки без повернення; assumption — у запасу немає джерела */
+  noReturn: { emergencyO2G: number; assumption: boolean } | null;
   /** Траверс марсохода показано (T12) */
   traverse: { status: Evidence } | null;
   /** drawn: false — F2 не вміє намалювати цей шар (чесно в легенді) */
@@ -24,7 +26,7 @@ export interface TerrainInfoProps {
 
 const Swatch = ({ color }: { color: string }) => <span className="terrain-swatch" style={{ background: color }} aria-hidden="true" />;
 
-export function TerrainInfo({ width, height, metersPerPixel, status, texture, counts, haloShown, routeShown, segmentShown, traverse, layers, warnings }: TerrainInfoProps) {
+export function TerrainInfo({ width, height, metersPerPixel, status, texture, counts, haloShown, routeShown, segmentShown, noReturn, traverse, layers, warnings }: TerrainInfoProps) {
   return (
     <div className="terrain-info">
       <p className="terrain-facts" aria-label="Terrain facts">
@@ -58,6 +60,11 @@ export function TerrainInfo({ width, height, metersPerPixel, status, texture, co
         {segmentShown && (
           <span>
             <Swatch color={CSS.segment} />━ Selected segment
+          </span>
+        )}
+        {noReturn && (
+          <span>
+            <Swatch color={CSS.noReturn} />⛔ No return with emergency O₂ ({noReturn.emergencyO2G} g{noReturn.assumption ? ', assumption' : ''})
           </span>
         )}
         {traverse && (

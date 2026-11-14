@@ -15,6 +15,7 @@ import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
 import { force2DRequested, planReason, type PlanReason } from './lib/plan2d';
+import { noReturnRuns, readAbort } from './lib/abort';
 import { gridLayerKind, gridLayerRGBA } from './lib/layerRaster';
 import { traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
@@ -137,6 +138,13 @@ export function MapView({ globe }: MapViewProps) {
   const cells = useMemo(() => (valid ? classifyCells(grid, { noData, maxSlopeDeg }) : null), [valid, grid, noData, maxSlopeDeg]);
   const heights = useMemo(() => (valid ? displayHeights(grid, noData) : null), [valid, grid, noData]);
   const mask = reach?.mask;
+  // F2-AC6 (SPEC §7.8): червоні відрізки без повернення; рахує F5 у reach.abort.
+  const abort = useMemo(() => readAbort(reach), [reach]);
+  const noReturn = useMemo(() => noReturnRuns(plan, abort), [plan, abort]);
+  const noReturnLines = useMemo(() => noReturn.runs.map((r) => r.points), [noReturn]);
+  // Без джерела для emergencyO2G на екрані «assumption» (§7.8). Поле evidence з'явиться з contract-PR #26.
+  const emergencySource = ((region?.model ?? mockModel).evidence as Record<string, { status?: string } | undefined>).emergencyO2G;
+  const emergencyAssumption = emergencySource?.status !== 'verified';
 
   const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
@@ -221,6 +229,7 @@ export function MapView({ globe }: MapViewProps) {
         layerUrls={layerUrls}
         gridLayers={gridLayers2D}
         traverse={traverseLines}
+        noReturn={noReturnLines}
         targets={targets}
         selectedIds={selectedIds}
         plan={plan}
@@ -256,7 +265,8 @@ export function MapView({ globe }: MapViewProps) {
           segmentShown={plan !== null && selectedSegment !== null && plan.segments[selectedSegment] !== undefined}
           layers={mapLayers.map((m) => ({ name: m.layer.name, status: m.layer.status, drawn: m.kind !== null }))}
           traverse={traverseLines.length > 0 ? { status: traverseStatus } : null}
-          warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings]}
+          noReturn={noReturn.count > 0 && abort ? { emergencyO2G: abort.emergencyO2G, assumption: emergencyAssumption } : null}
+          warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings, ...(noReturn.warning ? [noReturn.warning] : [])]}
         />
       )}
       <div className="terrain-stage">
@@ -279,6 +289,7 @@ export function MapView({ globe }: MapViewProps) {
                       layerUrls={layerUrls}
                       gridLayers={gridLayers3D}
                       traverse={traverseLines}
+                      noReturn={noReturnLines}
                       targets={targets}
                       selectedIds={selectedIds}
                       plan={plan}
