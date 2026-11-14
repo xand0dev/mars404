@@ -1,20 +1,24 @@
-// F7: пульт місії (T25). Зверху — смуга HUD (sticky на десктопі), карта — головна площа, праворуч — панелі,
-// що згортаються (відкрита та, що потрібна для наступного кроку, T24), під картою — Route і Resources.
+// F7: застосунок на весь екран. Шапка з кроками демо; ліворуч — підготовка виходу (Location → Layers → Targets → Route),
+// у центрі — карта, праворуч — стан місії (HUD, Resources, Pre-EVA checklist, Crew map notes).
+// Колонки прокручуються самі, сторінка — ні (≥ 1200 px). Вужче — одна колонка: HUD → карта → план → стан.
+// Панелі в колонках згортаються; відкриті ті, що потрібні для наступного кроку (T24).
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useMission } from '../../store/useMission';
 import { PanelGroupContext, type PanelGroup } from '../../ui';
 import { GloveContext, readGlove, writeGlove } from './glove';
-import { isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
+import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
 
 export interface ShellProps {
   hud: ReactNode;
   map: ReactNode;
+  /** Підготовка виходу: Location, Layers, Science targets, Route. */
   side: ReactNode;
-  bottom?: ReactNode;
+  /** Стан місії під HUD: Resources, Pre-EVA checklist, Crew map notes. */
+  status?: ReactNode;
 }
 
-export function Shell({ hud, map, side, bottom }: ShellProps) {
+export function Shell({ hud, map, side, status }: ShellProps) {
   const [glove, setGlove] = useState(readGlove);
   const toggle = () => {
     const next = !glove;
@@ -23,7 +27,10 @@ export function Shell({ hud, map, side, bottom }: ShellProps) {
   };
 
   const step = useMission((s) => panelStep(s));
-  const [overrides, setOverrides] = useState<PanelOverrides>({ step, open: {} });
+  const [overrides, setOverrides] = useState<PanelOverrides>({
+    step,
+    open: {},
+  });
   const group = useMemo<PanelGroup>(
     () => ({
       isOpen: (title) => isPanelOpen(step, overrides, title),
@@ -31,55 +38,64 @@ export function Shell({ hud, map, side, bottom }: ShellProps) {
     }),
     [step, overrides],
   );
+  const current = STEPS.findIndex((s) => s.id === step);
 
-  // Висота sticky-смуги → --topbar-h: від неї рахуються висота карти й правої колонки.
-  const topRef = useRef<HTMLDivElement>(null);
-  const [topH, setTopH] = useState(0);
-  useLayoutEffect(() => {
-    const el = topRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => setTopH(Math.round(el.getBoundingClientRect().height)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const sidePanels = (
+  // Згортаються лише панелі колонок; HUD і карта — ні.
+  const plan = (
     <PanelGroupContext.Provider value={group}>
-      <aside className="shell__side" aria-label="Mission panels">
+      <aside className="shell__side" aria-label="Mission planning">
         {side}
       </aside>
     </PanelGroupContext.Provider>
   );
-  const bottomPanels = bottom && <div className="shell__bottom">{bottom}</div>;
+  const rest = status && (
+    <PanelGroupContext.Provider value={group}>
+      <aside className="shell__status" aria-label="Mission status">
+        {status}
+      </aside>
+    </PanelGroupContext.Provider>
+  );
 
   return (
     <GloveContext.Provider value={glove}>
-      <div className={`shell${glove ? ' shell--glove' : ''}`} style={{ '--topbar-h': `${topH}px` } as CSSProperties}>
-        <div className="shell__top" ref={topRef}>
-          <header className="shell__bar">
-            <div className="shell__brand">
-              <h1 className="shell__title">MARS::404 · Gale EVA planner</h1>
-              <p className="shell__disclaimer">Demonstration model, not certified navigation.</p>
-            </div>
-            <button type="button" className="shell__glove" aria-pressed={glove} onClick={toggle}>
-              Glove mode
-            </button>
-          </header>
-          <div className="shell__hud">{hud}</div>
-        </div>
+      <div className={`shell${glove ? ' shell--glove' : ''}`}>
+        <header className="shell__bar">
+          <div className="shell__brand">
+            <h1 className="shell__title">MARS::404 · Gale EVA planner</h1>
+            <p className="shell__disclaimer">Demonstration model, not certified navigation.</p>
+          </div>
+          <ol className="shell__steps" aria-label="Demo steps">
+            {STEPS.map((s, i) => (
+              <li
+                key={s.id}
+                className={`shell__step${i < current ? ' is-done' : ''}${i === current ? ' is-current' : ''}`}
+                aria-current={i === current ? 'step' : undefined}
+              >
+                <span className="shell__step-n" aria-hidden="true">
+                  {i < current ? '✔' : i + 1}
+                </span>
+                {s.label}
+              </li>
+            ))}
+          </ol>
+          <button type="button" className="shell__glove" aria-pressed={glove} onClick={toggle}>
+            Glove mode
+          </button>
+        </header>
+        <div className="shell__hud">{hud}</div>
         <main className="shell__map">{map}</main>
         {glove ? (
           <details className="shell__more">
             <summary>More panels</summary>
             <div className="shell__more-body">
-              {sidePanels}
-              {bottomPanels}
+              {plan}
+              {rest}
             </div>
           </details>
         ) : (
           <>
-            {sidePanels}
-            {bottomPanels}
+            {plan}
+            {rest}
           </>
         )}
       </div>

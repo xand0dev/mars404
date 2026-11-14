@@ -5,13 +5,13 @@
 .budget-evidence { margin: -4px 0 6px; font-size: 0.8em; color: var(--warn); }
 
 /* Life support: головне число, статус словом, ресурси зі словом стану. Колір лише доповнює слово (SPEC §7.7). */
-.life-hero { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px var(--space-3, 12px); padding: var(--space-3, 12px); margin-bottom: var(--space-2, 8px); border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius, 10px); background: var(--surface-2, transparent); }
+.life-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px var(--space-3, 12px); padding: var(--space-3, 12px); margin-bottom: var(--space-2, 8px); border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius, 10px); background: var(--surface-2, transparent); }
 .life-hero--ok { border-left-color: var(--ok); }
 .life-hero--warn { border-left-color: var(--warn); }
 .life-hero--danger { border-left-color: var(--danger); background: var(--deficit-bg, transparent); }
 .life-hero--info { border-left-color: var(--info); }
 /* Головне число — у HUD; тут лише рядок, щоб не було двох однакових великих «Return in». */
-.life-hero .budget-return { grid-column: 1; margin: 0; font-family: var(--font-mono); font-size: 1.1rem; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.life-hero .budget-return { grid-column: 1; min-width: 0; margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
 .life-hero__status { grid-column: 2; grid-row: 2; }
 .life-label { grid-column: 1 / -1; margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 .life-limited { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; color: var(--text-muted); }

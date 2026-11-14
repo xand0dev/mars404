@@ -50,7 +50,6 @@ export function GoNoGoPanel({ onStart, onFix }: GoNoGoPanelProps) {
       ))}
     </ul>
   );
-  const firstHold = g.stations.find((s) => s.call === 'hold');
 
   return (
     <>
@@ -80,9 +79,6 @@ export function GoNoGoPanel({ onStart, onFix }: GoNoGoPanelProps) {
           )}
           {g.verdict === 'caution' && <HoldButton onConfirm={confirm} />}
           {g.verdict === 'nogo' && <p className="gonogo__hint">EVA start blocked — fix the NO-GO stations below.</p>}
-          {g.verdict === 'hold' && firstHold && (
-            <p className="gonogo__hint">Next: {fixText(firstHold.fix) ?? firstHold.reason}</p>
-          )}
         </div>
       )}
 
