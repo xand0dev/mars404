@@ -130,8 +130,7 @@ def build(cache):
 
     bbox = cfg.BBOX
     origin = (0, H * cfg.MPP)
-    cur = json.loads((cache / 'MSL_waypoints_current.json').read_text(encoding='utf-8'))['features'][0]['properties']
-    bx, by = lonlat_to_xy(cur['lon'], cur['lat'], bbox, origin)
+    bx, by = lonlat_to_xy(*cfg.CENTER, bbox, origin)
     bc, br = int(bx // cfg.MPP), int((origin[1] - by) // cfg.MPP)
     cells = sorted(range(W * H), key=lambda i: ((i // W - br) ** 2 + (i % W - bc) ** 2, i))
     bi = next(i for i in cells if walk[i])
@@ -150,9 +149,8 @@ def build(cache):
         src('trek-gale-dem-1m', 'Gale DEM 1 m (HiRISE stereo)', 'verified', 'Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.', f['dem.tif']['url'], trek.DEM, trek_credit, day),
         src('trek-hirise-mosaic', 'HiRISE mosaic, Curiosity area', 'verified', 'Grayscale JPEG 2048², same bbox; display only.', f['hirise.jpg']['url'], trek.HIRISE, trek_credit, day),
         src('mmgis-msl-traverse', 'Curiosity traverse (MMGIS)', 'verified', 'MSL_traverse.json clipped to bbox; line leaves bbox → split.', f['MSL_traverse.json']['url'], 'MSL_traverse', 'NASA/JPL-Caltech, MSL MMGIS', day),
-        src('mmgis-msl-current', 'Curiosity current position (MMGIS)', 'verified', f"sol {cur['sol']}, lon {cur['lon']}, lat {cur['lat']}: bbox centre.", f['MSL_waypoints_current.json']['url'], 'MSL_waypoints_current', 'NASA/JPL-Caltech, MSL MMGIS', day),
         src('hazard-from-slope', 'Hazard derived from slope', 'assumption', f"hazard = min(1, slopeDeg / {HAZARD_MODEL['slopeDegAtMax']}) x {HAZARD_MODEL['maxHazard']}; NoData = 1. Test coefficients, not measured hazard."),
-        src('base-assumption', 'Habitat base', 'assumption', "Walkable cell nearest to Curiosity's current position; not a real habitat site."),
+        src('base-assumption', 'Habitat base', 'assumption', f"Walkable cell nearest to bbox centre (lon {cfg.CENTER[0]}, lat {cfg.CENTER[1]}, centroid of F6 targets); not a real habitat site."),
         src('model-assumption', 'Walk model and limits', 'assumption', 'Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5).'),
     ]
     model_vals = dict(speedMps=1, uphillFactor=2, downhillFactor=0.5, o2GPerS=0.2, energyWhPerM=0.05, doseUSvPerS=None, maxSlopeDeg=25, hazardWeight=0.5, reserveFraction=0.2)
@@ -170,9 +168,9 @@ def build(cache):
         layer('slope', 'Slope (derived)', 'slope', 'slope.f32', ['trek-gale-dem-1m', 'hazard-from-slope'], '°', cfg.NATIVE_M, 'Horn 3x3 at 1 m, max per cell',
               [dict(value=0, label='0° flat', color='#2f6f4f'), dict(value=15, label='15° moderate', color='#c9a227'), dict(value=25, label='25° model limit', color='#c0392b')]),
         layer('traverse', 'Curiosity traverse', 'mission', 'traverse.geojson', ['mmgis-msl-traverse'], 'path', None, 'clip to bbox',
-              [dict(value=1, label='rover path', color='#4fc3f7')]),
+              [dict(value=1, label='rover path', color='#e8b84a')]),
     ]
-    region = dict(schemaVersion=1, id='gale', name='Gale · Mount Sharp (Curiosity area)', status='verified',
+    region = dict(schemaVersion=1, id='gale', name='Gale · Mount Sharp (Curiosity stops, sol 3008–3192)', status='verified',
                   grid=dict(width=W, height=H, metersPerPixel=cfg.MPP, originM=list(origin), rowOrder='north-to-south',
                             boundsLonLat=list(bbox), crs='Mars 2000 geographic (Trek bboxSR 104905)'),
                   files=dict(elevation='elevation.f32', slope='slope.f32', walkable='walkable.u8', hazard='hazard.f32',

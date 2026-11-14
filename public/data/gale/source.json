@@ -1,35 +1,30 @@
 {
   "accessedAt": "2026-11-14",
   "bbox": [
-    137.367215,
-    -4.847618,
-    137.410557,
-    -4.804429
+    137.385072,
+    -4.759614,
+    137.428408,
+    -4.716426
   ],
   "center": [
-    137.388886,
-    -4.82602331
+    137.40674,
+    -4.73802
   ],
   "inputs": {
     "dem.tif": {
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
       "bytes": 26218444,
-      "sha256": "8a27dec09c49d5d5ae9083681cf03c31db0498320066446761394982ea8a02a5"
+      "sha256": "70a372a0b4e212b6aade644fe51581c1ba09cf84c22233211e3a8e3487f94230"
     },
     "hirise.jpg": {
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
-      "bytes": 547166,
-      "sha256": "894b2df918a79ff701633fbf56f4bacfbe64087d4bf04ffa37d5ff5e1fc9804d"
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
+      "bytes": 476379,
+      "sha256": "7199b4f80cd5849b8b54b9054bd2b961db658eab54f9086ac470e7a6930a836c"
     },
     "MSL_traverse.json": {
       "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json",
       "bytes": 1357951,
       "sha256": "c22752254772c8edaee295986cf6a188daf088957f29d042cd62862365cdf3f5"
-    },
-    "MSL_waypoints_current.json": {
-      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints_current.json",
-      "bytes": 550,
-      "sha256": "2df9d14258bf9622494a8b6e1c0f7846ac0cafa7907155054e0af618063a0832"
     }
   },
   "native": {
@@ -38,14 +33,14 @@
     "mpp": 1,
     "tiffNoData": null,
     "noDataFraction": 0.0,
-    "elevMinM": -3654.659,
-    "elevMaxM": -3186.351
+    "elevMinM": -4217.418,
+    "elevMaxM": -3733.793
   },
   "grid": {
     "noDataCells": 0,
-    "slopeP50": 15.99,
-    "slopeP95": 44.87,
-    "cellsOver25": 17883
+    "slopeP50": 13.32,
+    "slopeP95": 38.39,
+    "cellsOver25": 11893
   },
   "hazardFromSlope": {
     "kind": "slope-linear",

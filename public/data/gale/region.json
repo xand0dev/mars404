@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "gale",
-  "name": "Gale · Mount Sharp (Curiosity area)",
+  "name": "Gale · Mount Sharp (Curiosity stops, sol 3008–3192)",
   "status": "verified",
   "grid": {
     "width": 256,
@@ -13,10 +13,10 @@
     ],
     "rowOrder": "north-to-south",
     "boundsLonLat": [
-      137.367215,
-      -4.847618,
-      137.410557,
-      -4.804429
+      137.385072,
+      -4.759614,
+      137.428408,
+      -4.716426
     ],
     "crs": "Mars 2000 geographic (Trek bboxSR 104905)"
   },
@@ -123,13 +123,13 @@
       "method": "mean of valid 1 m pixels per cell",
       "legend": [
         {
-          "value": -3653,
-          "label": "-3653 m (lowest)",
+          "value": -4217,
+          "label": "-4217 m (lowest)",
           "color": "#3b2a20"
         },
         {
-          "value": -3188,
-          "label": "-3188 m (highest)",
+          "value": -3736,
+          "label": "-3736 m (highest)",
           "color": "#e8dcc8"
         }
       ]
@@ -209,7 +209,7 @@
         {
           "value": 1,
           "label": "rover path",
-          "color": "#4fc3f7"
+          "color": "#e8b84a"
         }
       ]
     }
@@ -220,7 +220,7 @@
       "title": "Gale DEM 1 m (HiRISE stereo)",
       "status": "verified",
       "note": "Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.",
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
       "productId": "Gale_DEM_SMG_1m",
       "credit": "NASA/JPL-Caltech, Mars Trek",
       "accessedAt": "2026-11-14"
@@ -230,7 +230,7 @@
       "title": "HiRISE mosaic, Curiosity area",
       "status": "verified",
       "note": "Grayscale JPEG 2048², same bbox; display only.",
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
       "productId": "curiosity_hirise_mosaic",
       "credit": "NASA/JPL-Caltech, Mars Trek",
       "accessedAt": "2026-11-14"
@@ -246,16 +246,6 @@
       "accessedAt": "2026-11-14"
     },
     {
-      "id": "mmgis-msl-current",
-      "title": "Curiosity current position (MMGIS)",
-      "status": "verified",
-      "note": "sol 5073, lon 137.388886, lat -4.82602331: bbox centre.",
-      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints_current.json",
-      "productId": "MSL_waypoints_current",
-      "credit": "NASA/JPL-Caltech, MSL MMGIS",
-      "accessedAt": "2026-11-14"
-    },
-    {
       "id": "hazard-from-slope",
       "title": "Hazard derived from slope",
       "status": "assumption",
@@ -265,7 +255,7 @@
       "id": "base-assumption",
       "title": "Habitat base",
       "status": "assumption",
-      "note": "Walkable cell nearest to Curiosity's current position; not a real habitat site."
+      "note": "Walkable cell nearest to bbox centre (lon 137.40674, lat -4.73802, centroid of F6 targets); not a real habitat site."
     },
     {
       "id": "model-assumption",

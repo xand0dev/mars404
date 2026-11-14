@@ -22,7 +22,6 @@ def main():
         'dem.tif': trek.export_url(trek.DEM, BBOX, NATIVE_PX, NATIVE_PX, interpolation='RSP_NearestNeighbor'),
         'hirise.jpg': trek.export_url(trek.HIRISE, BBOX, TEXTURE_PX, TEXTURE_PX, fmt='jpg', pixel_type='U8'),
         'MSL_traverse.json': MMGIS + 'MSL_traverse.json',
-        'MSL_waypoints_current.json': MMGIS + 'MSL_waypoints_current.json',
     }
     meta = dict(accessedAt=datetime.date.today().isoformat(), files={})
     for name, url in items.items():

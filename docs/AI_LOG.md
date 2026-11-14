@@ -25,6 +25,7 @@
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Максим | Claude Code / claude-opus-5-5 | F3 T1–T4: звірка з contracts, вибір bbox (probe), pipeline fetch → prepare, пакет Gale, тести AC1 | docs/SPEC.md, specs/F3, src/contracts, src/store, src/mocks, src/features/data, issue #7 | pipeline/{trek,probe,fetch,prepare,region_config,test_prepare}.py, pipeline/{Dockerfile,README.md}; public/data/gale/*; src/features/data/package.test.ts; specs/F3/spec.md; docs/SOURCES.md | AC1: red 4 → green 4; python unittest 7/7; prepare двічі → однакові SHA256SUMS; Docker — не перевірено; браузер — N/A (UI ще заглушка) | feat/F3 (draft) |
+| 2026-11-14 | Максим | Claude Code / claude-opus-5-5 | F3: bbox B на цілі F6 (рішення в #7), перегенерація пакета; колір траверсу як у F2 | #7, #8, #10, #20, #21, #23, #24, #25 | pipeline/{region_config,fetch,prepare}.py; public/data/gale/*; specs/F3/spec.md; docs/SOURCES.md | prepare двічі → однакові SHA256SUMS; AC1 4/4; 8/8 цілей F6 на сітці, 7/8 досяжні при 25°; Docker — не перевірено | #23 |
 
 ## F4
 
