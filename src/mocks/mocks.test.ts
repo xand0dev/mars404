@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mockBase, mockGrid, mockLimits, mockModel, mockTargets, REFERENCE_EDGE, REFERENCE_PLAN_TOTALS, REFERENCE_RETURN_MIN } from './index';
+import { mockBase, mockGrid, mockLimits, mockLimitsEvidence, mockModel, mockTargets, REFERENCE_EDGE, REFERENCE_PLAN_TOTALS, REFERENCE_RETURN_MIN } from './index';
 import { isBlocked, xyToCell } from '../contracts/planning';
 
 /** BFS по 4 сусідах: зв'язність прохідних клітинок. */
@@ -68,6 +68,10 @@ describe('mocks', () => {
     expect(n({ ...mockLimits, o2: 432 }, REFERENCE_PLAN_TOTALS, 0)).toBe(REFERENCE_RETURN_MIN.o2Minus40);
     expect(mockLimits.dose).toBeNull();
     expect(mockModel.doseUSvPerS).toBeNull();
+  });
+
+  it('кожен ліміт має джерело (limitsEvidence, §7.6)', () => {
+    expect(Object.keys(mockLimitsEvidence).sort()).toEqual(Object.keys(mockLimits).sort());
   });
 
   it('кожен коефіцієнт моделі має джерело', () => {
