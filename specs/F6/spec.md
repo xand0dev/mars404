@@ -14,17 +14,19 @@
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
 
 ## Дозволені шляхи
-`src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`; плюс `specs/F6/**`, розділ `## F6` у `docs/AI_LOG.md` і `docs/SOURCES.md`. Тести — поруч із кодом.
+`src/features/science/**`, `src/features/prep/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`; плюс `specs/F6/**`, розділ `## F6` у `docs/AI_LOG.md` і `docs/SOURCES.md`. Тести — поруч із кодом.
 
 ## Store
-- Читає: site, targets, selectedTargetIds, reach, grid
-- Пише: `toggleTarget`
+- Читає: site, targets, selectedTargetIds, reach, grid, plan, photos, checklist
+- Пише: `toggleTarget`, `setChecklist`, `toggleChecklistItem`
 
 ## Acceptance criteria
 - **F6-AC1. Given** пакет Gale; **When** відкрито список цілей; **Then** видно 5–8 цілей у межах сітки, кожна з бейджем точності: «verified» (координати зупинки MMGIS), «approximate» або «MOCK».
 - **F6-AC2. Given** ціль; **When** відкрито картку (клік або клавіатура); **Then** видно назву, «why go», фото з `alt`, credit (як його дає API / сторінка зображення), sol і посилання на джерело. Фото позначено «view from rover stop», а не точне місце цілі.
 - **F6-AC3. Given** картка; **When** натиснуто «Add to route» / «Remove»; **Then** викликано `toggleTarget(id)`, а ціль поза ореолом має попередження з `reach` (клітинка цілі — `xyToCell(grid, target.coordinates)`, перевірка — `reach.mask`).
 - **F6-AC4. Given** фото не завантажилося; **When** відкрито картку; **Then** видно заглушку з `alt`, і картка та кнопка працюють.
+- **F6-AC5. Given** bbox Gale; **When** зібрано `photos/photos.geojson`; **Then** 8–20 знімків Navcam у межах сітки, кожен локально, з `alt`, credit, sol, `sourceUrl`, камерою й `locationAccuracy = 'rover-stop'`.
+- **F6-AC6. Given** чинний план; **When** відкрито «Pre-EVA checklist»; **Then** пункти побудовано за правилами §7.13, кожен з причиною; відмітки записуються `toggleChecklistItem` і зберігаються при зміні плану для тих самих `id`.
 
 ## Правила, на які спирається
 `docs/SPEC.md` §5.2 (обмін), §6 (контракти), §7 (обчислення), §7.6 (чесність даних), §7.7 (доступність). Еталонні числа — `src/mocks` (`REFERENCE_*`).
@@ -38,6 +40,9 @@
 - **T6 — Перевірені дані.** Після перевірки джерел підготувати 5–8 записів `targets.geojson` і локальні фото; перевірити bbox, схему, credit та sol. Непідтверджене явно позначити `assumption` / `MOCK` і додати джерела лише в `## F6` `docs/SOURCES.md`.
 - **T7 — Перевірка й handoff.** Довести AC-тести до green, перевірити 400 px і desktop, виконати `npm run check`, додати рядок у `## F6` `docs/AI_LOG.md` та відкрити draft PR з таблицею AC → доказ. `Ready for review` не ставити.
 - **T8 — Surface photos (#34).** За F6-AC5 додати red-тест і `photos/photos.geojson` для 8–20 локальних Navcam-знімків за контрактом `SurfacePhoto`: точні MMGIS rover-stop координати, `alt`, credit, sol, `sourceUrl`, camera, `locationAccuracy: 'rover-stop'`; shared-файли не змінювати.
+- **T9 — Точна reachability + EVA-знаки (#10).** Red-тестами покрити ціль у масці, поза маскою, поза grid та неоцінений стан; визначати клітинку через `xyToCell(grid, target.coordinates)`. Додати декоративні `EvaSign` для стану цілі й Navcam-фото.
+- **T10 — Pre-EVA checklist (#60).** Red-тестами покрити правила §7.13, причини, збереження `done` за стабільним `id` та виклик `toggleChecklistItem`; реалізувати `ChecklistPanel` без власних чисел поза позначеними assumption-порогами SPEC.
+- **T11 — Перевірка й докази.** `npm run check`, браузер 400/1440 px, стиснені JPEG/WebP-скріни в `specs/F6/screenshots/**`, рядок AI_LOG і draft PR з AC → доказ. `Ready for review` не ставити.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |

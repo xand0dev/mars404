@@ -2,6 +2,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReachabilityResult, Target } from '../../contracts';
+import { xyToCell } from '../../contracts/planning';
+import { mockGrid } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { TargetsPanel } from './TargetsPanel';
 
@@ -30,6 +32,13 @@ const targets = [target('a'), target('b', 'approximate'), target('c', 'mock'), t
 
 function loadTargets(nextTargets = targets, reach: ReachabilityResult | null = null) {
   useMission.setState({ site: 'gale', targets: nextTargets, selectedTargetIds: [], reach });
+}
+
+function reachFor(targetValue: Target, reachable: boolean, status: ReachabilityResult['status'] = 'estimated'): ReachabilityResult {
+  const mask = new Uint8Array(mockGrid.width * mockGrid.height);
+  const cell = xyToCell(mockGrid, targetValue.coordinates);
+  if (cell && reachable) mask[cell.index] = 1;
+  return { status, mask, returnInS: 600, deficits: [], swap: null, abort: null, warnings: [] };
 }
 
 beforeEach(() => {
@@ -61,7 +70,7 @@ describe('F6-AC2 · картка цілі', () => {
     loadTargets([targets[0]!]);
     const user = userEvent.setup();
 
-    render(<TargetsPanel />);
+    const { container } = render(<TargetsPanel />);
     await user.click(screen.getByRole('button', { name: 'Open Target A' }));
 
     const card = screen.getByRole('article', { name: 'Target A' });
@@ -71,31 +80,59 @@ describe('F6-AC2 · картка цілі', () => {
     expect(within(card).getByText(/Sol 1234/)).toBeVisible();
     expect(within(card).getByRole('link', { name: /source/i })).toHaveAttribute('href', 'https://example.test/a');
     expect(within(card).getByText(/view from rover stop/i)).toBeVisible();
+    expect(container.querySelector('.eva-sign--photo')).toBeInTheDocument();
   });
 });
 
 describe('F6-AC3 · вибір цілі й reachability', () => {
-  it('Given картку, When Add to route натиснуто, Then викликано toggleTarget(id) і показано reach warning', async () => {
+  it('Given ціль поза reach.mask, When картку відкрито, Then є warning і знак outside незалежно від swap', async () => {
     const toggleTarget = vi.fn();
-    const reach: ReachabilityResult = {
-      status: 'estimated',
-      mask: new Uint8Array(4),
-      returnInS: 600,
-      deficits: ['o2'],
-      swap: { dropId: 'a', addId: 'b' },
-      abort: null,
-      warnings: ['Target A is outside the return envelope.'],
-    };
-    loadTargets(targets.slice(0, 2), reach);
+    loadTargets(targets.slice(0, 2), reachFor(targets[0]!, false));
     useMission.setState({ selectedTargetIds: ['a'], toggleTarget });
+    const user = userEvent.setup();
+
+    const { container } = render(<TargetsPanel />);
+    await user.click(screen.getByRole('button', { name: 'Open Target A' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/outside the current return envelope/i);
+    expect(container.querySelector('.eva-sign--target.eva-sign--outside')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(toggleTarget).toHaveBeenCalledWith('a');
+  });
+
+  it('Given ціль у reach.mask, When список відкрито, Then знак selected/unselected не позначено outside', () => {
+    loadTargets([targets[0]!], reachFor(targets[0]!, true));
+    useMission.setState({ selectedTargetIds: ['a'] });
+
+    const { container } = render(<TargetsPanel />);
+
+    expect(container.querySelector('.eva-sign--target.eva-sign--selected')).toBeInTheDocument();
+    expect(container.querySelector('.eva-sign--outside')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['reach відсутній', null],
+    ['reach invalid', reachFor(targets[0]!, false, 'invalid')],
+  ])('Given %s, When картку відкрито, Then видно “not assessed”, а не outside', async (_label, reach) => {
+    loadTargets([targets[0]!], reach);
+    const user = userEvent.setup();
+
+    const { container } = render(<TargetsPanel />);
+    await user.click(screen.getByRole('button', { name: 'Open Target A' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(/reachability not assessed/i);
+    expect(container.querySelector('.eva-sign--outside')).not.toBeInTheDocument();
+  });
+
+  it('Given ціль поза grid, When картку відкрито, Then вона позначена outside', async () => {
+    const outside = { ...targets[0]!, coordinates: [-1, -1] as const };
+    loadTargets([outside], reachFor(outside, false));
     const user = userEvent.setup();
 
     render(<TargetsPanel />);
     await user.click(screen.getByRole('button', { name: 'Open Target A' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/outside the return envelope/i);
-    await user.click(screen.getByRole('button', { name: 'Remove' }));
-    expect(toggleTarget).toHaveBeenCalledWith('a');
+    expect(screen.getByRole('alert')).toHaveTextContent(/outside the current return envelope/i);
   });
 });
 
