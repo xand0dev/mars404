@@ -44,13 +44,13 @@
 | T7 | `GlobeScene`: сфера з текстурою (Suspense + error boundary → процедурна сфера, `textureStatus='missing'`), маркери в `latLonToSphere`, клік по маркеру = та сама дія, що кнопка, активний маркер Gale, drag-обертання групи, без самообертання | AC1, AC4 | `globe/GlobeScene.tsx`, `Markers.tsx` |
 | T8 | Перевірка: `npm run check`, браузер 400 px і десктоп (скриншоти), ручна перевірка, що Gale на текстурі збігається з маркером; draft PR (AC → доказ), рядок `docs/AI_LOG.md` | усі | — |
 
-**Статус (2026-11-14):** T0–T5, T7 ✔ — draft PR #19. Далі T6 (текстура + джерело). Текстура читається з `public/data/mars/source.json` `{ file, credit, sourceUrl }` — без нього процедурна сфера з «MOCK».
+**Статус (2026-11-14):** T0–T7 ✔ — draft PR #19. Текстура: Viking MDIM 2.1 colorized (художній колір), `public/data/mars/source.json`. Лишилось: рішення про маркери зворотного боку (дрібне).
 
 Порядок: T1 → T2 → T3/T4 → T5 → T7 (спершу процедурна сфера) → T6 → T8. Перший draft PR — після T1–T5 (панель робоча на mocks).
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
-| Яке джерело текстури: Viking MDIM2.1 colorized (USGS/NASA, public domain) через Trek WMTS чи прямий файл USGS? Перевірити URL живим запитом | Іван | сб 14:00 | процедурна сфера з «MOCK» (AC4 це дозволяє) |
+| ~~Джерело текстури~~ — **закрито (T6)**: USGS «Mars Viking Colorized Global Mosaic 232m» (Use Constraints: none), тайли Mars Trek WMTS рівня 2; повний файл USGS — 12 GB, тому тайли. Колір художній — так і в SOURCES | Іван | — | — |
 | ~~Набір точок і координати~~ — **закрито (T2)**: 5 точок, центри з Gazetteer, мережа MDIM 2.1 (сторінки Feature/<id>; таблиця пошуку дає старіші MDIM 2.0, напр. Gale −5.37°, 137.81°E). Джерела — `docs/SOURCES.md` §F1 | Іван | — | — |
 | ~~Таймер переходу~~ — **закрито (T5, рішення Івана)**: один `setTimeout(FLY_MS)` у `SitePanel`, пише `setSite('gale')` рівно раз; Skip / скасування / unmount прибирають його (тест). Анімація — `useFrame` + `invalidate` лише під час переходу, у store не пише. Без сцени (немає WebGL) або з reduced motion — одразу | Іван | — | — |

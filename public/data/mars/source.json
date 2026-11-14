@@ -1,0 +1,15 @@
+{
+  "file": "mars_viking_mdim21_clr_2048.jpg",
+  "credit": "Viking MDIM 2.1 colorized mosaic — NASA Ames / USGS Astrogeology, via NASA Mars Trek",
+  "sourceUrl": "https://astrogeology.usgs.gov/search/map/mars_viking_colorized_global_mosaic_232m",
+  "title": "Mars Viking Colorized Global Mosaic 232m",
+  "status": "verified",
+  "note": "Artistically colorized (USGS). Downsampled: WMTS level 2 tiles, 2048×1024 equirectangular, lon −180…180, lat 90…−90, Mars 2000 (EPSG 104905). Use constraints: none (USGS record).",
+  "tiles": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/2/{row}/{col}.jpg",
+  "capabilities": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/WMTSCapabilities.xml",
+  "width": 2048,
+  "height": 1024,
+  "bytes": 511003,
+  "sha256": "257186c616f8ea91b41b8ae036271fd85f7e1bc8d293defe8b91e617e7e305f2",
+  "accessedAt": "2026-11-14"
+}
