@@ -17,7 +17,7 @@ export const FEATURES = {
   },
   F4: { owner: 'Влад', nick: 'froozy3', title: 'Маршрут A*', allow: ['src/features/route/**', 'src/core/**'] },
   F5: { owner: 'Влад', nick: 'froozy3', title: 'Бюджет і повернення', allow: ['src/features/budget/**', 'src/core/**'] },
-  F6: { owner: 'Настя', nick: 'Bulka0801', title: 'Наукові цілі й фото', allow: ['src/features/science/**', 'src/features/prep/**', 'public/data/*/targets*', 'public/data/*/photos/**'] },
+  F6: { owner: 'Настя', nick: 'Bulka0801', title: 'Наукові цілі й фото', allow: ['src/features/science/**', 'src/features/prep/**', 'public/data/*/targets*', 'public/data/*/photos/**', 'public/data/sites/**'] },
   F7: { owner: 'Оля', nick: 'oljyaaa', title: 'UI, HUD, дизайн-токени', allow: ['src/features/hud/**', 'src/ui/**'] },
   F8: { owner: 'Оля', nick: 'oljyaaa', title: 'Демо й сабміт', allow: ['docs/demo/**', 'docs/submission/**', 'README.md'] },
 };

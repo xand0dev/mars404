@@ -502,7 +502,7 @@ export interface ChecklistItem { id: string; label: string; reason: string; done
 | F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/{gale,columbia-hills,olympus-mons,valles-marineris}/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
 | F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region, annotations | `setPlan`, `setWaypoints`, `setSelectedSegment` |
 | F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds, annotations | `setBudget`, `setReach`, `setLimits` |
-| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/*/targets*`, `public/data/*/photos/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
+| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/*/targets*`, `public/data/*/photos/**`, `public/data/sites/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
 | F8 Демо й сабміт | Оля | oljyaaa | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
