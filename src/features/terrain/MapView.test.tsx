@@ -278,3 +278,58 @@ describe('F2-AC6: червоні відрізки без повернення (r
     expect(within(terrain()).queryByText(/No return with emergency O₂/)).toBeNull();
   });
 });
+
+describe('Мітки екіпажу на карті (F2-AC8, SPEC §7.12) і EVA-знаки (F2-AC7)', () => {
+  const mark = (id: string, kind: 'impassable' | 'note', xy: [number, number]) => ({ id, kind, coordinates: xy, radiusM: 20, text: 'soft sand', createdAt: '2026-11-14T15:00:00Z', origin: 'this-eva' as const });
+
+  it('Given мітки в store; Then 2D показує знак із доступною назвою, лічильник і легенду міток', () => {
+    render(<MapView globe={null} />);
+    gale();
+    act(() => useMission.getState().setAnnotations([mark('m1', 'impassable', [645, 635]), mark('m2', 'note', [-50, 10])]));
+    const plan = screen.getByRole('img', { name: /2D plan/ });
+    expect(plan.querySelectorAll('[data-kind="mark"]')).toHaveLength(1);
+    expect(within(plan).getByRole('img', { name: 'Impassable mark: soft sand' })).toBeInTheDocument();
+    expect(screen.getByText('1 crew mark on map')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Crew mark legend' })).toBeInTheDocument();
+  });
+
+  it('Given мітку видалено в панелі; Then знак зникає', () => {
+    render(<MapView globe={null} />);
+    gale();
+    act(() => useMission.getState().setAnnotations([mark('m1', 'impassable', [645, 635])]));
+    act(() => useMission.getState().removeAnnotation('m1'));
+    expect(screen.getByRole('img', { name: /2D plan/ }).querySelectorAll('[data-kind="mark"]')).toHaveLength(0);
+  });
+
+  it('Given обраний відрізок; When «Mark selected segment»; Then addAnnotation у центрі клітинки з видом і текстом', async () => {
+    const user = userEvent.setup();
+    render(<MapView globe={null} />);
+    gale();
+    const plan = planThrough(mockGrid, [[64, 64], [64, 70]]);
+    act(() => useMission.setState({ plan, selectedSegment: 0 }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Kind' }), 'hazard');
+    await user.type(screen.getByRole('textbox', { name: 'Note' }), 'loose rock');
+    await user.click(screen.getByRole('button', { name: 'Mark selected segment' }));
+    const [m] = useMission.getState().annotations;
+    expect(m).toMatchObject({ kind: 'hazard', text: 'loose rock', radiusM: 20, origin: 'this-eva' });
+    expect(screen.getByText('Hazard mark added')).toBeInTheDocument();
+  });
+
+  it('Без обраного відрізка кнопка вимкнена; «Add mark» перемикає режим', async () => {
+    const user = userEvent.setup();
+    render(<MapView globe={null} />);
+    gale();
+    expect(screen.getByRole('button', { name: 'Mark selected segment' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Add mark' }));
+    expect(screen.getByRole('button', { name: /Adding marks/ })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('F2-AC7: база й цілі — EVA-знаки; є легенда знаків', () => {
+    render(<MapView globe={null} />);
+    gale();
+    const plan = screen.getByRole('img', { name: /2D plan/ });
+    expect(within(plan).getByRole('img', { name: 'Base' })).toBeInTheDocument();
+    expect(plan.querySelectorAll('[data-kind="target"] .eva-sign--target').length).toBeGreaterThan(0);
+    expect(screen.getByRole('list', { name: 'Map legend' })).toBeInTheDocument();
+  });
+});

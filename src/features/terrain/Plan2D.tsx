@@ -1,7 +1,10 @@
 // 2D-план Б (SPEC §7.5): та сама сітка, blocked/NoData, ореол, шари, цілі, маршрут, підсвічений відрізок.
-import { useMemo } from 'react';
-import type { PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
-import { StatusNote } from '../../ui';
+import { useMemo, type MouseEvent } from 'react';
+import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
+import { xyToCell } from '../../contracts/planning';
+import { EvaSignShape, StatusNote } from '../../ui';
+import { planToXY } from './lib/marks';
+import { MarkShape } from './MarkGlyph';
 import { CELL } from './lib/cells';
 import { CSS, HALO, HALO_FILL_ALPHA, haloCells } from './lib/overlay';
 import { cellsPath, planPoint, polyline, selectedSegmentLine, type PlanReason } from './lib/plan2d';
@@ -27,6 +30,14 @@ export interface Plan2DProps {
   plan: RoutePlan | null;
   selectedSegment: number | null;
   base: XY | null;
+  /** Позиція астронавта; показується, якщо відрізняється від бази */
+  position?: XY | null;
+  /** Початок першого відрізка без повернення (точка неповернення, §7.8) */
+  ponr?: XY | null;
+  /** Мітки екіпажу (§7.12) */
+  marks?: Annotation[];
+  /** Режим «Add mark»: клік по плану → локальні метри */
+  onPick?: ((xy: XY) => void) | null;
 }
 
 function canDraw2D(): boolean {
@@ -49,7 +60,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -69,7 +80,24 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
   const markerPt = marker ? planPoint(grid, marker.mid) : null;
   // Підпис над кільцем, по центру; половина оцінної ширини (~0.6 em на символ) — щоб не вийти за край.
   const markerHalfW = marker ? (marker.label.length * unit * 2.4 * 0.6) / 2 : 0;
-  const label = `2D plan B: ${targets.length} targets, ${plan ? plan.segments.length : 0} route segments, ${counts.blocked} blocked and ${counts.noData} NoData cells`;
+  const inReach = (xy: XY) => {
+    if (!mask) return true;
+    const c = xyToCell(grid, xy);
+    return c !== null && mask[c.index] === 1;
+  };
+  const posPt = position && base && (position[0] !== base[0] || position[1] !== base[1]) ? planPoint(grid, position) : null;
+  const ponrPt = ponr ? planPoint(grid, ponr) : null;
+  const sign = unit * 3.2;
+  const onClick = onPick
+    ? (e: MouseEvent<SVGSVGElement>) => {
+        const svg = e.currentTarget;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        onPick(planToXY(grid, pt.x, pt.y));
+      }
+    : undefined;
+  const label = `2D plan B: ${targets.length} targets, ${plan ? plan.segments.length : 0} route segments, ${marks.length} crew marks, ${counts.blocked} blocked and ${counts.noData} NoData cells`;
 
   return (
     <div className="terrain-plan2d">
@@ -85,7 +113,7 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
       <p className="terrain-counter">
         Blocked / NoData cells: {counts.blocked} / {counts.noData}
       </p>
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg">
+      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg" onClick={onClick} style={onPick ? { cursor: 'crosshair' } : undefined}>
         <title>{label}</title>
         <rect width={w} height={h} fill="#7a4a2c" />
         {raster && <image href={raster} width={w} height={h} preserveAspectRatio="none" style={{ imageRendering: 'pixelated' }} />}
@@ -129,10 +157,15 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         )}
         {basePt && (
           <g data-kind="base">
-            <rect x={basePt[0] - unit} y={basePt[1] - unit} width={unit * 2} height={unit * 2} fill="#6cc28a" />
-            <text x={basePt[0] + unit * 1.5} y={basePt[1] + unit * 0.6} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke">
+            <EvaSignShape kind="base" x={basePt[0]} y={basePt[1]} size={sign} />
+            <text x={basePt[0] + unit * 2} y={basePt[1] + unit * 0.8} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke">
               Base
             </text>
+          </g>
+        )}
+        {posPt && (
+          <g data-kind="astronaut">
+            <EvaSignShape kind="astronaut" x={posPt[0]} y={posPt[1]} size={sign} />
           </g>
         )}
         {targets.map((t) => {
@@ -143,12 +176,21 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
           const left = x + unit * 1.6 + text.length * unit * 2.4 * 0.6 > w;
           return (
             <g key={t.id} data-kind="target" data-selected={sel}>
-              <circle cx={x} cy={y} r={unit * (sel ? 1.4 : 1)} fill={sel ? '#e0673c' : '#f3ece6'} stroke="#14100e" strokeWidth={unit * 0.25} />
+              <EvaSignShape kind="target" state={!inReach(t.coordinates) ? 'outside' : sel ? 'selected' : 'unselected'} x={x} y={y} size={sign} label={`${t.name}${!inReach(t.coordinates) ? ', outside reachable area' : sel ? ', selected' : ''}`} />
               <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400}>
                 {text}
               </text>
             </g>
           );
+        })}
+        {ponrPt && (
+          <g data-kind="ponr">
+            <EvaSignShape kind="ponr" x={ponrPt[0]} y={ponrPt[1]} size={sign * 1.1} />
+          </g>
+        )}
+        {marks.map((m) => {
+          const [x, y] = planPoint(grid, m.coordinates);
+          return <MarkShape key={m.id} mark={m} x={x} y={y} rUnits={m.radiusM / grid.metersPerPixel} size={sign} />;
         })}
         {marker && markerPt && (
           // Поверх цілей: кільце навколо відрізка й підпис, бо сам відрізок — один крок сітки.
