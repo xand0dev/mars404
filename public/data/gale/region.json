@@ -45,7 +45,7 @@
     "maxSlopeDeg": 25,
     "hazardWeight": 0.5,
     "reserveFraction": 0.2,
-    "emergencyO2G": 55.8,
+    "emergencyO2G": 56,
     "evidence": {
       "speedMps": {
         "id": "jones-apollo-walk",
@@ -113,7 +113,7 @@
         "id": "emu-sop-30min",
         "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
         "status": "verified",
-        "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 g. ISS suit, not a Mars suit.",
+        "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 -> 56 g. ISS suit, not a Mars suit.",
         "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
         "productId": "NTRS 20140009556",
         "credit": "NASA",
@@ -123,7 +123,7 @@
   },
   "limits": {
     "time": 3600,
-    "o2": 112,
+    "o2": 140,
     "energy": 600,
     "dose": null
   },
@@ -132,25 +132,25 @@
       "id": "limit-time-assumption",
       "title": "EVA time limit",
       "status": "assumption",
-      "note": "3600 s demo limit (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
+      "note": "3600 s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
     },
     "o2": {
       "id": "limit-o2-assumption",
       "title": "O2 available for this EVA",
       "status": "assumption",
-      "note": "112 g = 1 h of walking x Apollo rate (0.031 g/s x 3600 s), same principle as SPEC §7.4; decision #20."
+      "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20."
     },
     "energy": {
       "id": "limit-energy-assumption",
       "title": "Suit energy limit",
       "status": "assumption",
-      "note": "600 Wh; not set in SPEC, no source."
+      "note": "600 Wh; not set in SPEC."
     },
     "dose": {
       "id": "limit-dose-assumption",
       "title": "Radiation dose limit",
       "status": "assumption",
-      "note": "Unknown -> null -> budget status incomplete (SPEC §7.6); no point dose is spread over the map."
+      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
     }
   },
   "layers": [
@@ -399,7 +399,7 @@
       "id": "emu-sop-30min",
       "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
       "status": "verified",
-      "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 g. ISS suit, not a Mars suit.",
+      "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 -> 56 g. ISS suit, not a Mars suit.",
       "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
       "productId": "NTRS 20140009556",
       "credit": "NASA",
@@ -415,25 +415,25 @@
       "id": "limit-time-assumption",
       "title": "EVA time limit",
       "status": "assumption",
-      "note": "3600 s demo limit (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
+      "note": "3600 s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
     },
     {
       "id": "limit-o2-assumption",
       "title": "O2 available for this EVA",
       "status": "assumption",
-      "note": "112 g = 1 h of walking x Apollo rate (0.031 g/s x 3600 s), same principle as SPEC §7.4; decision #20."
+      "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20."
     },
     {
       "id": "limit-energy-assumption",
       "title": "Suit energy limit",
       "status": "assumption",
-      "note": "600 Wh; not set in SPEC, no source."
+      "note": "600 Wh; not set in SPEC."
     },
     {
       "id": "limit-dose-assumption",
       "title": "Radiation dose limit",
       "status": "assumption",
-      "note": "Unknown -> null -> budget status incomplete (SPEC §7.6); no point dose is spread over the map."
+      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
     }
   ],
   "hazardFromSlope": {

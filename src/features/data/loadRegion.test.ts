@@ -179,15 +179,15 @@ describe('F3-AC5: photos і emergencyO2G', () => {
   it('Then region.json має model.emergencyO2G = 30 хв × o2GPerS з evidence (рішення #20)', async () => {
     const reg = await realRegion();
     expect(reg.model.o2GPerS).toBe(0.031);
-    expect(reg.model.emergencyO2G).toBeCloseTo(1800 * reg.model.o2GPerS, 6);
+    expect(reg.model.emergencyO2G).toBe(Math.round(1800 * reg.model.o2GPerS)); // 55.8 → 56 (#64)
     expect(reg.model.evidence.emergencyO2G).toMatchObject({ id: 'emu-sop-30min', status: 'verified', url: expect.stringContaining('ntrs.nasa.gov') });
     expect(reg.model.evidence.o2GPerS).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
     expect(reg.model.evidence.speedMps).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
   });
 
-  it('Then limits.o2 = 112 г (assumption) і limitsEvidence має джерело на кожен ліміт (§7.6)', async () => {
+  it('Then limits.o2 = 140 г (assumption, #64) і limitsEvidence має джерело на кожен ліміт (§7.6)', async () => {
     const reg = await realRegion();
-    expect(reg.limits).toEqual({ time: 3600, o2: 112, energy: 600, dose: null });
+    expect(reg.limits).toEqual({ time: 3600, o2: 140, energy: 600, dose: null });
     for (const k of ['time', 'o2', 'energy', 'dose'] as const) {
       expect(reg.limitsEvidence?.[k]).toMatchObject({ status: 'assumption' });
       expect(reg.sources.some((s) => s.id === reg.limitsEvidence?.[k].id)).toBe(true);
