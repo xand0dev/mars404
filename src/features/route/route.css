@@ -18,7 +18,7 @@
 .route-table th, .route-table td { padding: 2px 6px; text-align: right; white-space: nowrap; }
 .route-table th { position: sticky; top: 0; background: var(--surface); }
 .route-table tr[aria-selected='true'] { background: rgb(255 79 216 / 0.18); }
-.route-table td button { min-height: 32px; min-width: var(--touch); }
+.route-table td button { min-height: var(--touch); min-width: var(--touch); }
 .route-count { margin: 0 0 4px; color: var(--text-muted); font-size: 0.85rem; }
 
 .route-view figure { margin: 0; }

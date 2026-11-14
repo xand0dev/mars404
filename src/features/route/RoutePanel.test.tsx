@@ -3,7 +3,7 @@ import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Annotation, XY } from '../../contracts';
 import { cellCenter, xyToCell } from '../../contracts/planning';
-import { mockGrid, mockTargets } from '../../mocks';
+import { mockGrid, mockModel, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { RoutePanel } from './RoutePanel';
 
@@ -124,7 +124,7 @@ describe('RoutePanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('blocked-point · point 2');
     expect(store().plan?.status).toBe('no-path');
     expect(store().plan?.path).toEqual([]);
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.queryByRole('table', { name: /Route segments/ })).not.toBeInTheDocument();
   });
 
   it('F4-AC4: вибір відрізка в таблиці → setSelectedSegment і деталі з одиницями', async () => {
@@ -156,5 +156,66 @@ describe('RoutePanel', () => {
 
     await userEvent.keyboard('{End}');
     expect(store().selectedSegment).toBe(rowButtons.length - 1);
+  });
+
+  describe('#79: коефіцієнти моделі — коротке попередження й «Details»', () => {
+    const openCoefficients = () => {
+      const details = screen.getByText('Details: model coefficients').closest('details')!;
+      act(() => {
+        details.open = true;
+        details.dispatchEvent(new Event('toggle'));
+      });
+      return details;
+    };
+
+    it('згорнуто — таблиці немає (бейджі не дублюють MOCK панелі)', () => {
+      render(<RoutePanel />);
+      expect(screen.queryByRole('table', { name: 'Model coefficients and sources' })).not.toBeInTheDocument();
+    });
+
+    it('попередження в одне речення з кількістю неперевірених', () => {
+      render(<RoutePanel />);
+      const total = Object.keys(mockModel.evidence).length;
+      const unverified = Object.values(mockModel.evidence).filter((s) => s.status !== 'verified').length;
+      expect(screen.getByText(`${unverified} of ${total} model coefficients have no verified source. Model, not certified navigation.`)).toBeInTheDocument();
+      expect(screen.queryByText(/speedMps \(MOCK\)/)).not.toBeInTheDocument();
+    });
+
+    it('таблиця в «Details»: 10 рядків з назвою, значенням з одиницями, статусом і джерелом', () => {
+      render(<RoutePanel />);
+      const details = openCoefficients();
+      const table = within(details).getByRole('table', { name: 'Model coefficients and sources' });
+      const rows = within(table).getAllByRole('row').slice(1);
+      expect(rows).toHaveLength(10);
+      expect(within(table).getByRole('row', { name: /Walking speed.*1 m\/s.*MOCK/ })).toBeInTheDocument();
+      expect(within(table).getByRole('row', { name: /Reserve.*20 %/ })).toBeInTheDocument();
+      expect(within(table).getByRole('row', { name: /Dose rate.*no data/ })).toBeInTheDocument();
+      expect(within(table).getByRole('row', { name: /Emergency O₂ reserve.*360 g.*assumption/ })).toBeInTheDocument();
+    });
+
+    it('джерело з url — посилання з назвою джерела', () => {
+      useMission.setState({ model: { ...mockModel, evidence: { ...mockModel.evidence, o2GPerS: { id: 'jones', title: 'Jones, Working on the Moon', url: 'https://www.osti.gov/servlets/purl/7168757', status: 'verified', note: '' } } } });
+      render(<RoutePanel />);
+      openCoefficients();
+      expect(screen.getByRole('link', { name: 'Jones, Working on the Moon' })).toHaveAttribute('href', 'https://www.osti.gov/servlets/purl/7168757');
+    });
+  });
+
+  it('#79: таблиця відрізків — у «Segments (N · K no return)», деталі обраного відрізка видно поза нею', async () => {
+    store().toggleTarget('mock-a');
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+
+    const count = store().plan!.segments.length;
+    const segments = Array.from({ length: count }, (_, i) => ({ returnS: i < 2 ? null : 100, ok: i >= 2 }));
+    act(() => store().setReach({ status: 'incomplete', mask: new Uint8Array(0), returnInS: 600, deficits: [], swap: null, warnings: [], abort: { segments, pointOfNoReturnS: 0, emergencyO2G: 360 } }));
+
+    const details = screen.getByText(`Segments (${count} · 2 no return)`).closest('details')!;
+    expect(details).not.toHaveAttribute('open');
+    expect(within(details).getByRole('table')).toBeInTheDocument();
+
+    act(() => store().setSelectedSegment(0));
+    expect(details).not.toContainElement(screen.getByTestId('segment-details'));
   });
 });
