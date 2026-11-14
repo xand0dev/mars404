@@ -10,7 +10,8 @@
 .life-hero--warn { border-left-color: var(--warn); }
 .life-hero--danger { border-left-color: var(--danger); background: var(--deficit-bg, transparent); }
 .life-hero--info { border-left-color: var(--info); }
-.life-hero .budget-return { grid-column: 1; margin: 0; font-size: clamp(1.35rem, 6vw, 1.9rem); line-height: 1.1; white-space: nowrap; }
+/* Головне число — у HUD; тут лише рядок, щоб не було двох однакових великих «Return in». */
+.life-hero .budget-return { grid-column: 1; margin: 0; font-family: var(--font-mono); font-size: 1.1rem; font-weight: 600; line-height: 1.2; white-space: nowrap; }
 .life-hero__status { grid-column: 2; grid-row: 2; }
 .life-label { grid-column: 1 / -1; margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 .life-limited { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; color: var(--text-muted); }

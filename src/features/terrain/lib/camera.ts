@@ -63,6 +63,9 @@ export interface Pose {
   target: V3;
 }
 
+/** Наскільки близько Orbit до району: 1 — увесь район з запасом; менше — ближче. */
+export const ORBIT_ZOOM = 0.68;
+
 /** aspect — ширина/висота полотна: на вузькому (телефон) Orbit і Top відходять далі, щоб район влазив. */
 export function cameraPose(mode: CameraMode, f: Frame, pov: PovInput | null, aspect = 1.5): Pose {
   const [cx, cy, cz] = f.center;
@@ -79,6 +82,8 @@ export function cameraPose(mode: CameraMode, f: Frame, pov: PovInput | null, asp
     return { position: eye, target: [eye[0] + (d[0] as number) / len, eye[1] + (d[1] as number) / len, eye[2] + (d[2] as number) / len] };
   }
   const relief = f.maxY - f.minY;
-  const off: V3 = [f.size * 0.55, f.maxY - cy + f.size * 0.5 + relief * 0.5, f.size * 0.75];
+  // ORBIT_ZOOM: рельєф заповнює кадр (рев'ю UI: раніше займав ~половину полотна).
+  const z = ORBIT_ZOOM;
+  const off: V3 = [f.size * 0.55 * z, f.maxY - cy + (f.size * 0.5 + relief * 0.5) * z, f.size * 0.75 * z];
   return { position: [cx + off[0] * k, cy + off[1] * k, cz + off[2] * k], target: [cx, cy, cz] };
 }

@@ -54,7 +54,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 /* Ледь помітна координатна сітка — як на планшеті штурмана. */
-body { overflow-x: hidden; overflow-wrap: anywhere; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px; background-attachment: fixed; }
+/* Символи стану (⏳ ⚠ ✔) — текстові гліфи, а не кольорові емодзі. */
+body { font-variant-emoji: text; overflow-x: hidden; overflow-wrap: anywhere; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px; background-attachment: fixed; }
 h1, h2, h3 { text-wrap: balance; }
 a { color: var(--info); text-underline-offset: 2px; }
 ::selection { background: var(--accent); color: var(--accent-ink); }
@@ -158,11 +159,20 @@ input[type='radio'] { accent-color: var(--accent); padding: 0; }
   .ui-row__actions { grid-column: 1 / -1; justify-content: stretch; }
   .ui-row__actions > * { flex: 1; }
 }
-@container (max-width: 480px) {
-  .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .ui-row__actions { grid-column: 2 / -1; justify-content: stretch; }
-  .ui-row__actions > * { flex: 1; }
+/* Вузька панель: один рядок на ціль — знак · назва (мітка під нею) · компактна дія праворуч. */
+@container (max-width: 560px) {
+  .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'sign title actions' 'sign meta actions'; row-gap: 0; }
+  .ui-row:not(:has(> .ui-row__sign)) { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title actions' 'meta actions'; }
+  .ui-row__sign { grid-area: sign; }
+  .ui-row__title { grid-area: title; }
+  .ui-row__meta { grid-area: meta; justify-content: flex-start; }
+  .ui-row__actions { grid-area: actions; justify-content: flex-end; }
+  .ui-row__actions > * { flex: 0 0 auto; }
 }
+/* Назва в рядку — текст-посилання, а не друга кнопка в рамці. */
+.ui-row__title > .ui-btn--ghost { border-color: transparent; padding: 0 6px; margin-left: -6px; text-align: left; font-weight: 600; white-space: normal; }
+.ui-row__title > .ui-btn--ghost:hover:not(:disabled) { background: transparent; border-color: transparent; text-decoration: underline; text-underline-offset: 3px; }
+.ui-row__title > .ui-btn--ghost[aria-expanded='true'] { color: var(--accent); }
 
 /* ── Розгортний блок ──────────────────────────────────────────────────── */
 .ui-disclosure { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); }
