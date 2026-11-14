@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { buildChecklist } from './checklist';
+import './prep.css';
 
 export function ChecklistPanel() {
   const plan = useMission((s) => s.plan);
@@ -28,14 +29,14 @@ export function ChecklistPanel() {
           <StatusNote level={left === 0 ? 'ok' : 'warn'} live="status">
             {left === 0 ? `All ${items.length} checklist items checked.` : `${left} checklist item${left === 1 ? '' : 's'} not checked.`}
           </StatusNote>
-          <ul>
+          <ul className="prep-list">
             {items.map((item) => (
-              <li key={item.id}>
-                <label>
+              <li key={item.id} className={`prep-item${item.done ? ' is-done' : ''}`}>
+                <label className="prep-item__label">
                   <input type="checkbox" checked={item.done} onChange={() => toggleChecklistItem(item.id)} />
                   <span>{item.label}</span>
                 </label>
-                <p>{item.reason}</p>
+                <p className="prep-item__reason">{item.reason}</p>
               </li>
             ))}
           </ul>

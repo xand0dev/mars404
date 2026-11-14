@@ -12,7 +12,7 @@
 .route-profile__hit:hover { fill: rgb(255 255 255 / 0.08); }
 .route-profile figcaption { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 .route-details { font-size: 0.9rem; margin: 4px 0; overflow-wrap: anywhere; }
-.route-table { max-height: 220px; overflow: auto; border-radius: 6px; }
+.route-table { max-height: min(45vh, 360px); overflow: auto; overscroll-behavior: contain; border-radius: 6px; }
 .route-table table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .route-table caption { text-align: left; color: var(--text-muted); font-size: 0.8rem; padding-bottom: 4px; }
 .route-table th, .route-table td { padding: 2px 6px; text-align: right; white-space: nowrap; }

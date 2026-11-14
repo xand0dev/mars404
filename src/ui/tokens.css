@@ -44,7 +44,14 @@ button, input, select { font: inherit; min-height: var(--touch); min-width: var(
 input { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; }
 button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; cursor: pointer; }
 button[aria-pressed='true'] { border-color: var(--accent); }
-input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); padding: 0; }
+/* Чекбокс: ціль 40 px; стан — формою (✔ у рамці), колір лише доповнює. */
+input[type='checkbox'] { appearance: none; -webkit-appearance: none; flex: none; width: var(--touch); height: var(--touch); margin: 0; padding: 0; display: inline-grid; place-content: center; border-radius: 8px; border: 2px solid var(--border); background: var(--bg); cursor: pointer; }
+input[type='checkbox']::before { content: ''; }
+input[type='checkbox']:checked { border-color: var(--ok); background: var(--surface); }
+input[type='checkbox']:checked::before { content: '✔'; color: var(--ok); font-weight: 800; font-size: 1.1rem; }
+input[type='radio'] { accent-color: var(--accent); padding: 0; }
+/* Панель — контейнер: рядки списку перебудовуються за шириною панелі, а не екрана (вузька права колонка). */
+.ui-panel { container-type: inline-size; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
@@ -118,6 +125,11 @@ input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); paddi
 .ui-row__meta { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); justify-content: flex-end; }
 .ui-row__actions { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
 @media (max-width: 520px) {
+  .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ui-row__actions { grid-column: 1 / -1; justify-content: stretch; }
+  .ui-row__actions > * { flex: 1; }
+}
+@container (max-width: 480px) {
   .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; }
   .ui-row__actions { grid-column: 1 / -1; justify-content: stretch; }
   .ui-row__actions > * { flex: 1; }
