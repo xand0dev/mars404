@@ -1,4 +1,5 @@
 .shell { display: grid; gap: var(--gap); padding: var(--gap); grid-template-columns: minmax(0, 1fr); max-width: 1600px; margin: 0 auto; }
+.shell__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gap); }
 .shell__title { font-size: var(--fs-title); margin: 0; }
 .shell__disclaimer { margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem; }
 .shell > * { min-width: 0; }
@@ -7,7 +8,20 @@
   .shell__bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
-  .shell__hud { position: sticky; top: 0; z-index: 2; }
   .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
   .shell__top, .shell__hud, .shell__bottom { grid-column: 1 / -1; }
+}
+
+/* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px, головне зверху, другорядне згорнуто. */
+.shell__glove { flex: none; }
+.shell__more > summary { list-style: none; display: flex; align-items: center; padding: 0 16px; border-radius: var(--radius); background: var(--surface); cursor: pointer; font-weight: 700; }
+.shell__more > summary::-webkit-details-marker { display: none; }
+.shell__more > summary::before { content: '▸'; margin-right: 10px; }
+.shell__more[open] > summary::before { content: '▾'; }
+.shell__more-body { display: grid; gap: var(--gap); margin-top: var(--gap); }
+.shell--glove { --touch: 64px; font-size: 1.1rem; }
+.shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
+.shell--glove input[type='number'] { width: 12rem; }
+@media (min-width: 1024px) {
+  .shell__more, .shell--glove .shell__map { grid-column: 1 / -1; }
 }
