@@ -39,8 +39,8 @@
     padding-right: 2px; /* фокус-рамка не обрізається прокруткою */
   }
 }
-/* Липка смуга HUD — лише там, де під нею лишається місце для карти. */
-@media (min-width: 1024px) and (min-height: 700px) {
+/* Липка смуга HUD — лише там, де вона одна лінія (≥ 1200) і під нею лишається місце для карти. */
+@media (min-width: 1200px) and (min-height: 700px) {
   .shell { --side-top: calc(var(--topbar-h) + var(--space-3)); }
   .shell__top {
     position: sticky; top: 0; z-index: 20;

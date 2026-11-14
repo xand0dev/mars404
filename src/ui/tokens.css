@@ -27,6 +27,7 @@
   --space-4: 16px;
   --space-5: 24px;
   --mock-bg: #5a3a12;
+  --assumption-bg: #3d3012;
   --mock-text: #ffd38a;
   --border: #4a3d36;
   --shadow: 0 1px 0 #00000040;
@@ -43,6 +44,7 @@ button, input, select { font: inherit; min-height: var(--touch); min-width: var(
 input { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; }
 button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; cursor: pointer; }
 button[aria-pressed='true'] { border-color: var(--accent); }
+input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); padding: 0; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
@@ -104,7 +106,7 @@ button[aria-pressed='true'] { border-color: var(--accent); }
 
 /* Бейджі статусу джерела */
 .ui-badge--verified { background: #1f3a29; color: var(--ok); }
-.ui-badge--assumption { background: #3d3012; color: var(--warn); }
+.ui-badge--assumption { background: var(--assumption-bg); color: var(--warn); }
 .ui-badge--pending { background: #1d2c3d; color: var(--info); }
 
 /* Рядок списку: знак · назва · мітки · дії */

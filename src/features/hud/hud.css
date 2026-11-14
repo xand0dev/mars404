@@ -23,7 +23,7 @@
 .hud__abort--clear strong { color: var(--ok); }
 .hud__abort-icon { color: var(--ok); font-weight: 700; }
 .hud__abort-reserve { font-size: var(--fs-small); color: var(--text-muted); }
-.hud__assumption { display: inline-flex; align-items: center; min-height: 20px; font-size: 0.72rem; line-height: 1; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #3d3012; color: var(--warn); }
+.hud__assumption { display: inline-flex; align-items: center; min-height: 20px; font-size: 0.72rem; line-height: 1; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--assumption-bg); color: var(--warn); }
 .hud__warnings { margin: 0; padding-left: 1.2em; font-size: var(--fs-small); color: var(--warn); }
 .hud__controls { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: end; }
 .hud__elapsed { display: grid; gap: 2px; font-size: var(--fs-small); color: var(--text-muted); }
@@ -32,7 +32,7 @@
 .hud__left { margin: 0; font-size: var(--fs-small); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 @media (min-width: 768px) {
-  .hud { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'hero verdict' 'info side' 'stations stations'; }
+  .hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'hero verdict' 'info side' 'stations stations'; }
   .hud__side { justify-items: end; text-align: right; }
 }
 /* ≥ 1200: одна смуга — «Return in» · вердикт · статус · Elapsed; станції рядком під нею. */
@@ -86,7 +86,8 @@
 @media (max-width: 520px) {
   .gonogo__stations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .gonogo__station.is-open { grid-column: 1 / -1; }
-  .gonogo__chip { padding: 0 4px 0 6px; gap: 4px; justify-content: flex-start; font-size: 0.78rem; min-width: 0; }
+  .gonogo__station { overflow: hidden; }
+  .gonogo__chip { padding: 0 4px 0 6px; gap: 3px; justify-content: flex-start; font-size: 0.72rem; min-width: 0; }
   .gonogo__chip::after { content: none; }
   .gonogo__chip[aria-expanded='true']::after { content: none; }
 }
