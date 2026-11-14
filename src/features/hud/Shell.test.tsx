@@ -139,3 +139,34 @@ describe('права колонка: панелі згортаються, від
     expect(expanded('Layers')).toBe('true');
   });
 });
+
+// UX: перший візит — підказка «How it works» з 4 кроками; «Got it» ховає її назавжди, кнопка в шапці відкриває знову.
+describe('підказка першого візиту', () => {
+  const dialog = () => screen.queryByRole('dialog', { name: 'Plan a walk on Mount Sharp in 4 steps' });
+
+  it('перший візит → підказка з 4 кроками, поточний — Location', () => {
+    page();
+    expect(dialog()).toBeInTheDocument();
+    const steps = within(dialog() as HTMLElement).getAllByRole('listitem');
+    expect(steps).toHaveLength(4);
+    expect(steps[0]).toHaveAttribute('aria-current', 'step');
+  });
+
+  it('«Got it» ховає й запам\'ятовує; після перезавантаження підказки немає; «How it works» відкриває знову', () => {
+    const { unmount } = page();
+    fireEvent.click(screen.getByRole('button', { name: 'Got it' }));
+    expect(dialog()).toBeNull();
+    expect(localStorage.getItem('mars404.onboarded')).toBe('1');
+    unmount();
+    page();
+    expect(dialog()).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'How it works' }));
+    expect(dialog()).toBeInTheDocument();
+  });
+
+  it('Escape закриває підказку', () => {
+    page();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(dialog()).toBeNull();
+  });
+});

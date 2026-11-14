@@ -3,10 +3,12 @@
 // Колонки прокручуються самі, сторінка — ні (≥ 1200 px). Вужче — одна колонка: HUD → карта → план → стан.
 // Панелі в колонках згортаються; відкриті ті, що потрібні для наступного кроку (T24).
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useMission } from '../../store/useMission';
 import { PanelGroupContext, type PanelGroup } from '../../ui';
 import { GloveContext, readGlove, writeGlove } from './glove';
+import { Onboarding } from './Onboarding';
+import { readOnboarded, writeOnboarded } from './onboardingStore';
 import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
 
 export interface ShellProps {
@@ -25,6 +27,13 @@ export function Shell({ hud, map, side, status }: ShellProps) {
     setGlove(next);
     writeGlove(next);
   };
+
+  // Перший візит — підказка «як це працює»; потім її відкриває кнопка в шапці.
+  const [help, setHelp] = useState(() => !readOnboarded());
+  const closeHelp = useCallback(() => {
+    setHelp(false);
+    writeOnboarded();
+  }, []);
 
   const step = useMission((s) => panelStep(s));
   const [overrides, setOverrides] = useState<PanelOverrides>({
@@ -78,12 +87,18 @@ export function Shell({ hud, map, side, status }: ShellProps) {
               </li>
             ))}
           </ol>
+          <button type="button" className="shell__help" aria-expanded={help} onClick={() => (help ? closeHelp() : setHelp(true))}>
+            How it works
+          </button>
           <button type="button" className="shell__glove" aria-pressed={glove} onClick={toggle}>
             Glove mode
           </button>
         </header>
         <div className="shell__hud">{hud}</div>
-        <main className="shell__map">{map}</main>
+        <main className="shell__map">
+          {help && <Onboarding step={step} onClose={closeHelp} />}
+          {map}
+        </main>
         {glove ? (
           <details className="shell__more">
             <summary>More panels</summary>

@@ -88,6 +88,7 @@ export function SitePanel() {
           <li key={s.id}>
             <button
               type="button"
+              data-site={s.id}
               aria-pressed={s.id === GALE_ID ? site === GALE_ID : previewId === s.id}
               onClick={() => chooseSite(s.id)}
             >

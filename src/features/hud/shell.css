@@ -90,3 +90,38 @@
   border-color: rgb(255 42 42 / 0.45);
   box-shadow: 0 -18px 28px -12px rgb(0 0 0 / 0.9), 0 0 22px -10px rgb(224 16 26 / 0.8);
 }
+
+/* ── Перший візит: підказка «How it works» (не модальна, поверх верху карти) ── */
+.shell__help { flex: none; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-radius: 999px; padding: 0 18px; background: transparent; }
+.shell__help[aria-expanded='true'] { border-color: rgb(255 42 42 / 0.5); color: var(--text); }
+.shell__map { position: relative; }
+.onboarding {
+  position: relative; z-index: 5; display: grid; gap: var(--space-2);
+  padding: var(--space-4) var(--space-5); border-radius: var(--radius);
+  background: radial-gradient(500px 200px at 0% 0%, rgb(224 16 26 / 0.18), transparent 70%), rgb(11 11 13 / 0.96);
+  border: 1px solid rgb(255 42 42 / 0.4); box-shadow: 0 24px 48px -16px #000, 0 0 30px -12px rgb(224 16 26 / 0.8);
+}
+@media (min-width: 1200px) {
+  /* На десктопі — картка поверх верхньої частини карти, не зсуває компонування. */
+  .onboarding { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); }
+}
+.onboarding__eyebrow { margin: 0; font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+.onboarding__title { margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+.onboarding__steps { list-style: none; margin: var(--space-1) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.onboarding__steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; color: var(--text-muted); }
+.onboarding__steps li strong { color: var(--text); }
+.onboarding__steps li.is-current { color: var(--text); }
+.onboarding__n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; }
+.onboarding__steps li.is-current .onboarding__n { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--accent-glow); }
+.onboarding__steps li.is-done .onboarding__n { border-color: #0f5a37; background: var(--ok-bg); color: var(--ok); }
+.onboarding__note { margin: var(--space-1) 0 0; font-size: var(--fs-small); color: var(--text-muted); }
+.onboarding__close { justify-self: start; min-width: 120px; }
+
+/* ── Наступна дія підсвічена на кожному кроці: червоне кільце, що «дихає» (без руху при reduced motion). ── */
+@keyframes next-action { 0%, 100% { box-shadow: 0 0 0 2px rgb(255 42 42 / 0.9), 0 0 18px 2px rgb(224 16 26 / 0.55); } 50% { box-shadow: 0 0 0 2px rgb(255 42 42 / 0.5), 0 0 6px 0 rgb(224 16 26 / 0.3); } }
+.shell--step-site [data-site='gale'],
+.shell--step-route .route-build:not(:disabled),
+.shell--step-checklist .gonogo__btn {
+  border-color: var(--accent); animation: next-action 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(255 42 42 / 0.9), 0 0 18px 2px rgb(224 16 26 / 0.55);
+}
