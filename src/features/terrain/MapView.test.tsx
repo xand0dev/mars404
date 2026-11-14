@@ -53,8 +53,11 @@ describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
     const svg = screen.getByRole('img', { name: /2D plan/ });
     expect(svg.querySelector('[data-kind="route"]')).not.toBeNull();
     expect(svg.querySelector('[data-kind="selected-segment"]')).not.toBeNull();
+    // Відрізок — один крок сітки (~10 м), тож поруч помітний маркер з підписом.
+    expect(svg.querySelector('[data-kind="segment-marker"]')).toHaveTextContent('Segment 2 · leg 1');
     act(() => useMission.setState({ selectedSegment: null }));
     expect(svg.querySelector('[data-kind="selected-segment"]')).toBeNull();
+    expect(svg.querySelector('[data-kind="segment-marker"]')).toBeNull();
   });
 
   it('ореол reach.mask у 2D', () => {

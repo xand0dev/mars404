@@ -8,6 +8,7 @@ import { xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
 import { CSS } from './lib/overlay';
+import { segmentMarker } from './lib/segment';
 import { Label3D } from './Label3D';
 import { useOptionalTexture } from './useRegionTexture';
 
@@ -135,6 +136,13 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
     return a && b ? [a.position, b.position] : null;
   }, [plan, selectedSegment, grid, heights, noData]);
 
+  // Відрізок F4 — один крок сітки (~10 м): поруч вертикальний маяк і кільце, щоб його було видно з будь-якої камери.
+  const segMark = useMemo(() => {
+    const m = segmentMarker(plan, selectedSegment);
+    const p = m ? surfacePoint(grid, heights, noData, m.mid, LIFT_M) : null;
+    return m && p ? { label: m.label, position: p.position } : null;
+  }, [plan, selectedSegment, grid, heights, noData]);
+
   const pov = useMemo(() => {
     // Висота форми меша (NoData уже заповнено сусідами) — щоб очі не опинились під поверхнею.
     const ground = (xy: XY) => {
@@ -174,6 +182,21 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
       ))}
       {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} />}
       {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} renderOrder={15} />}
+
+      {segMark && (
+        <group position={segMark.position}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={16}>
+            <ringGeometry args={[markerR * 1.6, markerR * 2.2, 40]} />
+            <meshBasicMaterial color={CSS.segment} depthTest={false} transparent />
+          </mesh>
+          {/* Маяк вищий за маркери цілей (їхні підписи на 3 R), щоб підписи не накладались. */}
+          <mesh position={[0, markerR * 4, 0]} renderOrder={16}>
+            <cylinderGeometry args={[markerR * 0.25, markerR * 0.25, markerR * 8, 8]} />
+            <meshBasicMaterial color={CSS.segment} />
+          </mesh>
+          <Label3D position={[0, markerR * 8.5, 0]} color={CSS.segment} text={segMark.label} />
+        </group>
+      )}
 
       {targets.map((t) => {
         const p = at(t.coordinates);

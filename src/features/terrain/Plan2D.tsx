@@ -5,6 +5,7 @@ import { StatusNote } from '../../ui';
 import { CELL } from './lib/cells';
 import { CSS } from './lib/overlay';
 import { cellsPath, planPoint, polyline, selectedSegmentLine, type PlanReason } from './lib/plan2d';
+import { segmentMarker } from './lib/segment';
 
 export interface Plan2DProps {
   reason: PlanReason;
@@ -59,6 +60,10 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
   const unit = Math.max(w, h) / 64;
   const routeStr = plan && plan.path.length >= 2 ? polyline(grid, plan.path) : '';
   const basePt = base ? planPoint(grid, base) : null;
+  const marker = segmentMarker(plan, selectedSegment);
+  const markerPt = marker ? planPoint(grid, marker.mid) : null;
+  // Підпис над кільцем, по центру; половина оцінної ширини (~0.6 em на символ) — щоб не вийти за край.
+  const markerHalfW = marker ? (marker.label.length * unit * 2.4 * 0.6) / 2 : 0;
   const label = `2D plan B: ${targets.length} targets, ${plan ? plan.segments.length : 0} route segments, ${counts.blocked} blocked and ${counts.noData} NoData cells`;
 
   return (
@@ -126,6 +131,25 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
             </g>
           );
         })}
+        {marker && markerPt && (
+          // Поверх цілей: кільце навколо відрізка й підпис, бо сам відрізок — один крок сітки.
+          <g data-kind="segment-marker">
+            <circle cx={markerPt[0]} cy={markerPt[1]} r={unit * 2.6} fill="none" stroke={CSS.segment} strokeWidth={unit * 0.6} />
+            <text
+              x={Math.min(Math.max(markerPt[0], markerHalfW), w - markerHalfW)}
+              y={markerPt[1] - unit * 3.4 < unit * 2.4 ? markerPt[1] + unit * 5.2 : markerPt[1] - unit * 3.4}
+              textAnchor="middle"
+              fontSize={unit * 2.4}
+              fontWeight={700}
+              fill={CSS.segment}
+              stroke="#14100e"
+              strokeWidth={unit * 0.35}
+              paintOrder="stroke"
+            >
+              {marker.label}
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   );
