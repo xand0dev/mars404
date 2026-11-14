@@ -169,7 +169,9 @@ describe('F3-AC5: photos і emergencyO2G', () => {
   });
 
   it('Given без files.photos, Then photos = []', async () => {
-    const r = await loadRegion(disk);
+    // Явно без photos: не залежить від того, чи є photos.geojson від F6 на диску.
+    const reg = await realRegion();
+    const r = await loadRegion(patched({ 'region.json': json({ ...reg, files: { ...reg.files, photos: undefined } }) }));
     if (r.kind !== 'real') throw new Error(r.kind);
     expect(r.photos).toEqual([]);
   });
