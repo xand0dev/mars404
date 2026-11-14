@@ -1,0 +1,11 @@
+/* Стилі F2 (лише класи terrain-*). Токени — з src/ui/tokens.css (F7). */
+.terrain-stage { position: relative; height: min(60vh, 520px); min-height: 240px; }
+.terrain-info { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+.terrain-facts, .terrain-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 2px 0; }
+.terrain-facts strong { color: var(--text); }
+.terrain-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; border: 1px solid #ffffff55; }
+.terrain-plan2d { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.terrain-counter { margin: 2px 0 6px; font-weight: 600; }
+.terrain-svg { flex: 1; min-height: 0; width: 100%; height: 100%; display: block; }
+.terrain-cams { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.terrain-fps { position: absolute; left: 8px; bottom: 8px; font: 12px/1.3 ui-monospace, monospace; background: #14100ee6; color: var(--text); padding: 4px 8px; border-radius: 6px; max-width: calc(100% - 16px); }

@@ -1,0 +1,141 @@
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MissionState, PlanningGrid } from '../../contracts';
+import { mockGrid } from '../../mocks';
+import { resetMission, useMission } from '../../store/useMission';
+import { useCameraMode } from './cameraStore';
+import { CameraModes } from './CameraModes';
+import { MapView } from './MapView';
+import { planThrough, smallGrid, testRegion } from './lib/fixtures';
+
+const gale = () => act(() => useMission.setState({ site: 'gale' }));
+const terrain = () => screen.getByRole('region', { name: 'Gale terrain' });
+
+beforeEach(() => {
+  resetMission();
+  useCameraMode.setState({ mode: 'orbit', view3D: true });
+});
+
+describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
+  it('site = null → глобус, без 2D-плану рельєфу', () => {
+    render(<MapView globe={null} />);
+    expect(screen.getByRole('region', { name: 'Mars globe' })).toBeInTheDocument();
+    expect(screen.queryByText(/Blocked \/ NoData cells/)).toBeNull();
+  });
+
+  it('F2-AC1: розмір сітки, м/клітинку, «height ×3», статус MOCK', () => {
+    render(<MapView globe={null} />);
+    gale();
+    const facts = within(terrain()).getByLabelText('Terrain facts');
+    expect(facts).toHaveTextContent('Grid 128×128');
+    expect(facts).toHaveTextContent('10 m/cell');
+    expect(facts).toHaveTextContent('height ×3');
+    expect(facts).toHaveTextContent('Data: MOCK');
+  });
+
+  it('F2-AC2/AC4: без WebGL видно причину, лічильник blocked/NoData, цілі', () => {
+    render(<MapView globe={null} />);
+    gale();
+    expect(screen.getByText(/WebGL unavailable/)).toBeInTheDocument();
+    expect(screen.getByText('Blocked / NoData cells: 101 / 2')).toBeInTheDocument();
+    const svg = screen.getByRole('img', { name: /2D plan/ });
+    expect(svg.querySelectorAll('[data-kind="target"]')).toHaveLength(5);
+    expect(svg.querySelector('[data-kind="blocked"]')).not.toBeNull();
+    expect(svg.querySelector('[data-kind="nodata"]')).not.toBeNull();
+  });
+
+  it('F2-AC3: маршрут і підсвітка selectedSegment; null — без підсвітки', () => {
+    render(<MapView globe={null} />);
+    gale();
+    const plan = planThrough(mockGrid, [[64, 64], [63, 64], [62, 65]]);
+    act(() => useMission.setState({ plan, selectedSegment: 1 }));
+    const svg = screen.getByRole('img', { name: /2D plan/ });
+    expect(svg.querySelector('[data-kind="route"]')).not.toBeNull();
+    expect(svg.querySelector('[data-kind="selected-segment"]')).not.toBeNull();
+    act(() => useMission.setState({ selectedSegment: null }));
+    expect(svg.querySelector('[data-kind="selected-segment"]')).toBeNull();
+  });
+
+  it('ореол reach.mask у 2D', () => {
+    render(<MapView globe={null} />);
+    gale();
+    act(() =>
+      useMission.setState({
+        reach: { status: 'estimated', mask: new Uint8Array(128 * 128).fill(1), returnInS: 600, deficits: [], swap: null, warnings: [] },
+      }),
+    );
+    expect(screen.getByRole('img', { name: /2D plan/ }).querySelector('[data-kind="halo"]')).not.toBeNull();
+  });
+
+  it('F2-AC4: невалідна сітка → причина «Invalid grid»', () => {
+    render(<MapView globe={null} />);
+    const bad: PlanningGrid = { ...mockGrid, elevationsM: new Float32Array(10) };
+    act(() => useMission.setState({ site: 'gale', grid: bad }));
+    expect(screen.getByText(/Invalid grid: elevationsM/)).toBeInTheDocument();
+  });
+
+  it('F2-AC1/AC2: після setRegionData той самий код бере реальну сітку, region.noData і статус', () => {
+    render(<MapView globe={null} />);
+    const grid = smallGrid();
+    act(() => useMission.getState().setRegionData({ region: testRegion(grid, 'verified'), grid, targets: [] }));
+    gale();
+    const facts = within(terrain()).getByLabelText('Terrain facts');
+    expect(facts).toHaveTextContent('Grid 4×3');
+    expect(facts).toHaveTextContent('Data: verified');
+    expect(screen.getByText('Blocked / NoData cells: 2 / 3')).toBeInTheDocument();
+    expect(terrain().querySelector('.ui-badge--mock')).toBeNull();
+  });
+});
+
+describe('CameraModes', () => {
+  it('вимкнені на глобусі; на Gale перемикаються з aria-pressed', async () => {
+    const user = userEvent.setup();
+    render(<CameraModes />);
+    expect(screen.getByRole('button', { name: 'Top' })).toBeDisabled();
+    gale();
+    await user.click(screen.getByRole('button', { name: 'Top' }));
+    expect(screen.getByRole('button', { name: 'Top' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Orbit' })).toHaveAttribute('aria-pressed', 'false');
+    await user.click(screen.getByRole('button', { name: 'POV' }));
+    expect(screen.getByText(/Eye height 1.7 m — assumption/)).toBeInTheDocument();
+  });
+});
+
+describe('CameraModes у 2D-плані', () => {
+  it('без 3D кнопки камер вимкнені з поясненням', () => {
+    render(
+      <>
+        <MapView globe={null} />
+        <CameraModes />
+      </>,
+    );
+    gale();
+    expect(screen.getByRole('button', { name: 'Top' })).toBeDisabled();
+    expect(screen.getByText('Camera modes need 3D')).toBeInTheDocument();
+  });
+});
+
+describe('F2-AC3: F2 нічого не пише в store', () => {
+  it('рендер 3D/2D, зміна плану і камер не викликають жодної дії store', async () => {
+    const user = userEvent.setup();
+    const names = [
+      'setSite', 'toggleLayer', 'setRegionData', 'toggleTarget', 'replaceTarget', 'setWaypoints', 'setPlan',
+      'setSelectedSegment', 'setBudget', 'setReach', 'setLimits', 'setTime', 'setPosition',
+    ] as const satisfies readonly (keyof MissionState)[];
+    const spies = Object.fromEntries(names.map((n) => [n, vi.fn()]));
+    useMission.setState({ ...spies, site: 'gale', selectedTargetIds: ['mock-a'] });
+    render(
+      <>
+        <MapView globe={null} />
+        <CameraModes />
+      </>,
+    );
+    act(() => useMission.setState({ plan: planThrough(mockGrid, [[64, 64], [63, 64]]), selectedSegment: 0 }));
+    // jsdom показує 2D; вмикаємо кнопки, щоб перевірити й перемикання камер.
+    act(() => useCameraMode.setState({ view3D: true }));
+    for (const b of ['Top', 'POV', 'Orbit']) await user.click(screen.getByRole('button', { name: b }));
+    expect(useCameraMode.getState().mode).toBe('orbit');
+    for (const n of names) expect(spies[n], n).not.toHaveBeenCalled();
+  });
+});
