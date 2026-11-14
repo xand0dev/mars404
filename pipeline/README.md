@@ -17,7 +17,7 @@
    - `limits` = 3600 с / 140 г (112 / 0.8, #64) / 600 Wh / null і `limitsEvidence` на кожен ліміт (усі assumption, SPEC §7.6);
    - `region.json`, `source.json` (входи + статистика), `traverse.geojson`, `SHA256SUMS`.
 
-Райони — `region_config.REGIONS` (#101): `gale`, `columbia-hills` — EVA, будує `prepare.py --region <id>` з кешу `pipeline/.cache/<id>/` (`fetch.py --region <id>`); `olympus-mons`, `valles-marineris` — overview, будує `overview.py` (Іван, #113). Для кожного EVA-району `prepare` пише ще `elevation_render.f32` — 1024² по 2.5 м (середнє валідних 1-м пікселів, зважене площею перетину; лише 3D) — і `renderGrid` у `region.json`. Якщо в папці виходу вже лежить `context.json` (Іван), він переноситься в `region.json.context` і входить у `SHA256SUMS`.
+Райони — `region_config.REGIONS` (#101): `gale`, `columbia-hills` — EVA, будує `prepare.py --region <id>` з кешу `pipeline/.cache/<id>/` (`fetch.py --region <id>`); `olympus-mons`, `valles-marineris` — overview, будує `overview.py` (Іван, #113). Для кожного EVA-району `prepare` пише ще `elevation_render.f32` — 1024² по 2.5 м (середнє валідних 1-м пікселів, зважене площею перетину; лише 3D) — і `renderGrid` у `region.json`. Для Gale `files.texture` — `hirise_4096.jpg` (#117), шар optical — `hirise.jpg`. `prepare` не губить того, що додали інші скрипти: `context` (з `context.json` Івана або з наявного `region.json`, #118), чужі джерела в `region.json` і входи в `source.json`; `context.*` входять у `SHA256SUMS`.
 
 Gale — `region_config.py` (bbox B з #7: квадрат 2.56 км з центром у центроїді цілей F6). Вибір перевіряв `probe.py` (критерії SPEC §8).
 

@@ -212,16 +212,26 @@ def src(id, title, status, note, url=None, product=None, credit=None, accessed=N
 CONTEXT_KEYS = ('file', 'width', 'height', 'metersPerPixel', 'originM', 'noData')
 
 
-def read_context(out):
-    """context.json від context.py (#113) → поле region.context (лише ключі контракту) і файли для SHA256SUMS."""
-    path = out / 'context.json' if out else None
-    if not path or not path.exists():
-        return None, {}
-    ctx = json.loads(path.read_text(encoding='utf-8'))
-    extra = {'context.json': path.read_bytes()}
-    if (out / ctx['file']).exists():
+def read_previous(out):
+    """Що в папці району вже додали інші скрипти (render_context.py #118, context.py #113), щоб prepare це не губив.
+    → (context, extra-файли для SHA256SUMS, джерела region.json, входи source.json).
+    context — з context.json (#113) або з поточного region.json; файл context має лежати поруч."""
+    if not out:
+        return None, {}, [], {}
+    old = json.loads((out / 'region.json').read_text(encoding='utf-8')) if (out / 'region.json').exists() else {}
+    old_src = json.loads((out / 'source.json').read_text(encoding='utf-8')) if (out / 'source.json').exists() else {}
+    extra, ctx = {}, None
+    if (out / 'context.json').exists():
+        extra['context.json'] = (out / 'context.json').read_bytes()
+        ctx = json.loads(extra['context.json'])
+    elif old.get('context'):
+        ctx = old['context']
+    if ctx and not (out / ctx['file']).exists():
+        ctx = None
+    if ctx:
         extra[ctx['file']] = (out / ctx['file']).read_bytes()
-    return {k: ctx[k] for k in CONTEXT_KEYS if k in ctx}, extra
+        ctx = {k: ctx[k] for k in CONTEXT_KEYS if k in ctx}
+    return ctx, extra, old.get('sources', []), old_src.get('inputs', {})
 
 
 def esri_lines(doc):
@@ -337,13 +347,15 @@ def build(cache, region='gale', out=None):
     fin_s = sorted(s for s in slope if math.isfinite(s))
     trek_credit = 'NASA/JPL-Caltech, Mars Trek'
     if gale:
-        dem_id, texture = 'trek-gale-dem-1m', 'hirise.jpg'
+        # files.texture — hirise_4096.jpg для 3D (#117); шар optical лишається на hirise.jpg 2048².
+        dem_id, texture = 'trek-gale-dem-1m', 'hirise_4096.jpg'
         region_sources = [
             src(dem_id, 'Gale DEM 1 m (HiRISE stereo)', 'verified', 'Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.', f['dem.tif']['url'], trek.DEM, trek_credit, at('dem.tif')),
             src('trek-hirise-mosaic', 'HiRISE mosaic, Curiosity area', 'verified', 'Grayscale JPEG 2048², same bbox; display only.', f['hirise.jpg']['url'], trek.HIRISE, trek_credit, at('hirise.jpg')),
             src('mmgis-msl-traverse', 'Curiosity traverse (MMGIS)', 'verified', 'MSL_traverse.json clipped to bbox; line leaves bbox → split.', f['MSL_traverse.json']['url'], 'MSL_traverse', 'NASA/JPL-Caltech, MSL MMGIS', at('MSL_traverse.json')),
         ]
-        texture_bytes = (cache / 'hirise.jpg').read_bytes()
+        texture_bytes = (cache / 'hirise_4096.jpg').read_bytes()
+        extra_out = {'hirise.jpg': (cache / 'hirise.jpg').read_bytes()}
     else:
         dem_id, texture = 'trek-columbia-hills-dem-1m', 'hillshade.png'
         region_sources = [
@@ -360,6 +372,7 @@ def build(cache, region='gale', out=None):
         ]
         shade = hillshade(dem, nw, nh, cfg.NATIVE_M, HILLSHADE_AZ, HILLSHADE_ALT)
         tex = box_resample(shade, nw, nh, cfg.TEXTURE_PX, cfg.TEXTURE_PX)
+        extra_out = {}
         texture_bytes = png.encode_gray(cfg.TEXTURE_PX, cfg.TEXTURE_PX, bytes(0 if _invalid(v) else min(255, round(v * 255)) for v in tex))
     sources = [
         *region_sources,
@@ -419,7 +432,9 @@ def build(cache, region='gale', out=None):
     if gale:
         files['photos'] = 'photos/photos.geojson'
     files['elevationRender'] = 'elevation_render.f32'
-    context, extra = read_context(out)
+    context, extra, old_sources, old_inputs = read_previous(out)
+    own = {s_['id'] for s_ in sources}
+    sources += [s_ for s_ in old_sources if s_['id'] not in own]
     region_doc = dict(schemaVersion=1, id=region, kind='eva', name=rc['name'], status='verified',
                       grid=dict(width=W, height=H, metersPerPixel=cfg.MPP, originM=list(origin), rowOrder='north-to-south',
                                 boundsLonLat=list(bbox), crs='Mars 2000 geographic (Trek bboxSR 104905)'),
@@ -429,7 +444,8 @@ def build(cache, region='gale', out=None):
     region_doc.update(noData=NODATA, base=base, model=model,
                       limits=limits, limitsEvidence=limits_evidence, layers=layers, sources=sources,
                       hazardFromSlope=HAZARD_MODEL)
-    source = dict(accessedAt=day, bbox=list(bbox), center=list(center), inputs=f,
+    inputs = dict(f, **{k_: v for k_, v in old_inputs.items() if k_ not in f})
+    source = dict(accessedAt=day, bbox=list(bbox), center=list(center), inputs=inputs,
                   native=dict(width=nw, height=nh, mpp=cfg.NATIVE_M, tiffNoData=tiff_nd,
                               noDataFraction=round(1 - len(valid_native) / len(dem), 6),
                               elevMinM=round(min(valid_native), 3), elevMaxM=round(max(valid_native), 3)),
@@ -445,7 +461,7 @@ def build(cache, region='gale', out=None):
     out_files = {
         'elevation.f32': f32(elev), 'slope.f32': f32(slope), 'hazard.f32': f32(haz), 'walkable.u8': bytes(walk),
         texture: texture_bytes, 'traverse.geojson': dump(traverse), 'elevation_render.f32': f32(render),
-        'region.json': dump(region_doc), 'source.json': dump(source), **overlays,
+        'region.json': dump(region_doc), 'source.json': dump(source), **overlays, **extra_out,
     }
     return out_files, extra
 

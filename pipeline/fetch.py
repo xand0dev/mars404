@@ -29,6 +29,7 @@ def items(region='gale'):
     out = {'dem.tif': trek.export_url(r['dem'], bbox, cfg.NATIVE_PX, cfg.NATIVE_PX, interpolation='RSP_NearestNeighbor')}
     if region == 'gale':
         out['hirise.jpg'] = trek.export_url(trek.HIRISE, bbox, cfg.TEXTURE_PX, cfg.TEXTURE_PX, fmt='jpg', pixel_type='U8')
+        out['hirise_4096.jpg'] = trek.export_url(trek.HIRISE, bbox, cfg.TEXTURE_HD_PX, cfg.TEXTURE_HD_PX, fmt='jpg', pixel_type='U8')
         out['MSL_traverse.json'] = MMGIS + 'MSL_traverse.json'
     elif region == 'columbia-hills':
         out['spirit_waypoints.json'] = _query('spirit_waypoints')

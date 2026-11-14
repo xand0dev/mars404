@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "gale",
+  "kind": "eva",
   "name": "Gale · Mount Sharp (Curiosity stops, sol 3008–3192)",
   "status": "verified",
   "grid": {
@@ -30,6 +31,21 @@
     "traverse": "traverse.geojson",
     "photos": "photos/photos.geojson",
     "elevationRender": "elevation_render.f32"
+  },
+  "renderGrid": {
+    "width": 1024,
+    "height": 1024
+  },
+  "context": {
+    "file": "context.f32",
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 240.0,
+    "originM": [
+      -29440.0,
+      32000.0
+    ],
+    "noData": -9999.0
   },
   "noData": -9999.0,
   "base": [
@@ -459,20 +475,5 @@
     "kind": "slope-linear",
     "slopeDegAtMax": 25,
     "maxHazard": 0.5
-  },
-  "renderGrid": {
-    "width": 1024,
-    "height": 1024
-  },
-  "context": {
-    "file": "context.f32",
-    "width": 256,
-    "height": 256,
-    "metersPerPixel": 240.0,
-    "originM": [
-      -29440.0,
-      32000.0
-    ],
-    "noData": -9999.0
   }
 }

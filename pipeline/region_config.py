@@ -22,6 +22,7 @@ MPP = 10             # м на клітинку (≤10 м)
 NATIVE_M = 1         # обидва DEM ≈ 1 м; exportImage запитується рівно по 1 м (nearest neighbour)
 NATIVE_PX = CELLS * MPP // NATIVE_M
 TEXTURE_PX = 2048
+TEXTURE_HD_PX = 4096  # hirise_4096.jpg для 3D (Gale, #117)
 RENDER_PX = 1024     # elevation_render.f32: 1024² по 2.5 м (#101 крок 2), лише для 3D
 
 

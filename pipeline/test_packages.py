@@ -66,7 +66,8 @@ class Packages(unittest.TestCase):
 
     def test_gale(self):
         reg, _ = self.check('gale')
-        self.assertEqual(reg['files']['texture'], 'hirise.jpg')
+        self.assertEqual(reg['files']['texture'], 'hirise_4096.jpg')  # #117; шар optical — hirise.jpg
+        self.assertEqual(reg['context']['file'], 'context.f32')  # #118 не губиться після prepare
 
     def test_columbia_hills(self):
         reg, src = self.check('columbia-hills')
