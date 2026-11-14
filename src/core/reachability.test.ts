@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { RoutePlan, Target, XY } from '../contracts';
 import { cellCenter, xyToCell } from '../contracts/planning';
 import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../mocks';
-import { emptyPlan } from './plan-route';
+import { emptyPlan, planRoute } from './plan-route';
 import { assessReach, buildReachTrees, type ReachInput } from './reachability';
 import { makeTestGrid, testModel } from './test-grids';
 
@@ -155,5 +155,48 @@ describe('reachability · returnInS і статуси', () => {
     expect(reach.returnInS).toBeNull();
     expect(reach.swap).toBeNull();
     expect(reach.warnings.join(' ')).toMatch(/speedMps/);
+  });
+});
+
+describe('reachability · F5-AC5 reach.abort (SPEC §7.8)', () => {
+  const realPlan = (targetId: string) => {
+    const target = mockTargets.find((t) => t.id === targetId)!;
+    return planRoute({ grid: mockGrid, model: mockModel, start: mockBase, waypoints: [target.coordinates], base: mockBase, requestId: 1 });
+  };
+
+  it('чинний план → abort по відрізку на кожен plan.segments[i], запас з model.emergencyO2G', () => {
+    const plan = realPlan('mock-a');
+    const { reach } = assessReach(mockInput({ plan, selectedTargetIds: ['mock-a'] }));
+
+    expect(plan.status).toBe('ok');
+    expect(reach.abort?.segments).toHaveLength(plan.segments.length);
+    expect(reach.abort?.emergencyO2G).toBe(mockModel.emergencyO2G);
+  });
+
+  it.each([
+    ['немає плану', null],
+    ['план pending', emptyPlan('pending', 1)],
+    ['план no-path', emptyPlan('no-path', 1)],
+  ])('%s → abort = null', (_name, plan) => {
+    const { reach } = assessReach(mockInput({ plan, selectedTargetIds: ['mock-a'] }));
+    expect(reach.abort).toBeNull();
+  });
+
+  it('невалідні входи → abort = null', () => {
+    const { reach } = assessReach(mockInput({ plan: realPlan('mock-a'), model: { ...mockModel, speedMps: 0 } }));
+    expect(reach.status).toBe('invalid');
+    expect(reach.abort).toBeNull();
+  });
+
+  it('«O₂ −40%»: жоден відрізок не стає ok, точка неповернення не пізніша', () => {
+    const plan = realPlan('mock-c');
+    const normal = assessReach(mockInput({ plan, selectedTargetIds: ['mock-c'] })).reach.abort!;
+    const reduced = assessReach(mockInput({ plan, selectedTargetIds: ['mock-c'], limits: { ...mockLimits, o2: mockLimits.o2 * 0.6 } })).reach.abort!;
+
+    reduced.segments.forEach((s, i) => {
+      if (s.ok) expect(normal.segments[i]!.ok).toBe(true);
+    });
+    expect(reduced.pointOfNoReturnS ?? Infinity).toBeLessThanOrEqual(normal.pointOfNoReturnS ?? Infinity);
+    expect(reduced.pointOfNoReturnS).not.toBeNull();
   });
 });
