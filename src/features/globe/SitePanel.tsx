@@ -1,9 +1,10 @@
 // F1: вибір місця. Gale відкриває район (setSite), інші точки — картка «next site» без зміни site.
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { useGlobe } from './globeState';
-import { FLY_MS, prefersReducedMotion } from './motion';
+import { chooseSite, openGale } from './choose';
+import { FLY_MS } from './motion';
 import { GALE_ID, SITES, siteById, type Site } from './sites';
 
 const listStyle = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 } as const;
@@ -37,35 +38,17 @@ export function SitePanel() {
   const site = useMission((s) => s.site);
   const setSite = useMission((s) => s.setSite);
   const previewId = useGlobe((s) => s.previewId);
-  const preview = useGlobe((s) => s.preview);
   const resetUi = useGlobe((s) => s.resetUi);
   const texture = useGlobe((s) => s.texture);
   const flying = useGlobe((s) => s.flying);
-  const setFlying = useGlobe((s) => s.setFlying);
-  const sceneReady = useGlobe((s) => s.sceneReady);
-
-  const openGale = useCallback(() => {
-    setFlying(false);
-    setSite(GALE_ID);
-  }, [setFlying, setSite]);
 
   // F1-AC3: один таймер на перехід; пише в store рівно раз — у кінці. Skip / скасування прибирають його.
   useEffect(() => {
     if (!flying) return;
     const id = setTimeout(openGale, FLY_MS);
     return () => clearTimeout(id);
-  }, [flying, openGale]);
+  }, [flying]);
 
-  const choose = (s: Site) => {
-    if (s.id === GALE_ID) {
-      preview(null);
-      if (flying || !sceneReady || prefersReducedMotion()) openGale();
-      else setFlying(true);
-    } else {
-      setFlying(false);
-      preview(s.id);
-    }
-  };
   const back = () => {
     resetUi();
     setSite(null);
@@ -80,7 +63,7 @@ export function SitePanel() {
             <button
               type="button"
               aria-pressed={s.id === GALE_ID ? site === GALE_ID : previewId === s.id}
-              onClick={() => choose(s)}
+              onClick={() => chooseSite(s.id)}
             >
               {s.name}
             </button>
