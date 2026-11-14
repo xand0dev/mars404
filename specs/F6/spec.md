@@ -3,6 +3,13 @@
 Власник: Настя (@Bulka0801) · гілка `feat/F6` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Нові задачі (14.11): Abort map + «View from here»
+План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
+
+| Задача | AC / правило | Issue | Залежить від |
+|---|---|---|---|
+| `photos/photos.geojson`: 8–20 знімків Navcam у bbox, локально, `alt`, credit, sol, `sourceUrl`, камера, `locationAccuracy: 'rover-stop'`; джерела в SOURCES | F6-AC5, §6.0 | #34 | скрипт Івана (#36) |
+
 ## Мета й обсяг
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
 

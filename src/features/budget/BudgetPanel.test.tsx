@@ -1,0 +1,125 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { emptyPlan } from '../../core';
+import { mockModel } from '../../mocks';
+import { resetMission, useMission } from '../../store/useMission';
+import { BudgetEngine } from './BudgetEngine';
+import { BudgetPanel } from './BudgetPanel';
+
+const store = () => useMission.getState();
+const renderBudget = (site: 'gale' | null = 'gale') => {
+  act(() => store().setSite(site));
+  return render(
+    <>
+      <BudgetEngine />
+      <BudgetPanel />
+    </>,
+  );
+};
+
+beforeEach(() => resetMission());
+
+describe('BudgetEngine + BudgetPanel', () => {
+  it('F5-AC1: у базі без цілей — «Return in 48 min», статус incomplete з текстом', () => {
+    renderBudget();
+    expect(screen.getByText('Return in 48 min')).toBeInTheDocument();
+    expect(screen.getByText(/return not fully assessed/i)).toBeInTheDocument();
+    expect(store().reach?.status).toBe('incomplete');
+    expect(store().budget).toEqual({ time: 3600, o2: 720, energy: 600, dose: null });
+  });
+
+  it('«O₂ −40%» звужує запас, «Reset» повертає ліміти', async () => {
+    renderBudget();
+    await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+
+    expect(store().limits.o2).toBeCloseTo(432, 6);
+    expect(screen.getByRole('button', { name: 'O₂ −40%' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Return in 28 min')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(store().limits.o2).toBe(720);
+    expect(screen.getByText('Return in 48 min')).toBeInTheDocument();
+  });
+
+  it('обрані цілі без чинного плану — жодного числа, «Build route» / «Calculating…»', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-a'));
+    expect(screen.getByText('Build route to assess return')).toBeInTheDocument();
+    expect(screen.queryByText(/Return in \d+ min/)).not.toBeInTheDocument();
+
+    act(() => store().setPlan(emptyPlan('pending', 1)));
+    expect(screen.getByText('Calculating…')).toBeInTheDocument();
+  });
+
+  it('F5-AC3: ціль поза ореолом після «O₂ −40%» — попередження і кандидат заміни', async () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-c'));
+    await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+
+    expect(screen.getByText(/MOCK Site C is outside the reachable area/)).toBeInTheDocument();
+    expect(store().reach?.swap?.dropId).toBe('mock-c');
+    expect(screen.getByText(/Suggested swap \(model cost\): MOCK Site C →/)).toBeInTheDocument();
+  });
+
+  it('F5-AC4: невалідний параметр → помилка, порожня маска, без «Within model»', () => {
+    renderBudget();
+    act(() => useMission.setState({ model: { ...mockModel, speedMps: 0 } }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/invalid model parameters.*speedMps/i);
+    expect(screen.queryByText(/within model/i)).not.toBeInTheDocument();
+    expect(store().reach?.status).toBe('invalid');
+    expect(store().reach?.returnInS).toBeNull();
+  });
+
+  it('дефіцит — role="status" з назвою ресурсу; єдиний alert дефіциту — у HUD (#9)', () => {
+    renderBudget();
+    act(() => store().setTime(3500));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('status').some((el) => /deficit: time/i.test(el.textContent ?? ''))).toBe(true);
+  });
+
+  it('дефіцит O₂ — людська назва ресурсу, а не ключ (#9)', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-c'));
+    act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 0, o2: 600, energy: 0, dose: null, dist: 0 } }));
+
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent(/Deficit: O₂ —/);
+  });
+
+  it('#32: місце не обрано — «Return in — min», як у HUD (#9 п.3)', () => {
+    renderBudget(null);
+    expect(screen.getByText('Return in — min')).toBeInTheDocument();
+  });
+
+  it('#32: шкали показують резерв і планову витрату (Gauge F7)', () => {
+    renderBudget();
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('reserve 144 g');
+
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 900, o2: 180, energy: 10, dose: null, dist: 900 } }));
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('plan 180 g');
+    expect(screen.getByText('Return in 33 min')).toBeInTheDocument();
+  });
+
+  it('#32: дефіцит позначено на шкалі ресурсу й рівнем deficit (⛔) у статусі', () => {
+    const { container } = renderBudget();
+    act(() => store().setTime(3500));
+
+    // 3500 с: час 100 < 720 резерву, O₂ 720 − 700 = 20 < 144 резерву — обидва в дефіциті.
+    const marked = [...container.querySelectorAll('.ui-gauge--deficit')].map((el) => el.textContent?.split(':')[0]);
+    expect(marked).toEqual(['Time', 'O₂']);
+    expect(screen.getByText('Return in 0 min')).toBeInTheDocument();
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⛔');
+  });
+
+  it('#32: розрахунок маршруту — рівень pending (⏳)', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan(emptyPlan('pending', 1)));
+    const status = screen.getAllByRole('status').find((el) => /calculating/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⏳');
+  });
+});
