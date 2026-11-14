@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { PlanningGrid, ReachabilityResult, Target } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
-import { EvaSign, Panel, type EvaTargetState } from '../../ui';
+import { EvaSign, ItemRow, Panel, type EvaTargetState } from '../../ui';
 import { TargetCard } from './TargetCard';
 
 const accuracyLabel = {
@@ -14,7 +14,10 @@ const accuracyLabel = {
 function AccuracyBadge({ accuracy }: { accuracy: keyof typeof accuracyLabel }) {
   const label = accuracyLabel[accuracy];
   return (
-    <span aria-label={`Accuracy: ${label}`}>
+    <span
+      className={`ui-badge ui-badge--${accuracy === 'approximate' ? 'assumption' : accuracy}`}
+      aria-label={`Accuracy: ${label}`}
+    >
       {accuracy === 'mock' ? (
         <>
           <span>M</span>
@@ -53,26 +56,38 @@ export function TargetsPanel() {
 
   return (
     <Panel title="Science targets" featureId="F6" owner="Настя" mock={targets.some((target) => target.status === 'mock')}>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      <ul className="ui-list">
         {targets.map((target) => {
           const isSelected = selected.includes(target.id);
           const reachState = targetReachState(target, grid, reach);
           return (
-          <li key={target.id}>
-            <EvaSign kind="target" state={targetSignState(isSelected, reachState)} label="" />
-            <button
-              type="button"
-              aria-expanded={openTargetId === target.id}
-              aria-controls={`science-target-${target.id}`}
-              onClick={() => setOpenTargetId(target.id)}
-            >
-              Open {target.name}
-            </button>
-            <AccuracyBadge accuracy={target.locationAccuracy} />
-            <button type="button" aria-pressed={isSelected} onClick={() => toggleTarget(target.id)}>
-              {isSelected ? 'Remove' : 'Add'} {target.name}
-            </button>
-          </li>
+            <ItemRow
+              key={target.id}
+              sign={<EvaSign kind="target" state={targetSignState(isSelected, reachState)} label="" />}
+              title={
+                <button
+                  type="button"
+                  className="ui-btn--ghost"
+                  aria-label={`Open ${target.name}`}
+                  aria-expanded={openTargetId === target.id}
+                  aria-controls={`science-target-${target.id}`}
+                  onClick={() => setOpenTargetId(target.id)}
+                >
+                  {target.name}
+                </button>
+              }
+              meta={<AccuracyBadge accuracy={target.locationAccuracy} />}
+              actions={
+                <button
+                  type="button"
+                  className={isSelected ? undefined : 'ui-btn--primary'}
+                  aria-pressed={isSelected}
+                  onClick={() => toggleTarget(target.id)}
+                >
+                  {isSelected ? 'Remove' : 'Add'} {target.name}
+                </button>
+              }
+            />
           );
         })}
       </ul>

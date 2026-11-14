@@ -63,6 +63,22 @@ describe('F6-AC1 · список наукових цілей', () => {
     await user.keyboard('{Enter}');
     expect(screen.getByRole('article', { name: 'Target A' })).toBeVisible();
   });
+
+  it('Given список цілей, When панель відкрита, Then рядки використовують дизайн-систему без зміни доступних назв', () => {
+    loadTargets();
+
+    render(<TargetsPanel />);
+
+    const list = screen.getByRole('list');
+    const rows = within(list).getAllByRole('listitem');
+    expect(list).toHaveClass('ui-list');
+    expect(rows[0]).toHaveClass('ui-row');
+    expect(screen.getByRole('button', { name: 'Open Target A' })).toHaveClass('ui-btn--ghost');
+    expect(screen.getByRole('button', { name: 'Add Target A' })).toHaveClass('ui-btn--primary');
+    expect(screen.getAllByLabelText('Accuracy: verified')[0]).toHaveClass('ui-badge', 'ui-badge--verified');
+    expect(screen.getByLabelText('Accuracy: approximate')).toHaveClass('ui-badge', 'ui-badge--assumption');
+    expect(screen.getByLabelText('Accuracy: MOCK')).toHaveClass('ui-badge', 'ui-badge--mock');
+  });
 });
 
 describe('F6-AC2 · картка цілі', () => {
