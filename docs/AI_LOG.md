@@ -20,6 +20,7 @@
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | T6: текстура глобуса — Viking MDIM 2.1 colorized (NASA Ames / USGS) з Mars Trek WMTS, 2048×1024, скрипт pipeline/globe | `pipeline/globe/**`, `public/data/mars/**`, `docs/SOURCES.md` §F1, `specs/F1/**` | `npm run check` зелений (96/96); Chrome headless: маркер Olympus Mons у кальдері, Gale в центрі перед переходом, 400 px | #19 (draft) |
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | Маркери зворотного боку й біля краю диска сховано (facesCamera), клік по схованому ігнорується | `src/features/globe/**`, `specs/F1/**` | `npm run check` зелений (100/100); Chrome headless: з-за краю сфери маркери не стирчать | #19 (draft) |
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | #5: тест доступності Location (Tab по точках, Enter → картка); аналіз скидання цілей після перельоту → пропозиція для F6 | `src/features/globe/SitePanel.test.tsx`, `specs/F1/spec.md` | `npm run check` зелений (374/374); браузер не перевіряв (UI без змін) | #48 (draft) |
+| 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | #36: `bind_photos.py` — прив'язка знімків Navcam до зупинок MMGIS за RMC (site/drive), команди verify / build | `pipeline/globe/**` | unittest 15/15 (red → green); `verify` на photos.geojson з #21 — 8/8 verified; `build` повністю не запускав; `npm run check` зелений | #48 (draft) |
 
 ## F2
 
