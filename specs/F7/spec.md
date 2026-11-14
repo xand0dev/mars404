@@ -3,6 +3,14 @@
 Власник: Оля (@oljyaaa) · гілка `feat/F7` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Нові задачі (14.11): Abort map + «View from here»
+План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
+
+| Задача | AC / правило | Issue | Залежить від |
+|---|---|---|---|
+| HUD: «Point of no return in N min» / «Return possible along the whole route», «assumption» біля аварійного запасу | F7-AC6, §7.8 | #33 | #26, #29 |
+| Слайди й пітч: Abort map — головна історія | §3 | #33 | — |
+
 ## Мета й обсяг
 Токени (`src/ui/tokens.css`: темний фон, акцент), Panel / Gauge / StatusNote / OwnerBadge, адаптивний `Shell`, `Hud`: великий «Return in N min», статус, поле «Elapsed, s», кнопка заміни цілі.
 
