@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dragRotation, fitScale, markerActive } from './sceneMath';
+import { dragRotation, facesCamera, fitScale, markerActive } from './sceneMath';
 
 const DEG = Math.PI / 180;
 
@@ -50,5 +50,29 @@ describe('markerActive (F1-AC1, F1-AC2)', () => {
   it('Given перехід до Gale; Then маркер Gale активний', () => {
     expect(markerActive('gale', { previewId: null, flying: true })).toBe(true);
     expect(markerActive('gale', { previewId: null, flying: false })).toBe(false);
+  });
+});
+
+describe('facesCamera — маркери зворотного боку сховано', () => {
+  const cam = [0, 0, 3] as const;
+
+  it('Given маркер на передньому боці; Then видно', () => {
+    expect(facesCamera([0, 0, 1.01], cam)).toBe(true);
+    expect(facesCamera([0.5, 0.5, 0.7], cam)).toBe(true);
+  });
+
+  it('Given маркер на зворотному боці; Then сховано', () => {
+    expect(facesCamera([0, 0, -1.01], cam)).toBe(false);
+    expect(facesCamera([1.01, 0, -0.1], cam)).toBe(false);
+  });
+
+  it('Given маркер майже на краю диска (за горизонтом з полем); Then сховано, щоб не стирчав з-за краю', () => {
+    // горизонт для камери на відстані 3: z = r²/3 ≈ 0.34; трохи «перед» ним — ще ховаємо
+    const z = 0.36;
+    expect(facesCamera([Math.sqrt(1.0201 - z * z), 0, z], cam)).toBe(false);
+  });
+
+  it('Given вироджені входи; Then false', () => {
+    expect(facesCamera([0, 0, 0], cam)).toBe(false);
   });
 });

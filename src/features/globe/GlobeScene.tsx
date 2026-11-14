@@ -2,13 +2,13 @@
 // Камеру (спільну з F2) не чіпаємо — обертаємо й масштабуємо лише групу глобуса.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { PerspectiveCamera, SRGBColorSpace, TextureLoader, type Group, type Texture } from 'three';
+import { PerspectiveCamera, SRGBColorSpace, TextureLoader, Vector3, type Group, type Texture } from 'three';
 import { dataUrl } from '../../contracts/planning';
 import { chooseSite } from './choose';
 import { latLonToSphere } from './geo';
 import { useGlobe } from './globeState';
 import { FLY_MS, lerpRotation, rotationToFace } from './motion';
-import { dragRotation, fitScale, markerActive } from './sceneMath';
+import { dragRotation, facesCamera, fitScale, markerActive } from './sceneMath';
 import { GALE_ID, SITES, siteById, type Site } from './sites';
 import { parseTextureMeta, TEXTURE_META_PATH } from './texture';
 
@@ -19,6 +19,7 @@ const START = rotationToFace(0, gale.lonEastDeg - 45);
 const MARKER_R = 1.01;
 /** Зсув курсора, після якого клік вважаємо перетягуванням, px */
 const CLICK_SLOP_PX = 5;
+const tmp = new Vector3();
 
 /** Текстура з public/data/mars за source.json; без опису чи файлу — null і status 'missing' (F1-AC4). */
 function useMarsTexture(): Texture | null {
@@ -63,6 +64,8 @@ function Marker({ site, active }: { site: Site; active: boolean }) {
     <mesh
       position={pos}
       onClick={(e: ThreeEvent<MouseEvent>) => {
+        // Схований маркер (зворотний бік) теж трапляє під промінь за сферою — ігноруємо.
+        if (!e.eventObject.visible) return;
         e.stopPropagation();
         if (e.delta <= CLICK_SLOP_PX) chooseSite(site.id);
       }}
@@ -75,6 +78,7 @@ function Marker({ site, active }: { site: Site; active: boolean }) {
 
 export function GlobeScene() {
   const group = useRef<Group>(null);
+  const markers = useRef<Group>(null);
   const { invalidate, camera, size, gl } = useThree();
   const setSceneReady = useGlobe((s) => s.setSceneReady);
   const flying = useGlobe((s) => s.flying);
@@ -111,14 +115,21 @@ export function GlobeScene() {
 
   // frameloop="demand": кадри просимо лише поки йде анімація. В store нічого не пишемо —
   // site ставить SitePanel наприкінці таймера.
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera: cam }) => {
     const g = group.current;
-    if (!flying || !g) return;
-    const now = clock.getElapsedTime() * 1000;
-    fly.current ??= { from: [g.rotation.x, g.rotation.y, g.rotation.z], start: now };
-    const [x, y, z] = lerpRotation(fly.current.from, GALE_FACE, (now - fly.current.start) / FLY_MS);
-    g.rotation.set(x, y, z, 'XYZ');
-    invalidate();
+    if (!g) return;
+    if (flying) {
+      const now = clock.getElapsedTime() * 1000;
+      fly.current ??= { from: [g.rotation.x, g.rotation.y, g.rotation.z], start: now };
+      const [x, y, z] = lerpRotation(fly.current.from, GALE_FACE, (now - fly.current.start) / FLY_MS);
+      g.rotation.set(x, y, z, 'XYZ');
+      invalidate();
+    }
+    // Маркери зворотного боку й біля краю диска ховаємо (рахується лише в кадрах, які й так малюються).
+    for (const m of markers.current?.children ?? []) {
+      m.getWorldPosition(tmp);
+      m.visible = facesCamera([tmp.x, tmp.y, tmp.z], [cam.position.x, cam.position.y, cam.position.z]);
+    }
   });
 
   const onDown = (e: ThreeEvent<PointerEvent>) => {
@@ -156,9 +167,11 @@ export function GlobeScene() {
               <meshStandardMaterial key="mock" color="#b4532a" />
             )}
           </mesh>
-          {SITES.map((s) => (
-            <Marker key={s.id} site={s} active={markerActive(s.id, { previewId, flying })} />
-          ))}
+          <group ref={markers}>
+            {SITES.map((s) => (
+              <Marker key={s.id} site={s} active={markerActive(s.id, { previewId, flying })} />
+            ))}
+          </group>
         </group>
       </group>
     </group>

@@ -43,3 +43,17 @@ export function dragRotation(
 export function markerActive(id: string, { previewId, flying }: { previewId: string | null; flying: boolean }): boolean {
   return id === previewId || (flying && id === GALE_ID);
 }
+
+type V3 = readonly [number, number, number];
+
+/**
+ * Маркер у світових координатах (центр глобуса в 0) видно з камери: косинус між нормаллю поверхні
+ * і напрямком на камеру > `margin`. Поле ховає маркери біля краю диска, щоб вони не стирчали з-за сфери.
+ */
+export function facesCamera(p: V3, cam: V3, margin = 0.1): boolean {
+  const len = Math.hypot(p[0], p[1], p[2]);
+  const v = [cam[0] - p[0], cam[1] - p[1], cam[2] - p[2]] as const;
+  const vLen = Math.hypot(v[0], v[1], v[2]);
+  if (!(len > 0) || !(vLen > 0)) return false;
+  return (p[0] * v[0] + p[1] * v[1] + p[2] * v[2]) / (len * vLen) > margin;
+}
