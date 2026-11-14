@@ -39,6 +39,7 @@
 
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
+| 2026-11-14 | Настя | Codex · GPT-5 | T1–T5: звірка контрактів, AC-тести, список і картка цілей, фото fallback, toggle/reach warning на mocks | `specs/F6/spec.md`, `src/features/science/**` | red: 4/4 падали; green: 4/4 F6, `npm run check` — 33/33 | draft PR |
 
 ## F7
 
