@@ -11,3 +11,4 @@ export function RoutePanel() {
     </Panel>
   );
 }
+// контроль: чужа папка
