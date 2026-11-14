@@ -30,7 +30,7 @@ import { TerrainInfo } from './TerrainInfo';
 import { TerrainScene } from './TerrainScene';
 import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
-import { useRenderHeights } from './useRenderHeights';
+import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
 import './terrain.css';
 
@@ -191,6 +191,7 @@ export function MapView({ globe }: MapViewProps) {
   const hirise = useOptionalTexture(textureUrl, site !== null && show3D);
   const texture = hirise.status === 'ready' ? hirise.texture : null;
   const render = useRenderHeights(region, site !== null && show3D);
+  const contextHeights = useContextHeights(region, site !== null && show3D);
 
   const sceneData = useMemo(() => {
     if (!cells || !heights) return null;
@@ -204,10 +205,11 @@ export function MapView({ globe }: MapViewProps) {
       topRGBA: top.data,
       render,
       zoneRGBA: buildZoneMask(grid.width, grid.height, cells.classes, mask),
+      context: contextHeights,
       haloCells: top.haloCells,
       warnings: top.warnings,
     };
-  }, [cells, heights, grid, noData, mask, render]);
+  }, [cells, heights, grid, noData, mask, render, contextHeights]);
 
   const raster2D = useMemo(
     () => (reason && cells && heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null),
@@ -318,6 +320,7 @@ export function MapView({ globe }: MapViewProps) {
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas
               frameloop={fps && site !== null ? 'always' : 'demand'}
+              shadows
               camera={{ position: [0, 0, 3], fov: 45, near: 0.1, far: 100 }}
             >
               <ContextLossWatcher onLost={() => setLost(true)} />
