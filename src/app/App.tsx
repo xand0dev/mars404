@@ -3,6 +3,8 @@ import { BudgetEngine, BudgetPanel } from '../features/budget';
 import { DataLoader, LayersPanel } from '../features/data';
 import { GlobeScene, SitePanel } from '../features/globe';
 import { Hud, Shell } from '../features/hud';
+import { NotesPanel } from '../features/notes';
+import { ChecklistPanel } from '../features/prep';
 import { RoutePanel } from '../features/route';
 import { TargetsPanel } from '../features/science';
 import { CameraModes, MapView } from '../features/terrain';
@@ -25,6 +27,8 @@ export function App() {
             <SitePanel />
             <LayersPanel />
             <TargetsPanel />
+            <ChecklistPanel />
+            <NotesPanel />
           </>
         }
         bottom={

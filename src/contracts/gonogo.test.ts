@@ -13,6 +13,7 @@ const verified = { status: 'verified' } as unknown as Region;
 const clean: GoNoGoInput = {
   site: 'gale', targets: mockTargets, selectedTargetIds: ['mock-a', 'mock-b'], grid: mockGrid, region: verified,
   model: { ...mockModel, doseUSvPerS: 0.01 }, limits: { ...mockLimits, dose: 1000 }, plan, reach: reach(), time: 0,
+  checklist: [{ id: 'o2', label: 'Spare O₂ cartridge', reason: 'route over 20 min', done: true }],
 };
 const call = (r: ReturnType<typeof evaluateGoNoGo>, id: string) => r.stations.find((s) => s.id === id)!;
 
@@ -74,6 +75,13 @@ describe('evaluateGoNoGo (SPEC §7.10)', () => {
       .toMatchObject({ call: 'caution', reason: 'Point of no return in 18 min' });
     expect(call(evaluateGoNoGo({ ...clean, reach: reach({ abort: { segments: [], pointOfNoReturnS: 0, emergencyO2G: 360 } }) }), 'ABT').call).toBe('nogo');
     expect(call(evaluateGoNoGo({ ...clean, reach: reach({ abort: null }) }), 'ABT').call).toBe('caution');
+  });
+
+  it('чекліст: порожній або не все відмічено → EQP CAUTION; усе відмічено → GO', () => {
+    expect(call(evaluateGoNoGo({ ...clean, checklist: [] }), 'EQP')).toMatchObject({ call: 'caution', fix: { kind: 'open-checklist' } });
+    const two = [{ id: 'a', label: 'A', reason: 'r', done: true }, { id: 'b', label: 'B', reason: 'r', done: false }];
+    expect(call(evaluateGoNoGo({ ...clean, checklist: two }), 'EQP').reason).toBe('1 checklist item not checked');
+    expect(call(evaluateGoNoGo(clean), 'EQP').call).toBe('go');
   });
 
   it('модель invalid → NO-GO; невалідна сітка → DAT NO-GO', () => {
