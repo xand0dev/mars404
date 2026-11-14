@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { cellCenter } from '../../../contracts/planning';
 import { CELL, classifyCells } from './cells';
 import { RAW_NODATA, planThrough, smallGrid } from './fixtures';
-import { cellsPath, planPoint, planReason, polyline, selectedSegmentLine } from './plan2d';
+import { cellsPath, force2DRequested, planPoint, planReason, polyline, selectedSegmentLine } from './plan2d';
 
 describe('F2-AC4 planReason', () => {
   const ok = { webgl: true, lost: false, gridErrors: [] as string[] };
@@ -13,6 +13,29 @@ describe('F2-AC4 planReason', () => {
     const r = planReason({ webgl: false, lost: true, gridErrors: ['invalid size'] });
     expect(r?.code).toBe('invalid-grid');
     expect(r?.text).toMatch(/invalid size/);
+  });
+});
+
+describe('План Б: примусовий 2D через ?2d (SPEC §12, низький FPS)', () => {
+  const ok = { webgl: true, lost: false, gridErrors: [] as string[] };
+  afterEach(() => window.history.replaceState(null, '', '/'));
+
+  it('WebGL є, але ?2d → 2D з причиною forced', () => {
+    const r = planReason({ ...ok, forced: true });
+    expect(r?.code).toBe('forced');
+    expect(r?.text).toMatch(/\?2d/);
+  });
+  it('справжня причина (немає WebGL, втрата контексту, невалідна сітка) важливіша за ?2d', () => {
+    expect(planReason({ ...ok, webgl: false, forced: true })?.code).toBe('no-webgl');
+    expect(planReason({ ...ok, lost: true, forced: true })?.code).toBe('context-lost');
+    expect(planReason({ ...ok, gridErrors: ['x'], forced: true })?.code).toBe('invalid-grid');
+  });
+  it('force2DRequested читає ?2d з адреси', () => {
+    expect(force2DRequested()).toBe(false);
+    window.history.replaceState(null, '', '/?2d');
+    expect(force2DRequested()).toBe(true);
+    window.history.replaceState(null, '', '/?fps&2d=1');
+    expect(force2DRequested()).toBe(true);
   });
 });
 

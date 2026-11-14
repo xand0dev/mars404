@@ -68,9 +68,15 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
 
   return (
     <div className="terrain-plan2d">
-      <StatusNote level="warn" live="status">
-        3D unavailable: {reason.text}. Showing 2D plan.
-      </StatusNote>
+      {reason.code === 'forced' ? (
+        <StatusNote level="info" live="status">
+          {reason.text}. Remove ?2d from the address for 3D.
+        </StatusNote>
+      ) : (
+        <StatusNote level="warn" live="status">
+          3D unavailable: {reason.text}. Showing 2D plan.
+        </StatusNote>
+      )}
       <p className="terrain-counter">
         Blocked / NoData cells: {counts.blocked} / {counts.noData}
       </p>

@@ -3,18 +3,27 @@ import type { PlanningGrid, RoutePlan, XY } from '../../../contracts';
 
 type Shape = Pick<PlanningGrid, 'width' | 'height' | 'metersPerPixel' | 'originM'>;
 
-export type PlanReasonCode = 'no-webgl' | 'context-lost' | 'invalid-grid' | 'render-error';
+export type PlanReasonCode = 'no-webgl' | 'context-lost' | 'invalid-grid' | 'render-error' | 'forced';
 export interface PlanReason {
   code: PlanReasonCode;
   text: string;
 }
 
-/** Чому показуємо 2D замість 3D; null — 3D можна. Невалідна сітка має пріоритет. */
-export function planReason({ webgl, lost, gridErrors }: { webgl: boolean; lost: boolean; gridErrors: string[] }): PlanReason | null {
+/**
+ * Чому показуємо 2D замість 3D; null — 3D можна. Справжні причини (невалідна сітка, втрата
+ * контексту, немає WebGL) важливіші за свідомий вибір ?2d.
+ */
+export function planReason({ webgl, lost, gridErrors, forced = false }: { webgl: boolean; lost: boolean; gridErrors: string[]; forced?: boolean }): PlanReason | null {
   if (gridErrors.length > 0) return { code: 'invalid-grid', text: `Invalid grid: ${gridErrors.join('; ')}` };
   if (lost) return { code: 'context-lost', text: 'WebGL context lost' };
   if (!webgl) return { code: 'no-webgl', text: 'WebGL unavailable' };
+  if (forced) return { code: 'forced', text: '2D plan requested with ?2d' };
   return null;
+}
+
+/** План Б для демо (SPEC §12: низький FPS → 2D-план): ?2d в адресі вмикає 2D навіть з WebGL. */
+export function force2DRequested(): boolean {
+  return typeof location !== 'undefined' && new URLSearchParams(location.search).has('2d');
 }
 
 /** Локальні метри → координати плану (col, row) з дробовою частиною. */

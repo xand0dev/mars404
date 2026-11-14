@@ -7,6 +7,7 @@ import { resetMission, useMission } from '../../store/useMission';
 import { useCameraMode } from './cameraStore';
 import { CameraModes } from './CameraModes';
 import { MapView } from './MapView';
+import { Plan2D } from './Plan2D';
 import { planThrough, smallGrid, testRegion } from './lib/fixtures';
 
 const gale = () => act(() => useMission.setState({ site: 'gale' }));
@@ -201,5 +202,30 @@ describe('T12: траверс марсохода (region.files.traverse)', () =>
     open(withTraverse());
     expect(await screen.findByText(/Traverse failed to load \(HTTP 404\)/)).toBeInTheDocument();
     expect(svg().querySelector('[data-kind="traverse"]')).toBeNull();
+  });
+});
+
+describe('План Б: ?2d — підпис без «3D unavailable»', () => {
+  it('Plan2D з причиною forced пише, що 2D обрано свідомо', () => {
+    const grid = smallGrid();
+    render(
+      <Plan2D
+        reason={{ code: 'forced', text: '2D plan requested with ?2d' }}
+        grid={grid}
+        classes={new Uint8Array(grid.width * grid.height)}
+        counts={{ blocked: 0, noData: 0 }}
+        rasterRGBA={null}
+        mask={null}
+        layerUrls={[]}
+        traverse={[]}
+        targets={[]}
+        selectedIds={[]}
+        plan={null}
+        selectedSegment={null}
+        base={null}
+      />,
+    );
+    expect(screen.getByText(/2D plan requested with \?2d/)).toBeInTheDocument();
+    expect(screen.queryByText(/3D unavailable/)).toBeNull();
   });
 });

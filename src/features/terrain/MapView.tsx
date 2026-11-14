@@ -1,6 +1,6 @@
 // F2: єдиний R3F Canvas (frameloop="demand"): глобус F1 при site = null, рельєф Gale — інакше.
 // Без WebGL, після втрати контексту або з невалідною сіткою — 2D-план Б з причиною. У store нічого не пише.
-import { Component, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { validateGrid } from '../../contracts/planning';
 import { mockModel } from '../../mocks';
@@ -14,7 +14,7 @@ import { classifyCells } from './lib/cells';
 import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
-import { planReason, type PlanReason } from './lib/plan2d';
+import { force2DRequested, planReason, type PlanReason } from './lib/plan2d';
 import { isRasterUrl, traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
 import { TerrainInfo } from './TerrainInfo';
@@ -68,6 +68,26 @@ function Redraw({ dep, frames = 30 }: { dep: unknown; frames?: number }) {
 }
 
 /**
+ * Слухач справжньої втрати контексту. Живе всередині Canvas і знімається при розмонтуванні:
+ * коли F2 сам прибирає Canvas (?2d, невалідна сітка), R3F звільняє рендерер і браузер теж шле
+ * webglcontextlost — це не втрата, і 3D має повернутись, щойно причина зникне.
+ */
+function ContextLossWatcher({ onLost }: { onLost: () => void }) {
+  const get = useThree((s) => s.get);
+  const latest = useRef(onLost);
+  useEffect(() => {
+    latest.current = onLost;
+  });
+  useEffect(() => {
+    const el = get().gl.domElement;
+    const handler = () => latest.current();
+    el.addEventListener('webglcontextlost', handler);
+    return () => el.removeEventListener('webglcontextlost', handler);
+  }, [get]);
+  return null;
+}
+
+/**
  * Глобус F1 монтується лише після того, як камеру повернуто з пози рельєфу на позу глобуса:
  * F1 рахує масштаб глобуса з camera.position під час рендеру. Інакше після «Back to globe»
  * масштаб брався з камери рельєфу (на 400 px глобус ставав на ~35 % більшим).
@@ -106,6 +126,7 @@ export function MapView({ globe }: MapViewProps) {
   const [webgl] = useState(hasWebGL);
   const [lost, setLost] = useState(false);
   const [fps] = useState(fpsEnabled);
+  const [forced2D] = useState(force2DRequested);
   const [fpsReport, setFpsReport] = useState<FpsReport | null>(null);
 
   const noData = region?.noData;
@@ -116,7 +137,7 @@ export function MapView({ globe }: MapViewProps) {
   const heights = useMemo(() => (valid ? displayHeights(grid, noData) : null), [valid, grid, noData]);
   const mask = reach?.mask;
 
-  const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors });
+  const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
   const setView3D = useCameraMode((s) => s.setView3D);
   useEffect(() => setView3D(show3D), [show3D, setView3D]);
@@ -231,8 +252,8 @@ export function MapView({ globe }: MapViewProps) {
             <Canvas
               frameloop={fps && site !== null ? 'always' : 'demand'}
               camera={{ position: [0, 0, 3], fov: 45, near: 0.1, far: 100 }}
-              onCreated={({ gl }) => gl.domElement.addEventListener('webglcontextlost', () => setLost(true))}
             >
+              <ContextLossWatcher onLost={() => setLost(true)} />
               <Redraw dep={redrawKey} />
               {site === null ? (
                 <GlobeStage>{globe}</GlobeStage>
