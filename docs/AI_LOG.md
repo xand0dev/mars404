@@ -44,6 +44,7 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Рев'ю 14.11: підписи цілей у 3D без накладань — текст лише в обраних і наведеної цілі, злиплі на екрані підписи сходинками вгору (`lib/labels.ts`) | src/features/terrain/* | npm run check (577 тестів); браузер 1440 px, Gale, 3 цілі: Orbit і Top — підписи не накладаються | feat/F2-labels |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC5: 60-секундний замір FPS на Pages, усі шари + маршрут | specs/F2/spec.md | медіана 120 FPS @ 1440×900 @2x, M5 Pro; камеру не рухали | feat/F2-fps |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Інтеграція 21:00: підпис обраного відрізка в розкладці підписів 3D — не перекриває цілі | src/features/terrain/TerrainScene.tsx | npm run check (610); браузер 1440 px: Segment 41, Brantôme, Mont Mercou, Base — окремо | fix/replace-focus-seglabel |
+| 2026-11-14 | Влад (за Олександра) | Claude Code · claude-opus-5-5 | F2-AC6 / F2-AC7: знак точки неповернення в 3D (червоний маяк з кільцем і підписом «Point of no return · N min»), одна функція `pointOfNoReturnMarker` для 2D і 3D | src/features/terrain/** | npm run check (644); Chromium 1440: після «O₂ −40%» на Mont Mercou + Gardonne — «Point of no return · 13 min» на початку червоного відрізка | — |
 
 ## F3
 
