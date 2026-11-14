@@ -4,7 +4,8 @@ import type { PlanningGrid, XY } from '../../../contracts';
 import { VERTICAL_EXAGGERATION } from '../../../contracts';
 import { toR3F } from '../../../contracts/planning';
 
-export type CameraMode = 'orbit' | 'top' | 'pov';
+/** follow — камера за астронавтом під час демо-прогулянки; free — вільний політ (миша + WASD / стрілки, Q / E). */
+export type CameraMode = 'orbit' | 'top' | 'pov' | 'follow' | 'free';
 
 /** Поза камери глобуса (як у F0): F1 обертає групу, камеру не чіпає. */
 export const GLOBE_CAMERA = { position: [0, 0, 3] as const, near: 0.1, far: 100 };
@@ -22,6 +23,8 @@ export const CAMERA_MODES: { id: CameraMode; label: string }[] = [
   { id: 'orbit', label: 'Orbit' },
   { id: 'top', label: 'Top' },
   { id: 'pov', label: 'POV' },
+  { id: 'follow', label: 'Follow' },
+  { id: 'free', label: 'Free' },
 ];
 
 /** Висота очей для POV, м. Assumption: типовий зріст людини, без джерела. */
