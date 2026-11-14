@@ -11,6 +11,7 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | docs/SPEC.md; каркас F0 з нуля за SPEC: contracts, store, mocks, заглушки фіч, CI, guard, automerge, deploy, CONSTITUTION, AGENTS, specs | усе дерево репо, крім docs/SPEC.md (лише правки §5.3, §9, §10) | npm ci + npm run check у чистому клоні; браузер: без помилок консолі, без горизонтального скролу на 400, 1024 і 1440 px | bootstrap-коміт у main |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Contract #26: emergencyO2G, AbortPlan, SurfacePhoto, photos у store; evaluateGoNoGo (§7.10), EVA-символіка (§7.11) у SPEC | src/contracts/*, src/store/*, src/mocks/*, src/core/abort.ts, src/core/reachability.ts, тести F2/F7 (поле abort), docs/SPEC.md | npm run check: 361 тест, lint, typecheck, build | contract/abort-photos-gonogo |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Contract #20: Region.limitsEvidence; рішення щодо O₂ (200 г, 0.031 г/с, аварійний 30 хв) у SPEC §7.6 | src/contracts/index.ts, src/mocks/*, docs/SPEC.md | npm run check | contract/limits-evidence |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Ідеї менторів: жива карта (annotations, applyAnnotations), чекліст (checklist, станція EQP), §7.12–7.14 і AC у SPEC, слоти notes / prep | src/contracts/*, src/store/*, src/app/*, src/features/{notes,prep}/*, .github/scripts/paths.mjs, .github/CODEOWNERS, docs/SPEC.md | npm run check | contract/live-map-checklist |
 
 ## F1
 

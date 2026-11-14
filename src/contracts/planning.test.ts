@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellCenter, cellIndex, dataUrl, isBlocked, isNoDataValue, lonLatToXY, toR3F, validateGrid, xyToCell } from './planning';
+import { applyAnnotations, cellCenter, cellIndex, dataUrl, isBlocked, isNoDataValue, lonLatToXY, toR3F, validateGrid, xyToCell } from './planning';
 import { mockGrid, MOCK_CELLS } from '../mocks';
 import type { Region } from './index';
 
@@ -54,5 +54,28 @@ describe('planning · NoData (SPEC §7.2)', () => {
   it('validateGrid ловить невідповідність розмірів', () => {
     expect(validateGrid(mockGrid)).toEqual([]);
     expect(validateGrid({ ...mockGrid, walkable: new Uint8Array(3) })).toHaveLength(1);
+  });
+});
+
+describe('applyAnnotations (SPEC §7.12)', () => {
+  const base = (kind: 'impassable' | 'hazard' | 'note', radiusM = 25) => ({ id: kind, kind, coordinates: cellCenter(mockGrid, 64, 64), radiusM, text: '', createdAt: '2026-11-14T00:00:00Z', origin: 'this-eva' as const });
+
+  it('без впливових міток — та сама сітка', () => {
+    expect(applyAnnotations(mockGrid, [])).toBe(mockGrid);
+    expect(applyAnnotations(mockGrid, [base('note')])).toBe(mockGrid);
+  });
+
+  it('impassable блокує клітинки в радіусі й не чіпає вихідну сітку', () => {
+    const g = applyAnnotations(mockGrid, [base('impassable', 25)]);
+    expect(g.walkable[cellIndex(mockGrid, 64, 64)]).toBe(0);
+    expect(g.walkable[cellIndex(mockGrid, 64, 66)]).toBe(0);
+    expect(g.walkable[cellIndex(mockGrid, 64, 68)]).toBe(1);
+    expect(mockGrid.walkable[cellIndex(mockGrid, 64, 64)]).toBe(1);
+  });
+
+  it('hazard піднімає hazard до 1, прохідність не змінює', () => {
+    const g = applyAnnotations(mockGrid, [base('hazard', 10)]);
+    expect(g.hazard[cellIndex(mockGrid, 64, 64)]).toBe(1);
+    expect(g.walkable[cellIndex(mockGrid, 64, 64)]).toBe(1);
   });
 });

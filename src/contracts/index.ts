@@ -238,6 +238,38 @@ export interface ReachabilityResult {
   warnings: string[];
 }
 
+/** Мітка екіпажу на «живій карті» (SPEC §7.12). */
+export type AnnotationKind = 'hazard' | 'impassable' | 'note' | 'plan';
+export interface Annotation {
+  id: string;
+  kind: AnnotationKind;
+  /** Центр мітки, локальні метри. */
+  coordinates: XY;
+  /** Радіус дії для hazard / impassable, м; для note / plan — лише показ. */
+  radiusM: number;
+  text: string;
+  /** ISO-час створення. */
+  createdAt: string;
+  /** Звідки мітка: цей вихід чи імпорт з попереднього. */
+  origin: 'this-eva' | 'imported';
+}
+/** Файл обміну мітками між виходами (експорт / імпорт JSON). */
+export interface AnnotationsFile {
+  schemaVersion: 1;
+  site: SiteId;
+  exportedAt: string;
+  annotations: Annotation[];
+}
+
+/** Пункт чекліста перед виходом (SPEC §7.13). */
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  /** Чому пункт з'явився — з плану словами («route has a 27° slope»). */
+  reason: string;
+  done: boolean;
+}
+
 export type SiteId = 'gale';
 
 export interface MissionData {
@@ -246,6 +278,10 @@ export interface MissionData {
   targets: Target[];
   /** Знімки для «View from here»; до завантаження — []. */
   photos: SurfacePhoto[];
+  /** Мітки екіпажу (§7.12); переживають зміну плану й сайту. */
+  annotations: Annotation[];
+  /** Чекліст перед виходом (§7.13); будує F6 з плану. */
+  checklist: ChecklistItem[];
   selectedTargetIds: string[];
   selectedSegment: number | null;
   region: Region | null;
@@ -277,6 +313,11 @@ export interface MissionActions {
   setLimits(l: Resources): void;
   setTime(elapsedS: number): void;
   setPosition(p: XY): void;
+  addAnnotation(a: Annotation): void;
+  removeAnnotation(id: string): void;
+  setAnnotations(list: Annotation[]): void;
+  setChecklist(items: ChecklistItem[]): void;
+  toggleChecklistItem(id: string): void;
 }
 
 export type MissionState = MissionData & MissionActions;

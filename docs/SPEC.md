@@ -51,6 +51,10 @@
 | «View from here»: найближчий справжній знімок Navcam до обраного відрізка (§7.9) | — |
 | GO / NO-GO: опитування станцій перед виходом і вердикт у HUD (§7.10) | Анімація опитування, тінь зв'язку як станція |
 | EVA-символіка: одна мова знаків на карті, у 2D і в списках (§7.11) | Знаки в 3D (лишаються 2D і HUD) |
+| Жива карта: мітки екіпажу, непрохідні мітки перебудовують маршрут, експорт / імпорт між виходами (§7.12) | Синхронізація з базою по мережі |
+| Чекліст спорядження з плану, станція EQP у GO / NO-GO (§7.13) | AI-агент для чекліста |
+| «Чому ризиковано» по відрізках і режим рукавиць (§7.14) | Транспорт «пішки / ровер», коло похибки позиції ІНС |
+| — | Лише в пітчі: трекер життєдіяльності екіпажу, навігаційні маяки, заряд планшета як ресурс, день / ніч, залізо в рукавичках |
 | Планшетний HUD, клавіатура, 400 px, reduced motion, 2D-план Б | VR, мультиплеєр, складні ефекти |
 | Статичний сайт, локальні дані, provenance кожного шару | Backend, облікові записи, LLM, ключі в браузері |
 | — | Текстовий брифінг з RoutePlan, AI-зведення сектора, шторка порівняння шарів |
@@ -110,11 +114,13 @@ docs/{SPEC.md,AI_LOG.md,SOURCES.md,demo/,submission/}
 | Фіча | Експорт з `src/features/<f>/index.ts` |
 |---|---|
 | F1 globe | `GlobeScene` (R3F-вузли), `SitePanel` |
+| F1 notes | `NotesPanel` (жива карта, §7.12) |
 | F2 terrain | `MapView({ globe })`, `CameraModes` |
 | F3 data | `DataLoader` (headless), `LayersPanel` |
 | F4 route | `RoutePanel` (кнопка Build, профіль, таблиця відрізків) |
 | F5 budget | `BudgetEngine` (headless), `BudgetPanel` (шкали, сценарій O₂) |
 | F6 science | `TargetsPanel`, `TargetCard` |
+| F6 prep | `ChecklistPanel` (§7.13) |
 | F7 hud | `Shell` (адаптивна сітка), `Hud` |
 
 ### 5.3 Спільні файли
@@ -242,6 +248,8 @@ export interface MissionState {
   site: 'gale' | null; layers: Record<string, boolean>;
   targets: Target[]; selectedTargetIds: string[]; selectedSegment: number | null;
   photos: SurfacePhoto[];                                     // до завантаження — []
+  annotations: Annotation[];                                  // мітки екіпажу (§7.12); переживають зміну плану й сайту
+  checklist: ChecklistItem[];                                 // чекліст перед виходом (§7.13); скидається з setSite
   region: Region | null; grid: PlanningGrid;                  // до завантаження — mockGrid
   model: ModelParams; limits: Resources;                      // з region.json, до того — mocks
   waypoints: XY[]; plan: RoutePlan | null;
@@ -258,10 +266,20 @@ export interface MissionState {
   setSelectedSegment(i: number | null): void;
   setBudget(b: Resources): void; setReach(r: ReachabilityResult | null): void;
   setLimits(l: Resources): void; setTime(elapsedS: number): void; setPosition(p: XY): void;
+  addAnnotation(a: Annotation): void; removeAnnotation(id: string): void; setAnnotations(list: Annotation[]): void;
+  setChecklist(items: ChecklistItem[]): void; toggleChecklistItem(id: string): void;
 }
+
+export type AnnotationKind = 'hazard' | 'impassable' | 'note' | 'plan';
+export interface Annotation {
+  id: string; kind: AnnotationKind; coordinates: XY; radiusM: number; text: string;
+  createdAt: string; origin: 'this-eva' | 'imported';
+}
+export interface AnnotationsFile { schemaVersion: 1; site: SiteId; exportedAt: string; annotations: Annotation[] }
+export interface ChecklistItem { id: string; label: string; reason: string; done: boolean }
 ```
 
-`src/contracts/planning.ts` — чисте ядро координат без React і стану: `cellIndex(grid, row, col)`, `inGrid(grid, row, col)`, `cellCenter(grid, row, col)`, `xyToCell(grid, xy)`, `lonLatToXY(region, lonLat)`, `toR3F(xy, h)`, `isNoDataValue(h, noData?)`, `isBlocked(grid, i, maxSlopeDeg?)`, `validateGrid(grid)`, `dataUrl(path)` (через Vite `BASE_URL`).
+`src/contracts/planning.ts` — чисте ядро координат без React і стану: `cellIndex(grid, row, col)`, `inGrid(grid, row, col)`, `cellCenter(grid, row, col)`, `xyToCell(grid, xy)`, `lonLatToXY(region, lonLat)`, `toR3F(xy, h)`, `isNoDataValue(h, noData?)`, `isBlocked(grid, i, maxSlopeDeg?)`, `validateGrid(grid)`, `applyAnnotations(grid, annotations)` (§7.12), `dataUrl(path)` (через Vite `BASE_URL`).
 
 `src/contracts/gonogo.ts` — чиста функція `evaluateGoNoGo(state) → { verdict, during, stations[] }` за §7.10. Її викликає HUD (F7) і тести; власних розрахунків маршруту чи бюджету вона не робить.
 
@@ -280,6 +298,9 @@ export interface MissionState {
 | `setWaypoints` | Задає порядок вручну (F4). Інвалідує `plan` і `reach`. |
 | `setRegionData` | Записує `region`, `grid`, `targets`, `photos` (без поля — `[]`), `model`, `limits`, `base`. Скидає як `setSite`. |
 | `setLimits` | Сценарій (F5). `reach = null`, `plan` лишається. |
+| `addAnnotation` / `removeAnnotation` | Мітки `impassable` і `hazard` інвалідують `plan`, `reach`, `selectedSegment` (маршрут перебудовується); `note` і `plan` — ні. |
+| `setAnnotations` | Імпорт міток: замінює список, інвалідує план. |
+| `setChecklist` / `toggleChecklistItem` | Пише F6. `setSite` скидає чекліст. |
 
 Хто що читає й пише — таблиця фіч у §8.
 
@@ -406,6 +427,7 @@ export interface MissionState {
 | DAT рельєф | `grid`, `region.status` | `verified` | MOCK / інший статус | `validateGrid` з помилками | — | — |
 | RAD радіація | `model.doseUSvPerS`, `limits.dose` | обидва відомі | немає даних | — (дефіцит дози — у LSS) | — | — |
 | MDL модель | `reach.status` | `estimated` | `incomplete` | `invalid` | немає `reach` | — |
+| EQP спорядження | `checklist` (§7.13) | усі пункти відмічені | чекліст порожній або не все відмічено | — | — | «Open checklist» |
 
 - Без сайту — усі станції HOLD «No site selected». Невідоме ніколи не дає GO.
 - **Перед виходом** (`time = 0`): GO — кнопка виходу; CAUTION — вихід лише після утримування кнопки 1,5 с, у HUD лишається запис часу й підтверджених станцій; NO-GO — кнопки виходу немає, біля станцій дії виправлення; HOLD — наступна дія.
@@ -424,6 +446,25 @@ export interface MissionState {
 | Астронавт | шеврон за напрямком руху | — |
 | Точка неповернення | ромб із «!» | на маршруті, з часом у підписі |
 | Знімок Navcam | квадрат-рамка з крапкою | — |
+| Мітка екіпажу: непрохідно | трикутник з хрестом | суцільний; радіус пунктиром |
+| Мітка екіпажу: нотатка / план | прапорець | нотатка — контур, план — заливка |
+
+### 7.12 Жива карта: мітки екіпажу (F1 панель, F2 розміщення й показ, F4/F5 враховують)
+Карта не статична: екіпаж ставить мітки, і вони впливають на маршрут і переходять у наступний вихід.
+- Види: **impassable** (непрохідно), **hazard** (небезпечно), **note** (нотатка), **plan** (майбутнє завдання). Знаки — §7.11 (непрохідно — суцільний трикутник з хрестом, нотатка — прапорець).
+- Розміщення: клік (або Enter на вибраній клітинці) по 2D-плану чи рельєфу в режимі «Add mark» — F2 викликає `addAnnotation`. Це єдиний запис F2 у store. Радіус за замовчуванням 20 м (assumption).
+- Вплив на розрахунки: F4 і F5 рахують на `applyAnnotations(grid, annotations)`: impassable → клітинки в радіусі `walkable = 0`; hazard → `hazard = 1` (дорожче, але прохідно). Після impassable маршрут перебудовується автоматично (§6.1).
+- Збереження й обмін (F1): мітки зберігаються локально в браузері (`localStorage`, з try/catch); «Export marks» — файл `AnnotationsFile` JSON, «Import marks» — `setAnnotations` з `origin = 'imported'`. Так досвід одного виходу переходить у наступний («синхронізація після повернення на базу»).
+- Чесність: мітка — спостереження екіпажу, не дані NASA; у списку видно час, автора-вихід і `origin`.
+
+### 7.13 Чекліст перед виходом (F6)
+- Будується з плану правилами без AI, кожен пункт з причиною: план довший за 20 хв → «Spare O₂ cartridge»; на маршруті є відрізок зі схилом ≥ 20° → «Tether / rope»; обрано наукові цілі → «Sample bags ×N»; є знімки або ціль з фото → «Camera»; завжди — «Tablet battery ≥ 80 %», «Suit sensors self-test», «Radio check with base». Пороги — assumption.
+- Пункти відмічає екіпаж (`toggleChecklistItem`); при зміні плану відмітки однакових `id` зберігаються.
+- GO / NO-GO станція EQP (§7.10): поки не все відмічено — CAUTION з дією «Open checklist».
+
+### 7.14 «Чому ризиковано» і режим рукавиць
+- **Причини по відрізках (F4):** у таблиці відрізків і підказці на карті — коротко словами, з даних, які вже є: «slope 27°» (якщо ≥ 20°), «next to NoData» (сусідня клітинка заблокована), «crew mark: hazard», «no return with emergency O₂» (§7.8). Без причин — «nominal».
+- **Режим рукавиць (F7):** перемикач «Glove mode»: усі кнопки й поля ≥ 64 px, крок між ними ≥ 12 px, вердикт GO / NO-GO і «Return in» зверху, другорядні панелі згорнуті. Стан перемикача — `localStorage`.
 
 ## 8. Дані NASA
 
@@ -452,12 +493,12 @@ export interface MissionState {
 | Фіча | Власник | GitHub | Гілка | Дозволені шляхи | Читає зі store | Пише в store |
 |---|---|---|---|---|---|---|
 | F0 Каркас, contracts, store, CI, інтеграція | Олександр | xand0dev | `feat/F0` | спільні файли §5.3, `src/features/*/index.ts` (заглушки) | — | — |
-| F1 Глобус і вибір місця | Іван | gonivanko | `feat/F1` | `src/features/globe/**`, `public/data/mars/**`, `pipeline/globe/**` | site | `setSite` |
-| F2 3D-рельєф і 2D-план | Олександр | xand0dev | `feat/F2` | `src/features/terrain/**` | site, grid, region, layers, targets, selectedTargetIds, plan, selectedSegment, reach, base, position | — |
+| F1 Глобус і вибір місця | Іван | gonivanko | `feat/F1` | `src/features/globe/**`, `src/features/notes/**`, `public/data/mars/**`, `pipeline/globe/**` | site, annotations | `setSite`, `addAnnotation`, `removeAnnotation`, `setAnnotations` |
+| F2 3D-рельєф і 2D-план | Олександр | xand0dev | `feat/F2` | `src/features/terrain/**` | site, grid, region, layers, targets, selectedTargetIds, plan, selectedSegment, reach, base, position, annotations | `addAnnotation` (лише розміщення мітки, §7.12) |
 | F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/gale/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
-| F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region | `setPlan`, `setWaypoints`, `setSelectedSegment` |
-| F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds | `setBudget`, `setReach`, `setLimits` |
-| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach, grid | `toggleTarget` |
+| F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region, annotations | `setPlan`, `setWaypoints`, `setSelectedSegment` |
+| F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds, annotations | `setBudget`, `setReach`, `setLimits` |
+| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
 | F8 Демо й сабміт | Олександр | xand0dev | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
@@ -486,6 +527,7 @@ Vite-проєкт, contracts, store з правилами §6.1, mocks (128×128
 - **F1-AC3. Given** увімкнено reduced motion або натиснуто «Skip»; **When** обрано Gale; **Then** район відкривається одразу, без анімації.
 - **F1-AC4. Given** глобус; **When** відмальовано; **Then** маркери стоять у точках `latLonToSphere` (lon 0 → +X, lon +90 → −Z, lat +90 → +Y), узгоджено з текстурою. Видно підпис джерела текстури. Без текстури показується процедурна сфера з «MOCK», кнопки працюють.
 - **F1-AC5. Given** район Gale відкрито; **When** натиснуто «Back to globe»; **Then** `setSite(null)` повертає глобус, і стан скинуто.
+- **F1-AC6. Given** відкрито Gale; **When** у панелі «Crew map notes» додано, видалено, експортовано й імпортовано мітки; **Then** список показує вид, текст, час і `origin`; мітки переживають перезавантаження сторінки (`localStorage`, без нього — працює без збереження); експорт дає `AnnotationsFile` JSON, імпорт невалідного файла показує помилку і не змінює мітки.
 
 ### F2 — 3D-рельєф і 2D-план (Олександр)
 `MapView`: єдиний Canvas, рельєф із `grid`, текстура HiRISE, накладки шарів, цілі, маршрут, підсвітка відрізка, ореол; камери «Orbit», «Top», «POV»; 2D-план Б.
@@ -496,6 +538,7 @@ Vite-проєкт, contracts, store з правилами §6.1, mocks (128×128
 - **F2-AC5. Given** 3D з увімкненими шарами на ноутбуці демо; **When** зроблено 60-секундний замір; **Then** у PR записано пристрій, браузер, роздільність і медіанний FPS ≥30 (або чесно «не пройдено»).
 - **F2-AC6. Given** `reach.abort` з відрізками `ok = false`; **When** відмальовано 3D або 2D; **Then** ці відрізки маршруту червоні з легендою іконкою й текстом «No return with emergency O₂», а при `abort = null` маршрут звичайний.
 - **F2-AC7. Given** цілі, база, небезпеки, NoData і точка неповернення; **When** відмальовано 2D-план (і 3D, якщо встигаємо); **Then** кожен об'єкт має знак з `src/ui` за §7.11, а легенда пояснює знаки словами.
+- **F2-AC8. Given** режим «Add mark» і обраний вид мітки; **When** клік (або Enter) по клітинці 2D-плану чи рельєфу; **Then** викликано `addAnnotation` з координатами центру клітинки, мітка видна зі знаком §7.11 і радіусом; поза сіткою мітка не ставиться.
 
 ### F3 — Дані й шари (Максим)
 Pipeline у Docker вивантажує bbox (§8), рахує схил, walkable і hazard, валідує й пише `public/data/gale/`. `DataLoader` вантажить пакет і викликає `setRegionData`. `LayersPanel` перемикає шари й показує легенду та походження.
@@ -513,6 +556,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F4-AC4. Given** маршрут; **When** обрано відрізок у профілі або таблиці; **Then** `setSelectedSegment(i)`, і видно dist, slope, time, O₂, energy та dose з одиницями (dose `null` → «no data»).
 - **F4-AC5. Given** сітка 256×256 і 2 цілі; **When** «Build route»; **Then** результат є за ≤2 с, UI не блокується (статус «pending»), а застарілі відповіді Worker відкинуто.
 - **F4-AC6. Given** маршрут і обраний відрізок; **When** є знімок ближче 300 м (§7.9); **Then** видно «View from here»: знімок з `alt`, sol, credit, відстань і посилання на джерело; інакше «No surface photo within 300 m». Відрізки з `reach.abort.segments[i].ok = false` позначені в таблиці іконкою й текстом «no return».
+- **F4-AC7. Given** мітка `impassable` на шляху чинного маршруту; **When** її додано; **Then** маршрут перебудовано на `applyAnnotations(grid, annotations)` в обхід мітки (або чесне «no path» з причиною); кожен відрізок у таблиці має причину ризику за §7.14 або «nominal».
 
 ### F5 — Бюджет і повернення (Влад)
 `BudgetEngine` (headless) за §7.4 рахує `budget` і `reach` (маска, `returnInS`, `deficits`, `swap`). `BudgetPanel` показує шкали O₂, енергії, часу й дози, сценарій «O₂ −40%» (`setLimits`) і «Reset».
@@ -521,6 +565,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F5-AC3. Given** ціль усередині ореолу; **When** увімкнено «O₂ −40%» або зростає elapsed; **Then** маска не розширюється, а ціль поза ореолом отримує текстове попередження і `reach.swap` (за модельною вартістю).
 - **F5-AC4. Given** невалідний параметр (`speed ≤ 0`, `NaN`, `reserveFraction ≥ 1`); **When** порахувано; **Then** статус `invalid`, маска порожня, `returnInS = null`, на екрані помилка і жодного статусу «у межах моделі».
 - **F5-AC5. Given** чинний план і еталон §7.8; **When** порахувано; **Then** `reach.abort.segments` має стільки ж елементів, скільки `plan.segments`, `ok` за правилом §7.8 (рівність приймається), `pointOfNoReturnS` = сума часу до першого не-`ok` відрізка або `null`; без чинного плану `abort = null`; «O₂ −40%» не робить жоден відрізок «повертабельнішим».
+- **F5-AC6. Given** мітки `impassable` / `hazard`; **When** рахується ореол і Abort map; **Then** використовується `applyAnnotations(grid, annotations)`, і клітинки під непрохідною міткою не входять в ореол.
 
 ### F6 — Наукові цілі й фото (Настя)
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
@@ -529,6 +574,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F6-AC3. Given** картка; **When** натиснуто «Add to route» / «Remove»; **Then** викликано `toggleTarget(id)`, а ціль поза ореолом має попередження з `reach` (клітинка цілі — `xyToCell(grid, target.coordinates)`, перевірка — `reach.mask`).
 - **F6-AC4. Given** фото не завантажилося; **When** відкрито картку; **Then** видно заглушку з `alt`, і картка та кнопка працюють.
 - **F6-AC5. Given** bbox Gale; **When** зібрано `photos/photos.geojson`; **Then** 8–20 знімків Navcam у межах сітки, кожен локально, з `alt`, credit, sol, `sourceUrl`, камерою й `locationAccuracy = 'rover-stop'` (координати зупинки MMGIS за sol), джерела — у `docs/SOURCES.md`.
+- **F6-AC6. Given** чинний план; **When** відкрито «Pre-EVA checklist»; **Then** пункти побудовано за правилами §7.13, кожен з причиною; відмітки записуються `toggleChecklistItem` і зберігаються при зміні плану для тих самих `id`; GO / NO-GO станція EQP стає GO, лише коли все відмічено.
 
 ### F7 — UI, HUD, дизайн-токени (Оля)
 Токени (`src/ui/tokens.css`: темний фон, акцент), Panel / Gauge / StatusNote / OwnerBadge, адаптивний `Shell`, `Hud`: великий «Return in N min», статус, поле «Elapsed, s», кнопка заміни цілі.
@@ -540,6 +586,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F7-AC6. Given** `reach.abort`; **When** відкрито HUD; **Then** видно «Point of no return in N min» (`N = floor(pointOfNoReturnS / 60)`) або «Return possible along the whole route», з іконкою й текстом; при `abort = null` рядка немає, а «assumption» біля аварійного запасу видно, якщо `emergencyO2G` без джерела.
 - **F7-AC7. Given** будь-який стан store; **When** відкрито HUD; **Then** видно вердикт `evaluateGoNoGo` (GO / GO · CAUTION / NO-GO / HOLD) і список станцій з причинами; для CAUTION перед виходом вихід підтверджується утримуванням 1,5 с (миша й клавіатура) з записом часу; для NO-GO видно дії виправлення; під час виходу NO-GO — «Return to base now» з `role="alert"`.
 - **F7-AC8. Given** `src/ui`; **When** використано знаки §7.11; **Then** є компонент знака для кожного типу й стану з `aria-label`, і знаки однакові в HUD, списку цілей і легенді карти.
+- **F7-AC9. Given** увімкнено «Glove mode»; **When** відкрито сторінку на 1024 px і 400 px; **Then** усі кнопки й поля ≥ 64 px заввишки, вердикт GO / NO-GO і «Return in» видно без прокрутки, другорядні панелі згорнуті, горизонтального скролу немає; стан перемикача переживає перезавантаження.
 
 ### F8 — Демо й сабміт (Олександр)
 Сценарій і відео ≤30 с з англійськими субтитрами, ≤7 слайдів (з Олею), сторінка сабміту, AI_LOG, SOURCES, релізний URL.
