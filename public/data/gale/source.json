@@ -14,17 +14,32 @@
     "dem.tif": {
       "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
       "bytes": 26218444,
-      "sha256": "70a372a0b4e212b6aade644fe51581c1ba09cf84c22233211e3a8e3487f94230"
+      "sha256": "70a372a0b4e212b6aade644fe51581c1ba09cf84c22233211e3a8e3487f94230",
+      "accessedAt": "2026-11-14"
     },
     "hirise.jpg": {
       "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
       "bytes": 476379,
-      "sha256": "7199b4f80cd5849b8b54b9054bd2b961db658eab54f9086ac470e7a6930a836c"
+      "sha256": "7199b4f80cd5849b8b54b9054bd2b961db658eab54f9086ac470e7a6930a836c",
+      "accessedAt": "2026-11-14"
     },
     "MSL_traverse.json": {
       "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json",
       "bytes": 1357951,
-      "sha256": "c22752254772c8edaee295986cf6a188daf088957f29d042cd62862365cdf3f5"
+      "sha256": "c22752254772c8edaee295986cf6a188daf088957f29d042cd62862365cdf3f5",
+      "accessedAt": "2026-11-14"
+    },
+    "themis-night-9-269-902.png": {
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "bytes": 47413,
+      "sha256": "4a8ca904a26c8add1c0207bcf078e54ff1a2235d6c5ada55f78a2a37d623e5a9",
+      "accessedAt": "2026-11-14"
+    },
+    "themis-day-9-269-902.png": {
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "bytes": 44176,
+      "sha256": "4ddd8e72dce013efa44d373cbe2f9025da95421c621971500037a3373e60db53",
+      "accessedAt": "2026-11-14"
     }
   },
   "native": {
@@ -41,6 +56,36 @@
     "slopeP50": 13.32,
     "slopeP95": 38.39,
     "cellsOver25": 11893
+  },
+  "thermal": {
+    "night": {
+      "dnMin": 135,
+      "dnMax": 255,
+      "stretchLo": 156,
+      "stretchHi": 255,
+      "emptyCells": 0,
+      "nativePx": [
+        32,
+        31
+      ],
+      "tiles": [
+        "themis-night-9-269-902.png"
+      ]
+    },
+    "day": {
+      "dnMin": 102,
+      "dnMax": 224,
+      "stretchLo": 113,
+      "stretchHi": 215,
+      "emptyCells": 0,
+      "nativePx": [
+        32,
+        31
+      ],
+      "tiles": [
+        "themis-day-9-269-902.png"
+      ]
+    }
   },
   "hazardFromSlope": {
     "kind": "slope-linear",

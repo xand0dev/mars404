@@ -13,11 +13,22 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+import png  # noqa: E402
+import themis  # noqa: E402
 import trek  # noqa: E402
 import region_config as cfg  # noqa: E402
 
 NODATA = -9999.0
 HAZARD_MODEL = dict(kind='slope-linear', slopeDegAtMax=25, maxHazard=0.5)
+# Аварійний запас O₂ (SPEC §7.6): тривалість SOP скафандра EMU — з NTRS; грами = тривалість × o2GPerS (assumption).
+EMERGENCY_O2_MIN = 30
+O2_G_PER_S = 0.2
+EMU_SOP_URL = 'https://ntrs.nasa.gov/citations/20140009556'
+# Тексти легенд THEMIS: лише те, що сказано в описі продукту Trek.
+THERMAL = {
+    'night': dict(id='thermal', name='Thermal IR night (THEMIS)', low='cooler at night (lower thermal inertia)', high='warmer at night (higher thermal inertia)'),
+    'day': dict(id='thermal-day', name='Thermal IR day (THEMIS)', low='cooler by day (shaded slopes)', high='warmer by day (sunward slopes)'),
+}
 
 
 def _invalid(v):
@@ -114,6 +125,8 @@ def src(id, title, status, note, url=None, product=None, credit=None, accessed=N
 def build(cache):
     meta = json.loads((cache / 'fetch.json').read_text(encoding='utf-8'))
     day = meta['accessedAt']
+    f = meta['files']
+    at = lambda name: f[name].get('accessedAt', day)  # noqa: E731
     nw, nh, dem, tiff_nd = trek.read_tiff_f32((cache / 'dem.tif').read_bytes())
     if (nw, nh) != (cfg.NATIVE_PX, cfg.NATIVE_PX):
         raise ValueError(f'DEM {nw}x{nh}, expected {cfg.NATIVE_PX}')
@@ -141,20 +154,53 @@ def build(cache):
     parts = clip_lines([[[round(c, 7) for c in p[:3]] for p in ln] for ln in lines], bbox)
     traverse = dict(type='FeatureCollection', features=[dict(type='Feature', geometry=dict(type='LineString', coordinates=p), properties={}) for p in parts])
 
+    overlays, thermal_layers, thermal_sources, thermal_stats = {}, [], [], {}
+    nat_w, nat_h = themis.native_count(bbox)
+    for key, product in themis.PRODUCTS.items():
+        names = {(r, c): themis.tile_name(key, r, c) for r, c in themis.tiles_for(bbox)}
+        dn = themis.sample({rc: (cache / n).read_bytes() for rc, n in names.items()}, bbox, W, H)
+        lo, hi = themis.stretch(dn)
+        mid = (lo + hi) / 2
+        path = f'layers/themis-{key}.png'
+        overlays[path] = png.encode_rgba(W, H, themis.colorize(dn, lo, hi))
+        t = THERMAL[key]
+        sid = f'trek-themis-{key}-ir'
+        thermal_stats[key] = dict(dnMin=min(v for v in dn if v is not None), dnMax=max(v for v in dn if v is not None), stretchLo=lo, stretchHi=hi,
+                                  emptyCells=sum(v is None for v in dn), nativePx=[nat_w, nat_h], tiles=sorted(names.values()))
+        first = names[min(names)]
+        thermal_sources.append(src(sid, f'THEMIS IR {key}, controlled mosaic 100 m v2 (Mars Odyssey)', 'verified',
+                                   f'Trek WMTS PNG tiles, level {themis.LEVEL} (~{round(themis.tile_deg() / 256 * trek.M_PER_DEG)} m/px), {len(names)} tile(s); '
+                                   f'~{nat_w}x{nat_h} native pixels over the bbox, nearest per 10 m cell. 8-bit display brightness, not calibrated temperature. '
+                                   'Display only, not an input to hazard (SPEC §8).',
+                                   f[first]['url'], product, 'NASA/JPL-Caltech/Arizona State University, Mars Odyssey THEMIS; Mars Trek', at(first)))
+        thermal_layers.append(dict(
+            id=t['id'], name=t['name'], kind='thermal', url=path, sourceIds=[sid], status='verified',
+            units='relative IR brightness (8-bit DN)', nativeResolutionM=themis.NATIVE_M, gridResolutionM=cfg.MPP,
+            method=f'WMTS tile, nearest per cell; linear stretch DN {lo}–{hi} (p2–p98) to colour ramp',
+            legend=[dict(value=lo, label=f'DN {lo} · {t["low"]}', color=themis.RAMP[0]),
+                    dict(value=round(mid, 1), label=f'DN {round(mid)} · middle', color=themis.RAMP[1]),
+                    dict(value=hi, label=f'DN {hi} · {t["high"]}', color=themis.RAMP[2])]))
+
     finite_e = [v for v in elev if not _invalid(v)]
     fin_s = sorted(s for s in slope if math.isfinite(s))
     trek_credit = 'NASA/JPL-Caltech, Mars Trek'
-    f = meta['files']
     sources = [
-        src('trek-gale-dem-1m', 'Gale DEM 1 m (HiRISE stereo)', 'verified', 'Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.', f['dem.tif']['url'], trek.DEM, trek_credit, day),
-        src('trek-hirise-mosaic', 'HiRISE mosaic, Curiosity area', 'verified', 'Grayscale JPEG 2048², same bbox; display only.', f['hirise.jpg']['url'], trek.HIRISE, trek_credit, day),
-        src('mmgis-msl-traverse', 'Curiosity traverse (MMGIS)', 'verified', 'MSL_traverse.json clipped to bbox; line leaves bbox → split.', f['MSL_traverse.json']['url'], 'MSL_traverse', 'NASA/JPL-Caltech, MSL MMGIS', day),
+        src('trek-gale-dem-1m', 'Gale DEM 1 m (HiRISE stereo)', 'verified', 'Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.', f['dem.tif']['url'], trek.DEM, trek_credit, at('dem.tif')),
+        src('trek-hirise-mosaic', 'HiRISE mosaic, Curiosity area', 'verified', 'Grayscale JPEG 2048², same bbox; display only.', f['hirise.jpg']['url'], trek.HIRISE, trek_credit, at('hirise.jpg')),
+        src('mmgis-msl-traverse', 'Curiosity traverse (MMGIS)', 'verified', 'MSL_traverse.json clipped to bbox; line leaves bbox → split.', f['MSL_traverse.json']['url'], 'MSL_traverse', 'NASA/JPL-Caltech, MSL MMGIS', at('MSL_traverse.json')),
+        *thermal_sources,
         src('hazard-from-slope', 'Hazard derived from slope', 'assumption', f"hazard = min(1, slopeDeg / {HAZARD_MODEL['slopeDegAtMax']}) x {HAZARD_MODEL['maxHazard']}; NoData = 1. Test coefficients, not measured hazard."),
         src('base-assumption', 'Habitat base', 'assumption', f"Walkable cell nearest to bbox centre (lon {cfg.CENTER[0]}, lat {cfg.CENTER[1]}, centroid of F6 targets); not a real habitat site."),
+        src('emu-sop-emergency-o2', 'Emergency O2 reserve (EMU Secondary Oxygen Package)', 'assumption',
+            f'NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP "provides a minimum of {EMERGENCY_O2_MIN} minutes of emergency O2". '
+            f'Grams = {EMERGENCY_O2_MIN} min x {O2_G_PER_S} g/s (o2GPerS, assumption) = {EMERGENCY_O2_MIN * 60 * O2_G_PER_S:g} g. ISS suit, not a Mars suit.',
+            EMU_SOP_URL, 'NTRS 20140009556', 'NASA / United Space Alliance (Moore, Marmolejo)', '2026-11-14'),
         src('model-assumption', 'Walk model and limits', 'assumption', 'Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5).'),
     ]
-    model_vals = dict(speedMps=1, uphillFactor=2, downhillFactor=0.5, o2GPerS=0.2, energyWhPerM=0.05, doseUSvPerS=None, maxSlopeDeg=25, hazardWeight=0.5, reserveFraction=0.2)
-    model = dict(model_vals, evidence={key: sources[-1] for key in model_vals})
+    model_vals = dict(speedMps=1, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None, maxSlopeDeg=25, hazardWeight=0.5, reserveFraction=0.2)
+    evidence = {key: sources[-1] for key in model_vals}
+    evidence['emergencyO2G'] = sources[-2]
+    model = dict(model_vals, emergencyO2G=round(EMERGENCY_O2_MIN * 60 * O2_G_PER_S, 3), evidence=evidence)
     lo, hi = math.floor(min(finite_e)), math.ceil(max(finite_e))
 
     def layer(id, name, kind, url, srcs, units, native, method, legend):
@@ -165,6 +211,7 @@ def build(cache):
               [dict(value=lo, label=f'{lo} m (lowest)', color='#3b2a20'), dict(value=hi, label=f'{hi} m (highest)', color='#e8dcc8')]),
         layer('optical', 'Optical (HiRISE)', 'optical', 'hirise.jpg', ['trek-hirise-mosaic'], 'grayscale', 0.25, 'exportImage resample to 2048²',
               [dict(value=0, label='dark', color='#000000'), dict(value=255, label='bright', color='#ffffff')]),
+        *thermal_layers,
         layer('slope', 'Slope (derived)', 'slope', 'slope.f32', ['trek-gale-dem-1m', 'hazard-from-slope'], '°', cfg.NATIVE_M, 'Horn 3x3 at 1 m, max per cell',
               [dict(value=0, label='0° flat', color='#2f6f4f'), dict(value=15, label='15° moderate', color='#c9a227'), dict(value=25, label='25° model limit', color='#c0392b')]),
         layer('traverse', 'Curiosity traverse', 'mission', 'traverse.geojson', ['mmgis-msl-traverse'], 'path', None, 'clip to bbox',
@@ -184,12 +231,12 @@ def build(cache):
                               elevMinM=round(min(valid_native), 3), elevMaxM=round(max(valid_native), 3)),
                   grid=dict(noDataCells=W * H - len(finite_e), slopeP50=round(fin_s[len(fin_s) // 2], 2), slopeP95=round(fin_s[len(fin_s) * 95 // 100], 2),
                             cellsOver25=sum(1 for s in fin_s if s > 25)),
-                  hazardFromSlope=HAZARD_MODEL)
+                  thermal=thermal_stats, hazardFromSlope=HAZARD_MODEL)
     dump = lambda d: (json.dumps(d, ensure_ascii=False, indent=2) + '\n').encode('utf-8')  # noqa: E731
     return {
         'elevation.f32': f32(elev), 'slope.f32': f32(slope), 'hazard.f32': f32(haz), 'walkable.u8': bytes(walk),
         'hirise.jpg': (cache / 'hirise.jpg').read_bytes(), 'traverse.geojson': dump(traverse),
-        'region.json': dump(region), 'source.json': dump(source),
+        'region.json': dump(region), 'source.json': dump(source), **overlays,
     }
 
 
@@ -202,6 +249,7 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     files = build(Path(a.cache))
     for name, data in files.items():
+        (out / name).parent.mkdir(parents=True, exist_ok=True)
         (out / name).write_bytes(data)
     sums = ''.join(f'{hashlib.sha256(files[n]).hexdigest()}  {n}\n' for n in sorted(files))
     (out / 'SHA256SUMS').write_bytes(sums.encode('utf-8'))

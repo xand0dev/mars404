@@ -44,6 +44,7 @@
     "maxSlopeDeg": 25,
     "hazardWeight": 0.5,
     "reserveFraction": 0.2,
+    "emergencyO2G": 360.0,
     "evidence": {
       "speedMps": {
         "id": "model-assumption",
@@ -98,6 +99,16 @@
         "title": "Walk model and limits",
         "status": "assumption",
         "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "emergencyO2G": {
+        "id": "emu-sop-emergency-o2",
+        "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+        "status": "assumption",
+        "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
+        "url": "https://ntrs.nasa.gov/citations/20140009556",
+        "productId": "NTRS 20140009556",
+        "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+        "accessedAt": "2026-11-14"
       }
     }
   },
@@ -157,6 +168,68 @@
           "value": 255,
           "label": "bright",
           "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "thermal",
+      "name": "Thermal IR night (THEMIS)",
+      "kind": "thermal",
+      "url": "layers/themis-night.png",
+      "sourceIds": [
+        "trek-themis-night-ir"
+      ],
+      "status": "verified",
+      "units": "relative IR brightness (8-bit DN)",
+      "nativeResolutionM": 100,
+      "gridResolutionM": 10,
+      "method": "WMTS tile, nearest per cell; linear stretch DN 156–255 (p2–p98) to colour ramp",
+      "legend": [
+        {
+          "value": 156,
+          "label": "DN 156 · cooler at night (lower thermal inertia)",
+          "color": "#1b1f5e"
+        },
+        {
+          "value": 205.5,
+          "label": "DN 206 · middle",
+          "color": "#b0306a"
+        },
+        {
+          "value": 255,
+          "label": "DN 255 · warmer at night (higher thermal inertia)",
+          "color": "#f7c548"
+        }
+      ]
+    },
+    {
+      "id": "thermal-day",
+      "name": "Thermal IR day (THEMIS)",
+      "kind": "thermal",
+      "url": "layers/themis-day.png",
+      "sourceIds": [
+        "trek-themis-day-ir"
+      ],
+      "status": "verified",
+      "units": "relative IR brightness (8-bit DN)",
+      "nativeResolutionM": 100,
+      "gridResolutionM": 10,
+      "method": "WMTS tile, nearest per cell; linear stretch DN 113–215 (p2–p98) to colour ramp",
+      "legend": [
+        {
+          "value": 113,
+          "label": "DN 113 · cooler by day (shaded slopes)",
+          "color": "#1b1f5e"
+        },
+        {
+          "value": 164.0,
+          "label": "DN 164 · middle",
+          "color": "#b0306a"
+        },
+        {
+          "value": 215,
+          "label": "DN 215 · warmer by day (sunward slopes)",
+          "color": "#f7c548"
         }
       ]
     },
@@ -246,6 +319,26 @@
       "accessedAt": "2026-11-14"
     },
     {
+      "id": "trek-themis-night-ir",
+      "title": "THEMIS IR night, controlled mosaic 100 m v2 (Mars Odyssey)",
+      "status": "verified",
+      "note": "Trek WMTS PNG tiles, level 9 (~81 m/px), 1 tile(s); ~32x31 native pixels over the bbox, nearest per 10 m cell. 8-bit display brightness, not calibrated temperature. Display only, not an input to hazard (SPEC §8).",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "productId": "THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018",
+      "credit": "NASA/JPL-Caltech/Arizona State University, Mars Odyssey THEMIS; Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-themis-day-ir",
+      "title": "THEMIS IR day, controlled mosaic 100 m v2 (Mars Odyssey)",
+      "status": "verified",
+      "note": "Trek WMTS PNG tiles, level 9 (~81 m/px), 1 tile(s); ~32x31 native pixels over the bbox, nearest per 10 m cell. 8-bit display brightness, not calibrated temperature. Display only, not an input to hazard (SPEC §8).",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "productId": "THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018",
+      "credit": "NASA/JPL-Caltech/Arizona State University, Mars Odyssey THEMIS; Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
       "id": "hazard-from-slope",
       "title": "Hazard derived from slope",
       "status": "assumption",
@@ -256,6 +349,16 @@
       "title": "Habitat base",
       "status": "assumption",
       "note": "Walkable cell nearest to bbox centre (lon 137.40674, lat -4.73802, centroid of F6 targets); not a real habitat site."
+    },
+    {
+      "id": "emu-sop-emergency-o2",
+      "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+      "status": "assumption",
+      "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
+      "url": "https://ntrs.nasa.gov/citations/20140009556",
+      "productId": "NTRS 20140009556",
+      "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+      "accessedAt": "2026-11-14"
     },
     {
       "id": "model-assumption",
