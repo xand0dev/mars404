@@ -42,6 +42,7 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC6: перехід на `AbortPlan` з контракту (#43), «assumption» з `model.evidence.emergencyO2G` | src/features/terrain/**, specs/F2/** | npm run check зелений (з main); браузер: тестовий abort — червоні відрізки й легенда | PR #38 |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC7 / F2-AC8 (#46, #58, #73): мітки екіпажу на 3D і 2D, режим «Add mark», EVA-знаки й легенда на 2D | src/features/terrain/* | npm run check (502 тести); браузер 1440 px: клік по рельєфу ставить мітку, ?2d — знаки й легенда, без помилок у консолі | feat/F2-marks |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Рев'ю 14.11: підписи цілей у 3D без накладань — текст лише в обраних і наведеної цілі, злиплі на екрані підписи сходинками вгору (`lib/labels.ts`) | src/features/terrain/* | npm run check (577 тестів); браузер 1440 px, Gale, 3 цілі: Orbit і Top — підписи не накладаються | feat/F2-labels |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC5: 60-секундний замір FPS на Pages, усі шари + маршрут | specs/F2/spec.md | медіана 120 FPS @ 1440×900 @2x, M5 Pro; камеру не рухали | feat/F2-fps |
 
 ## F3
 
