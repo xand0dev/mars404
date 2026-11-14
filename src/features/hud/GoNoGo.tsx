@@ -100,6 +100,8 @@ function fixText(fix: Fix | undefined): string | null {
       return 'Press “Build route”';
     case 'return-now':
       return 'Return to base now';
+    case 'open-checklist':
+      return 'Open the pre-EVA checklist';
     default:
       return null;
   }

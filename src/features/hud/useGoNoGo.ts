@@ -17,6 +17,7 @@ export function useGoNoGo(): GoNoGo {
       plan: m.plan,
       reach: m.reach,
       time: m.time,
+      checklist: m.checklist,
     })),
   );
   return useMemo(() => evaluateGoNoGo(s), [s]);

@@ -27,6 +27,7 @@ const goState = () => {
   useMission.setState({
     plan, reach: reach(), region: { status: 'verified' } as unknown as Region,
     model: { ...mockModel, doseUSvPerS: 0.01 }, limits: { ...mockLimits, dose: 1000 },
+    checklist: [{ id: 'radio', label: 'Radio check with base', reason: 'always', done: true }],
   });
 };
 /** Штатний mock: рельєф MOCK, доза невідома, модель incomplete → CAUTION. */
@@ -44,12 +45,12 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('F7-AC7 · вердикт і станції', () => {
-  it('без сайту → HOLD, усі 8 станцій з причиною й наступною дією', () => {
+  it('без сайту → HOLD, усі 9 станцій з причиною й наступною дією', () => {
     render(<GoNoGoPanel />);
     expect(verdict()).toHaveTextContent('HOLD');
     const list = screen.getByRole('list', { name: 'Station calls' });
     const items = within(list).getAllByRole('listitem');
-    expect(items.map((li) => li.getAttribute('data-station'))).toEqual(['RTE', 'LSS', 'RTN', 'SCI', 'ABT', 'DAT', 'RAD', 'MDL']);
+    expect(items.map((li) => li.getAttribute('data-station'))).toEqual(['RTE', 'LSS', 'RTN', 'SCI', 'ABT', 'DAT', 'RAD', 'MDL', 'EQP']);
     for (const li of items) expect(li).toHaveTextContent('No site selected');
     expect(screen.getAllByText('Choose “Gale / Mount Sharp”').length).toBeGreaterThan(0);
   });
@@ -95,7 +96,7 @@ describe('F7-AC7 · CAUTION перед виходом — утримування
     const rec = screen.getByText(/Confirmed/);
     expect(rec).toHaveTextContent('Confirmed 16:42:07');
     expect(rec).toHaveTextContent('GO · CAUTION');
-    expect(rec).toHaveTextContent(/DAT, RAD, MDL/);
+    expect(rec).toHaveTextContent(/DAT, RAD, MDL, EQP/);
     expect(rec).toHaveTextContent('not saved');
   });
 
@@ -168,5 +169,15 @@ describe('F7-AC7 · у HUD', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start EVA' }));
     expect(screen.getByText(/Confirmed 16:42:05/)).toHaveTextContent('GO');
     expect(screen.getByRole('spinbutton', { name: 'Elapsed, s' })).toHaveFocus();
+  });
+});
+
+describe('F7-AC7 · станція EQP (чекліст, §7.13)', () => {
+  it('порожній чекліст → CAUTION з дією «Open the pre-EVA checklist»', () => {
+    cautionState();
+    render(<GoNoGoPanel />);
+    const eqp = screen.getByRole('listitem', { name: /EQP/ });
+    expect(eqp).toHaveTextContent('CAUTION');
+    expect(eqp).toHaveTextContent('Open the pre-EVA checklist');
   });
 });
