@@ -1,11 +1,13 @@
 // F4: маршрут A* (SPEC §7.3). Пише в store лише setPlan, setWaypoints, setSelectedSegment.
-import { useEffect, useState } from 'react';
-import type { ModelParams, RoutePlan, Target, XY } from '../../contracts';
+import { useEffect, useMemo, useState } from 'react';
+import type { Annotation, ModelParams, RoutePlan, Target, XY } from '../../contracts';
+import { applyAnnotations } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
 import { describeFailure, formatDistance, formatDose, formatEnergy, formatMinutes, formatO2, pointLabels } from './format';
 import { createDefaultRunner, createRouteClient, type RouteClient } from './route-client';
+import { segmentRisks } from './segment-risk';
 import { SegmentTable } from './SegmentTable';
 import { ViewFromHere } from './ViewFromHere';
 import { WaypointOrder } from './WaypointOrder';
@@ -42,6 +44,9 @@ export function RoutePanel() {
   const targets = useMission((s) => s.targets);
   const photos = useMission((s) => s.photos);
   const abort = useMission((s) => s.reach?.abort ?? null);
+  const annotations = useMission((s) => s.annotations);
+  // Мітки екіпажу (SPEC §7.12): impassable → непрохідно, hazard → дорожче; нова мітка → автоперебудова.
+  const planningGrid = useMemo(() => applyAnnotations(grid, annotations), [grid, annotations]);
   const region = useMission((s) => s.region);
   const noData = region?.noData;
   const selectedSegment = useMission((s) => s.selectedSegment);
@@ -56,8 +61,8 @@ export function RoutePanel() {
       useMission.getState().setPlan(null);
       return;
     }
-    getRouteClient().request({ grid, model, start: position ?? base, waypoints, base, noData });
-  }, [autoRebuild, grid, model, waypoints, base, position, noData]);
+    getRouteClient().request({ grid: planningGrid, model, start: position ?? base, waypoints, base, noData });
+  }, [autoRebuild, planningGrid, model, waypoints, base, position, noData]);
 
   const names = waypointNames(waypoints, targets);
   const labels = pointLabels(names);
@@ -65,7 +70,7 @@ export function RoutePanel() {
   const canBuild = waypoints.length > 0 && base !== null;
 
   const build = () => {
-    if (autoRebuild && base) getRouteClient().request({ grid, model, start: position ?? base, waypoints, base, noData });
+    if (autoRebuild && base) getRouteClient().request({ grid: planningGrid, model, start: position ?? base, waypoints, base, noData });
     setAutoRebuild(true);
   };
 
@@ -78,10 +83,11 @@ export function RoutePanel() {
         Build route
       </button>
       <RouteStatus plan={plan} labels={labels} hasWaypoints={waypoints.length > 0} />
+      <CrewMarksNote annotations={annotations} />
       {plan?.status === 'ok' && plan.segments.length > 0 && (
         <>
           <ElevationProfile plan={plan} grid={grid} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
-          <SegmentTable plan={plan} abort={abort} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
+          <SegmentTable plan={plan} risks={segmentRisks({ plan, grid, annotations, abort, noData })} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           {selectedSegment !== null && plan.segments[selectedSegment] && (
             <ViewFromHere segment={plan.segments[selectedSegment]} segmentIndex={selectedSegment} photos={photos} targets={targets} />
           )}
@@ -92,6 +98,15 @@ export function RoutePanel() {
       )}
     </Panel>
   );
+}
+
+/** Які мітки враховано в маршруті — щоб «no path» після мітки було зрозумілим. */
+function CrewMarksNote({ annotations }: { annotations: readonly Annotation[] }) {
+  const count = (kind: Annotation['kind']) => annotations.filter((a) => a.kind === kind).length;
+  const impassable = count('impassable');
+  const hazard = count('hazard');
+  if (impassable + hazard === 0) return null;
+  return <StatusNote level="info">Crew marks applied: {impassable} impassable, {hazard} hazard (route avoids or penalises them).</StatusNote>;
 }
 
 function RouteStatus({ plan, labels, hasWaypoints }: { plan: RoutePlan | null; labels: string[]; hasWaypoints: boolean }) {

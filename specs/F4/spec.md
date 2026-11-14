@@ -76,6 +76,16 @@
 
 **Статус:** V1–V3 — #39; V4 і «no return» у таблиці — зроблено (кандидати з `photos`, позначки з `reach.abort`). Справжні знімки Navcam з'являться з `photos.geojson` (#34, #36).
 
+### Жива карта й «чому ризиковано» (#59, F4-AC7, SPEC §7.12, §7.14)
+- **F4-AC7. Given** мітка `impassable` на шляху чинного маршруту; **When** її додано; **Then** маршрут перебудовано на `applyAnnotations(grid, annotations)` в обхід мітки (або чесне «no path» з причиною); кожен відрізок у таблиці має причину ризику за §7.14 або «nominal».
+
+| # | Задача | Файли | AC |
+|---|---|---|---|
+| M1 | Тести причин ризику → red: `slope 27°` (\|slope\| ≥ 20°, і вгору, і вниз), `next to NoData`, `crew mark: hazard` (кінець відрізка в радіусі мітки hazard), `no return with emergency O₂` (`abort.segments[i].ok = false`), кілька — через «, », без причин — `nominal` | `src/features/route/segment-risk.test.ts` | AC7 |
+| M2 | `segmentRisks(plan, grid, annotations, abort, noData)` — чиста функція | `src/features/route/segment-risk.ts` | AC7 |
+| M3 | Тести `RoutePanel` → red: після Build мітка `impassable` на шляху → план перебудовано сам, шлях не заходить у мітку; мітка на цілі → «no path» з кодом і текстом «crew marks applied»; колонка «Risk» у таблиці | `RoutePanel.test.tsx` | AC7 |
+| M4 | `RoutePanel` планує на `applyAnnotations(grid, annotations)` (useMemo), автоперебудова на зміну міток; колонка «Risk» замість окремої позначки «no return» (та сама інформація + іконка) | `RoutePanel.tsx`, `SegmentTable.tsx` | AC7 |
+
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|

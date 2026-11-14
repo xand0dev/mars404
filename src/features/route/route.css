@@ -28,4 +28,4 @@
 .route-view figcaption,
 .route-view-note { font-size: 0.85em; opacity: 0.85; overflow-wrap: anywhere; }
 
-.route-no-return { display: block; font-size: 0.8em; white-space: nowrap; color: var(--danger); }
+.route-risk { color: var(--warn); }
