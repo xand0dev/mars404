@@ -41,6 +41,7 @@
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F4 T1–T7: план у spec; ядро src/core (ребра, A*, дерева вартості, planRoute); Worker + клієнт з requestId; RoutePanel (порядок цілей, профіль, таблиця відрізків, коди збою) | src/core/**, src/features/route/**, specs/F4/** | npm run check (13 файлів, 78 тестів); Edge headless 1440 і 400 px: маршрут A→C через Worker ≈100 мс, без горизонтального скролу | #18 |
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F4 #30 «View from here» (F4-AC6, §7.9): найближчий знімок до середини відрізка (поки — фото цілей), поріг 300 м (assumption), підпис sol / відстань / credit / джерело, заглушка з alt; у spec — джерела NASA (raw images API, MMGIS) і алгоритм | src/features/route/**, specs/F4/** | npm run check (282 тести); Chromium headless 1440 і 400 px: Build route → Segment 3 → «No surface photo within 300 m» (у mock-цілей немає фото), без горизонтального скролу | — |
 
 ## F5
 
