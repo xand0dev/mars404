@@ -23,6 +23,12 @@
       "sha256": "7199b4f80cd5849b8b54b9054bd2b961db658eab54f9086ac470e7a6930a836c",
       "accessedAt": "2026-11-14"
     },
+    "hirise_4096.jpg": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=4096%2C4096&format=jpg&pixelType=U8&f=image",
+      "bytes": 1624971,
+      "sha256": "5372aff04c6eeb1eca9114e42fee00ff3439a271feca25ba747aad14711bf993",
+      "accessedAt": "2026-11-14"
+    },
     "MSL_traverse.json": {
       "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json",
       "bytes": 1357951,
@@ -39,12 +45,6 @@
       "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
       "bytes": 44176,
       "sha256": "4ddd8e72dce013efa44d373cbe2f9025da95421c621971500037a3373e60db53",
-      "accessedAt": "2026-11-14"
-    },
-    "hirise_4096.jpg": {
-      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=4096%2C4096&format=jpg&pixelType=U8&f=image",
-      "bytes": 1624971,
-      "sha256": "5372aff04c6eeb1eca9114e42fee00ff3439a271feca25ba747aad14711bf993",
       "accessedAt": "2026-11-14"
     },
     "context_mola.tif": {
@@ -68,6 +68,15 @@
     "slopeP50": 13.32,
     "slopeP95": 38.39,
     "cellsOver25": 11893
+  },
+  "render": {
+    "width": 1024,
+    "height": 1024,
+    "metersPerPixel": 2.5,
+    "method": "area-weighted mean of valid 1 m pixels (2.5 px per cell); 3D only, not used for planning",
+    "noDataCells": 0,
+    "elevMinM": -4217.238,
+    "elevMaxM": -3734.377
   },
   "thermal": {
     "night": {

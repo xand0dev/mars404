@@ -89,3 +89,13 @@ Edge через Playwright, https://xand0dev.github.io/mars404/, 1440×900 і 40
 - `screenshots/f3-pages-desktop-slope.png` — Pages, шар Slope увімкнено.
 - `screenshots/f3-pages-mobile400.png` — Pages, 400 px.
 - `screenshots/f3-*-o2-40-demo.png` — Resources після «O₂ −40%».
+
+## Кілька районів (#101, 14.11)
+Поділ з Іваном (#113): я — кроки 1, 2, 4 (`REGIONS`, `prepare.py --region`, Gale `elevation_render.f32`, Columbia Hills EVA-пакет); Іван — MOLA/HRSC і Viking (`context.*`, overview-пакети). Завантажувач і рендер — Олександр.
+
+| Крок | Що | Доказ |
+|---|---|---|
+| 1 | `region_config.REGIONS` (gale, columbia-hills, olympus-mons, valles-marineris), `prepare.py --region`, `fetch.py --region` | Docker `prepare` двічі → однакові `SHA256SUMS`; 9 наявних файлів Gale — ті самі sha256 |
+| 2 | Gale `elevation_render.f32` і `hirise_4096.jpg` зробив Олександр (#117), контекст 61 км — #118. `prepare.py` відтворює обидва файли байт-у-байт (той самий sha256), додає `kind: 'eva'`, зберігає `context` і джерела з чужих скриптів | Docker на пакеті з `main` → 13 файлів даних без змін; `test_prepare.Resample`, `test_packages.test_gale` (розмір, NoData 0 %, висоти в межах нативного DEM, `context` на місці) |
+| стик | `context.json` Івана (#113) або `context` у наявному `region.json` (#118) → `region.json.context` (лише поля контракту); `context.*` — у `SHA256SUMS`; чужі джерела `region.json` і входи `source.json` не губляться | `prepare.read_previous` |
+| 4 | Columbia Hills — окремий PR | — |
