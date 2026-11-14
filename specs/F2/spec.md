@@ -13,7 +13,7 @@
 **План F2-AC6** (гілка `feat/F2-abort`):
 - T15 `lib/abort.ts`: `readAbort(reach)` — до #26 читає `reach.abort` за формою SPEC §6 (`AbortPlan`), невалідне → `null`; `noReturnRuns(plan, abort)` — суцільні серії відрізків з `ok = false` (кожен відрізок окремо, пізніші `ok` біля бази розривають серію); довжина `abort.segments ≠ plan.segments` → без червоного й з попередженням. Тести з еталоном §7.8.
 - T16 3D і 2D: червоні лінії поверх маршруту (після накладки, до вибраного відрізка); легенда «⛔ No return with emergency O₂ (N g)», а якщо запас без джерела — «assumption». При `abort = null` маршрут звичайний.
-- Після мержу #26: локальний тип → `AbortPlan` з `src/contracts`, тести ті самі.
+- ✅ Контракт змерджено (#43): тип — `AbortPlan` з `src/contracts`, `readAbort` лишився як перевірка форми в runtime; «assumption» — з `model.evidence.emergencyO2G.status`. Реальний `reach.abort` у store з'явиться, коли F5 підключить `assessAbort` у `BudgetEngine` (зараз `abort: null`).
 
 ## Мета й обсяг
 `MapView`: єдиний Canvas, рельєф із `grid`, текстура HiRISE, накладки шарів, цілі, маршрут, підсвітка відрізка, ореол; камери «Orbit», «Top», «POV»; 2D-план Б.

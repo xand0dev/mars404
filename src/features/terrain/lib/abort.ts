@@ -1,29 +1,22 @@
 // F2-AC6 (SPEC §7.8): відрізки маршруту без повернення з аварійним запасом O₂ — червоні.
 // Рахує лише F5 (reach.abort); F2 тільки малює.
-import type { ReachabilityResult, RoutePlan, XY } from '../../../contracts';
-
-/**
- * Форма AbortPlan за SPEC §6. Тимчасово локальна: тип з'явиться в src/contracts з contract-PR #26,
- * тоді цей тип замінюємо імпортом, а readAbort лишаємо як перевірку даних.
- */
-export interface AbortPlanShape {
-  segments: { returnS: number | null; ok: boolean }[];
-  pointOfNoReturnS: number | null;
-  emergencyO2G: number;
-}
+import type { AbortPlan, ReachabilityResult, RoutePlan, XY } from '../../../contracts';
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
-/** reach.abort або null. Невалідна форма → null: краще звичайний маршрут, ніж вигадані червоні відрізки. */
-export function readAbort(reach: ReachabilityResult | null): AbortPlanShape | null {
-  const a = reach ? (reach as unknown as Record<string, unknown>).abort : null;
+/**
+ * reach.abort (тип AbortPlan з контракту, #43) з перевіркою форми в runtime: дані приходять від F5 через store.
+ * Невалідна форма → null: краще звичайний маршрут, ніж вигадані червоні відрізки.
+ */
+export function readAbort(reach: ReachabilityResult | null): AbortPlan | null {
+  const a: unknown = reach?.abort ?? null;
   if (!isObj(a) || !Array.isArray(a.segments)) return null;
   const segOk = a.segments.every(
     (s) => isObj(s) && typeof s.ok === 'boolean' && (s.returnS === null || (typeof s.returnS === 'number' && Number.isFinite(s.returnS))),
   );
   const ponr = a.pointOfNoReturnS;
   if (!segOk || !(ponr === null || typeof ponr === 'number') || typeof a.emergencyO2G !== 'number') return null;
-  return a as unknown as AbortPlanShape;
+  return a as unknown as AbortPlan;
 }
 
 export interface NoReturnRun {
@@ -42,7 +35,7 @@ export interface NoReturnRuns {
 }
 
 /** Суцільні серії відрізків з ok = false. Пізніші ok біля бази розривають серію (кожен відрізок окремо, §7.8). */
-export function noReturnRuns(plan: RoutePlan | null, abort: AbortPlanShape | null): NoReturnRuns {
+export function noReturnRuns(plan: RoutePlan | null, abort: AbortPlan | null): NoReturnRuns {
   if (!plan || !abort) return { runs: [], count: 0, warning: null };
   if (abort.segments.length !== plan.segments.length) {
     return { runs: [], count: 0, warning: `reach.abort has ${abort.segments.length} segments, plan has ${plan.segments.length}: no-return marks hidden` };

@@ -142,9 +142,8 @@ export function MapView({ globe }: MapViewProps) {
   const abort = useMemo(() => readAbort(reach), [reach]);
   const noReturn = useMemo(() => noReturnRuns(plan, abort), [plan, abort]);
   const noReturnLines = useMemo(() => noReturn.runs.map((r) => r.points), [noReturn]);
-  // Без джерела для emergencyO2G на екрані «assumption» (§7.8). Поле evidence з'явиться з contract-PR #26.
-  const emergencySource = ((region?.model ?? mockModel).evidence as Record<string, { status?: string } | undefined>).emergencyO2G;
-  const emergencyAssumption = emergencySource?.status !== 'verified';
+  // Без перевіреного джерела для emergencyO2G на екрані «assumption» (§7.8).
+  const emergencyAssumption = (region?.model ?? mockModel).evidence.emergencyO2G?.status !== 'verified';
 
   const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
