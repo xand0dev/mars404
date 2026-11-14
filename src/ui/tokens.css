@@ -14,7 +14,7 @@
   --radius: 10px;
   --gap: 12px;
   --touch: 40px;
-  --fs-hero: clamp(2.25rem, 5vw, 3.5rem);
+  --fs-hero: clamp(2.25rem, 4.2vw, 3.25rem);
   --fs-title: 1.2rem;
   --fs-label: 0.78rem;
   --fs-body: 1rem;

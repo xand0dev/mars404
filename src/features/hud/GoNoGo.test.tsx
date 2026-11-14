@@ -181,3 +181,30 @@ describe('F7-AC7 · станція EQP (чекліст, §7.13)', () => {
     expect(eqp).toHaveTextContent('Open the pre-EVA checklist');
   });
 });
+
+// T27: станції — чипи «код · іконка · слово»; деталі по кліку; NO-GO і станції з кнопкою-виправленням розгорнуті.
+describe('T27 · чипи станцій', () => {
+  const chip = (id: string) => within(screen.getByRole('listitem', { name: new RegExp(`^${id}:`) })).getByRole('button', { name: new RegExp(`^${id} (GO|CAUTION|NO-GO|HOLD)$`) });
+
+  it('GO і CAUTION без кнопки-виправлення — згорнуті; клік розгортає й згортає', () => {
+    cautionState();
+    render(<GoNoGoPanel />);
+    expect(chip('RTE')).toHaveAttribute('aria-expanded', 'false');
+    expect(chip('RAD')).toHaveTextContent('RAD');
+    expect(chip('RAD')).toHaveTextContent('CAUTION');
+    expect(chip('RAD')).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(chip('RAD'));
+    expect(chip('RAD')).toHaveAttribute('aria-expanded', 'true');
+    expect(document.getElementById(chip('RAD').getAttribute('aria-controls') as string)).toHaveTextContent('Dose: no data');
+    fireEvent.click(chip('RAD'));
+    expect(chip('RAD')).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('NO-GO зі швидкою дією розгорнуто одразу: кнопка-виправлення видна', () => {
+    withTargets();
+    useMission.setState({ plan, reach: reach({ deficits: ['o2'], returnInS: -60, swap: { dropId: 'mock-a', addId: 'mock-d' } }) });
+    render(<GoNoGoPanel />);
+    expect(chip('LSS')).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('listitem', { name: /^LSS:/ })).toHaveClass('is-open');
+  });
+});

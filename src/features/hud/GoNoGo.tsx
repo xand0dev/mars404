@@ -51,6 +51,7 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
   const firstHold = g.stations.find((s) => s.call === 'hold');
 
   return (
+    <>
     <section className="gonogo" aria-labelledby="gonogo-title">
       <div className="gonogo__head">
         <h3 id="gonogo-title" className="gonogo__title">GO / NO-GO</h3>
@@ -90,6 +91,9 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
         </p>
       )}
 
+    </section>
+    {/* Станції — окремою зоною під смугою HUD (T27): чипи «код · іконка · слово», деталі по кліку. */}
+    <div className="gonogo-stations">
       {glove ? (
         <details className="gonogo__more">
           <summary>Stations ({g.stations.length})</summary>
@@ -98,7 +102,8 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
       ) : (
         stations
       )}
-    </section>
+    </div>
+    </>
   );
 }
 
@@ -124,12 +129,25 @@ function Station({ s, name }: { s: StationCall; name: (id: string) => string }) 
   const toggleTarget = useMission((m) => m.toggleTarget);
   const text = fixText(s.fix);
   const word = CALL_WORD[s.call];
+  const actionable = s.call === 'nogo' || s.fix?.kind === 'replace-target' || s.fix?.kind === 'remove-target';
+  // Ручний вибір живе, доки не зміниться виклик станції (тоді знову за замовчуванням).
+  const [manual, setManual] = useState<{ key: string; open: boolean } | null>(null);
+  const key = `${s.call}|${s.fix?.kind ?? ''}`;
+  const open = manual?.key === key ? manual.open : actionable;
+  const detailId = `gonogo-detail-${s.id}`;
   return (
-    <li className={`gonogo__station gonogo__station--${s.call}`} data-station={s.id} aria-label={`${s.id}: ${word} — ${s.reason}`}>
-      <span className="gonogo__id">{s.id}</span>
-      <span className="gonogo__call">
-        <span aria-hidden="true">{STATUS_ICON[CALL_LEVEL[s.call]]}</span> {word}
-      </span>
+    <li
+      className={`gonogo__station gonogo__station--${s.call}${open ? ' is-open' : ''}`}
+      data-station={s.id}
+      aria-label={`${s.id}: ${word} — ${s.reason}`}
+    >
+      <button type="button" className="gonogo__chip" aria-expanded={open} aria-controls={detailId} onClick={() => setManual({ key, open: !open })}>
+        <span className="gonogo__id">{s.id}</span>{' '}
+        <span className="gonogo__call">
+          <span aria-hidden="true">{STATUS_ICON[CALL_LEVEL[s.call]]}</span> {word}
+        </span>
+      </button>
+      <span className="gonogo__detail" id={detailId}>
       <span className="gonogo__reason">{s.reason}</span>
       {text && <span className="gonogo__fix">{text}</span>}
       {s.fix?.kind === 'replace-target' && (
@@ -152,6 +170,7 @@ function Station({ s, name }: { s: StationCall; name: (id: string) => string }) 
           Remove {name(s.fix.targetId)}
         </button>
       )}
+      </span>
     </li>
   );
 }

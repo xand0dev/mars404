@@ -38,7 +38,6 @@
     overflow-y: auto; overscroll-behavior: contain;
     padding-right: 2px; /* фокус-рамка не обрізається прокруткою */
   }
-  .shell__bottom > * { max-height: min(70vh, 640px); overflow-y: auto; overscroll-behavior: contain; }
 }
 /* Липка смуга HUD — лише там, де під нею лишається місце для карти. */
 @media (min-width: 1024px) and (min-height: 700px) {
