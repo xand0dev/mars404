@@ -52,7 +52,7 @@ export function Hud() {
         <p className="hud__return">
           Return in <strong>{v.minutes}</strong> min
         </p>
-        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} />
+        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} onFix={() => elapsedRef.current?.focus()} />
         <div className="hud__info">
           <div className="hud__status">
             <StatusNote level={v.level} live={live}>

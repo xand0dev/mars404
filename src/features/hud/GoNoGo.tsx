@@ -22,9 +22,11 @@ interface Confirmation {
 export interface GoNoGoPanelProps {
   /** Викликається після «Start EVA» або підтвердженого утримування (HUD переводить фокус на «Elapsed»). */
   onStart?: () => void;
+  /** Викликається після «Replace» / «Remove» у станції: кнопка зникає, HUD переводить фокус на «Elapsed» (F7-AC5). */
+  onFix?: () => void;
 }
 
-export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
+export function GoNoGoPanel({ onStart, onFix }: GoNoGoPanelProps) {
   const g = useGoNoGo();
   const glove = useGlove();
   const targets = useMission((s) => s.targets);
@@ -44,7 +46,7 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
   const stations = (
     <ul className="gonogo__stations" aria-label="Station calls">
       {g.stations.map((s) => (
-        <Station key={s.id} s={s} name={name} />
+        <Station key={s.id} s={s} name={name} onFix={onFix} />
       ))}
     </ul>
   );
@@ -124,7 +126,7 @@ function fixText(fix: Fix | undefined): string | null {
   }
 }
 
-function Station({ s, name }: { s: StationCall; name: (id: string) => string }) {
+function Station({ s, name, onFix }: { s: StationCall; name: (id: string) => string; onFix?: () => void }) {
   const replaceTarget = useMission((m) => m.replaceTarget);
   const toggleTarget = useMission((m) => m.toggleTarget);
   const text = fixText(s.fix);
@@ -155,7 +157,11 @@ function Station({ s, name }: { s: StationCall; name: (id: string) => string }) 
           type="button"
           className="gonogo__fixbtn"
           aria-label={`${s.id} fix: Replace ${name(s.fix.dropId)} with ${name(s.fix.addId)}`}
-          onClick={() => s.fix?.kind === 'replace-target' && replaceTarget(s.fix.dropId, s.fix.addId)}
+          onClick={() => {
+            if (s.fix?.kind !== 'replace-target') return;
+            replaceTarget(s.fix.dropId, s.fix.addId);
+            onFix?.();
+          }}
         >
           Replace {name(s.fix.dropId)} with {name(s.fix.addId)}
         </button>
@@ -165,7 +171,11 @@ function Station({ s, name }: { s: StationCall; name: (id: string) => string }) 
           type="button"
           className="gonogo__fixbtn"
           aria-label={`${s.id} fix: Remove ${name(s.fix.targetId)}`}
-          onClick={() => s.fix?.kind === 'remove-target' && toggleTarget(s.fix.targetId)}
+          onClick={() => {
+            if (s.fix?.kind !== 'remove-target') return;
+            toggleTarget(s.fix.targetId);
+            onFix?.();
+          }}
         >
           Remove {name(s.fix.targetId)}
         </button>

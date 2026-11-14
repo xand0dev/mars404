@@ -210,6 +210,8 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   const anchors = useMemo(() => {
     const list: { id: string; pos: Vector3; text: string }[] = [];
     const b = base ? at(base) : null;
+    // Підпис обраного відрізка — першим: він лишається біля маяка, а цілі й база піднімаються над ним.
+    if (segMark) list.push({ id: '__seg', pos: new Vector3(segMark.position[0], segMark.position[1] + markerR * 8.5, segMark.position[2]), text: segMark.label });
     if (b) list.push({ id: '__base', pos: new Vector3(b.position[0], b.position[1] + markerR * 3, b.position[2]), text: '■ Base' });
     for (const t of targets) {
       if (!labelled.has(t.id)) continue;
@@ -220,7 +222,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- at() залежить від grid / heights / noData
-  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach]);
+  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach, segMark]);
   const [levels, setLevels] = useState<Record<string, number>>({});
   const levelsKey = useRef('');
   const proj = useMemo(() => new Vector3(), []);
@@ -297,7 +299,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
             <cylinderGeometry args={[markerR * 0.25, markerR * 0.25, markerR * 8, 8]} />
             <meshBasicMaterial color={CSS.segment} transparent />
           </mesh>
-          <Label3D position={[0, markerR * 8.5, 0]} color={CSS.segment} text={segMark.label} />
+          <Label3D position={[0, markerR * 8.5, 0]} level={levels.__seg ?? 0} color={CSS.segment} text={segMark.label} />
         </group>
       )}
 
