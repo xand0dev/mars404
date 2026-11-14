@@ -67,6 +67,7 @@ export const mockModel: ModelParams = {
   maxSlopeDeg: 25,
   hazardWeight: 0.5,
   reserveFraction: 0.2,
+  emergencyO2G: 360,
   evidence: {
     speedMps: mockSrc('SPEC §7.3 еталонне ребро'),
     uphillFactor: mockSrc('SPEC §7.3 еталонне ребро'),
@@ -77,6 +78,7 @@ export const mockModel: ModelParams = {
     maxSlopeDeg: mockSrc('MOCK, у SPEC не задано'),
     hazardWeight: mockSrc('SPEC §7.3 еталонне ребро'),
     reserveFraction: mockSrc('SPEC §7.4 еталонний приклад'),
+    emergencyO2G: { ...MOCK_SOURCE, status: 'assumption', note: 'SPEC §7.6/§7.8: кандидат — аварійний кисневий блок EMU (~30 хв); 30 хв × 0.2 г/с = 360 г, до перевірки — assumption' },
   },
 };
 

@@ -40,6 +40,8 @@ export function RoutePanel() {
   const position = useMission((s) => s.position);
   const plan = useMission((s) => s.plan);
   const targets = useMission((s) => s.targets);
+  const photos = useMission((s) => s.photos);
+  const abort = useMission((s) => s.reach?.abort ?? null);
   const region = useMission((s) => s.region);
   const noData = region?.noData;
   const selectedSegment = useMission((s) => s.selectedSegment);
@@ -79,9 +81,9 @@ export function RoutePanel() {
       {plan?.status === 'ok' && plan.segments.length > 0 && (
         <>
           <ElevationProfile plan={plan} grid={grid} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
-          <SegmentTable plan={plan} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
+          <SegmentTable plan={plan} abort={abort} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           {selectedSegment !== null && plan.segments[selectedSegment] && (
-            <ViewFromHere segment={plan.segments[selectedSegment]} segmentIndex={selectedSegment} targets={targets} />
+            <ViewFromHere segment={plan.segments[selectedSegment]} segmentIndex={selectedSegment} photos={photos} targets={targets} />
           )}
         </>
       )}

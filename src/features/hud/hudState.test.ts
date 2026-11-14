@@ -18,6 +18,7 @@ const reach = (extra: Partial<ReachabilityResult> = {}): ReachabilityResult => (
   status: 'incomplete',
   mask: new Uint8Array(0),
   returnInS: 1980,
+  abort: null,
   deficits: [],
   swap: null,
   warnings: [],

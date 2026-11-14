@@ -1,6 +1,7 @@
 // Ореол досяжності, «Return in N» і кандидат заміни (SPEC §7.4). Єдине джерело чисел повернення (SPEC §5.2).
 import type { ModelParams, PlanningGrid, ReachabilityResult, Resources, RoutePlan, Target, XY } from '../contracts';
 import { validateGrid, xyToCell } from '../contracts/planning';
+import { assessAbort } from './abort';
 import { availableOf, budgetStatus, computeBudget, estimateReturn, fitsWithin, reserveOf, validateBudgetInputs } from './budget';
 import { buildCostTree, type CostTree } from './cost-tree';
 import { createWalkGraph } from './edge';
@@ -81,11 +82,12 @@ export function assessReach(input: ReachInput, trees?: ReachTrees): { budget: Re
   for (const t of outside) warnings.push(`${t.name} is outside the reachable area (model)`);
 
   const swap = deficits.length > 0 || outside.length > 0 ? pickSwap(selected, input.targets, roundTripCost, inMask) : null;
-  return { budget, reach: { status, mask, returnInS, deficits, swap, warnings } };
+  const abort = assessAbort({ plan: input.plan, grid, toBase, budget, reserve, model, emergencyO2G: model.emergencyO2G });
+  return { budget, reach: { status, mask, returnInS, deficits, swap, abort, warnings } };
 }
 
 function invalidReach(cellCount: number, errors: string[]): ReachabilityResult {
-  return { status: 'invalid', mask: new Uint8Array(cellCount), returnInS: null, deficits: [], swap: null, warnings: errors.map((e) => `invalid: ${e}`) };
+  return { status: 'invalid', mask: new Uint8Array(cellCount), returnInS: null, deficits: [], swap: null, abort: null, warnings: errors.map((e) => `invalid: ${e}`) };
 }
 
 /** Клітинка в масці, якщо обидва шляхи існують і кожен відомий ресурс туди й назад ≤ доступного до резерву. */

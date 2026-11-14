@@ -20,6 +20,8 @@ export interface Plan2DProps {
   gridLayers: { id: string; rgba: Uint8Array }[];
   /** Траверс марсохода, локальні метри (T12) */
   traverse: XY[][];
+  /** F2-AC6: серії відрізків без повернення */
+  noReturn: XY[][];
   targets: Target[];
   selectedIds: string[];
   plan: RoutePlan | null;
@@ -47,7 +49,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, targets, selectedIds, plan, selectedSegment, base }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -110,6 +112,9 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
           />
         ))}
         {routeStr && <polyline points={routeStr} fill="none" stroke={CSS.route} strokeWidth={unit * 0.6} strokeLinejoin="round" data-kind="route" />}
+        {noReturn.map((l, k) => (
+          <polyline key={`nr${k}`} points={polyline(grid, l)} fill="none" stroke={CSS.noReturn} strokeWidth={unit * 0.9} strokeLinejoin="round" data-kind="no-return" />
+        ))}
         {seg && (
           <line
             x1={seg[0][0]}

@@ -66,7 +66,7 @@
 | A5 | Тест `BudgetEngine`: план у store → `reach.abort` є; `setLimits` O₂ −40% → не кращий | `src/features/budget/BudgetEngine.test.tsx` | AC5 |
 | A6 | `npm run check`, AI_LOG, draft PR `feat/F5-abort` (AC → доказ) | — | AC5 |
 
-**Статус:** A1–A3 зроблено (`src/core/abort.ts`, 14 тестів); A4–A5 — після мержу #26.
+**Статус:** A1–A3 зроблено (#40); A4–A5 зроблено — `reach.abort` публікує `BudgetEngine`; A6 — PR.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |

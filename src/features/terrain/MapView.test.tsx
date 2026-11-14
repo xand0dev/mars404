@@ -66,7 +66,7 @@ describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
     gale();
     act(() =>
       useMission.setState({
-        reach: { status: 'estimated', mask: new Uint8Array(128 * 128).fill(1), returnInS: 600, deficits: [], swap: null, warnings: [] },
+        reach: { status: 'estimated', mask: new Uint8Array(128 * 128).fill(1), returnInS: 600, deficits: [], swap: null, abort: null, warnings: [] },
       }),
     );
     expect(screen.getByRole('img', { name: /2D plan/ }).querySelector('[data-kind="halo"]')).not.toBeNull();
@@ -219,6 +219,7 @@ describe('План Б: ?2d — підпис без «3D unavailable»', () => {
         layerUrls={[]}
         gridLayers={[]}
         traverse={[]}
+        noReturn={[]}
         targets={[]}
         selectedIds={[]}
         plan={null}
@@ -249,5 +250,31 @@ describe('Шари F3: slope з сітки, чесна легенда', () => {
     const legend = within(terrain()).getByText(/Slope \(derived\)/).closest('p') as HTMLElement;
     expect(legend).toHaveTextContent(/Slope \(derived\) \(assumption\)(?! · not drawn)/);
     expect(legend).toHaveTextContent('Thermal (assumption) · not drawn');
+  });
+});
+
+describe('F2-AC6: червоні відрізки без повернення (reach.abort, SPEC §7.8)', () => {
+  const plan = planThrough(mockGrid, [[64, 64], [63, 64], [62, 64], [61, 64], [60, 64]]);
+  const reach = (abort: unknown) =>
+    ({ status: 'estimated', mask: new Uint8Array(128 * 128), returnInS: 600, deficits: [], swap: null, warnings: [], abort }) as never;
+
+  it('Given abort з ok = false; Then ці відрізки червоні в 2D і є легенда іконкою й текстом', () => {
+    render(<MapView globe={null} />);
+    gale();
+    const abort = { segments: [{ returnS: 50, ok: true }, { returnS: null, ok: false }, { returnS: null, ok: false }, { returnS: 30, ok: true }], pointOfNoReturnS: 10, emergencyO2G: 360 };
+    act(() => useMission.setState({ plan, reach: reach(abort) }));
+    const svg = screen.getByRole('img', { name: /2D plan/ });
+    expect(svg.querySelectorAll('[data-kind="no-return"]')).toHaveLength(1);
+    expect(within(terrain()).getByText(/No return with emergency O₂/)).toHaveTextContent('⛔ No return with emergency O₂ (360 g, assumption)'); // джерела запасу ще немає — SPEC §7.8
+  });
+
+  it('Given abort = null; Then маршрут звичайний, без червоного й без легенди', () => {
+    render(<MapView globe={null} />);
+    gale();
+    act(() => useMission.setState({ plan, reach: reach(null) }));
+    const svg = screen.getByRole('img', { name: /2D plan/ });
+    expect(svg.querySelector('[data-kind="route"]')).not.toBeNull();
+    expect(svg.querySelector('[data-kind="no-return"]')).toBeNull();
+    expect(within(terrain()).queryByText(/No return with emergency O₂/)).toBeNull();
   });
 });

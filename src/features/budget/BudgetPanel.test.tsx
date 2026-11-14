@@ -1,20 +1,22 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { emptyPlan } from '../../core';
-import { mockModel } from '../../mocks';
+import { emptyPlan, planRoute } from '../../core';
+import { mockBase, mockGrid, mockModel, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { BudgetEngine } from './BudgetEngine';
 import { BudgetPanel } from './BudgetPanel';
 
 const store = () => useMission.getState();
-const renderBudget = () =>
-  render(
+const renderBudget = (site: 'gale' | null = 'gale') => {
+  act(() => store().setSite(site));
+  return render(
     <>
       <BudgetEngine />
       <BudgetPanel />
     </>,
   );
+};
 
 beforeEach(() => resetMission());
 
@@ -82,7 +84,66 @@ describe('BudgetEngine + BudgetPanel', () => {
     act(() => store().toggleTarget('mock-c'));
     act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 0, o2: 600, energy: 0, dose: null, dist: 0 } }));
 
-    const deficit = screen.getByText(/^Deficit:/);
-    expect(deficit).toHaveTextContent(/^Deficit: O₂ —/);
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent(/Deficit: O₂ —/);
+  });
+
+  it('#32: місце не обрано — «Return in — min», як у HUD (#9 п.3)', () => {
+    renderBudget(null);
+    expect(screen.getByText('Return in — min')).toBeInTheDocument();
+  });
+
+  it('#32: шкали показують резерв і планову витрату (Gauge F7)', () => {
+    renderBudget();
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('reserve 144 g');
+
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan({ ...emptyPlan('ok', 1), totals: { time: 900, o2: 180, energy: 10, dose: null, dist: 900 } }));
+    expect(screen.getByText(/O₂: 720 g/)).toHaveTextContent('plan 180 g');
+    expect(screen.getByText('Return in 33 min')).toBeInTheDocument();
+  });
+
+  it('#32: дефіцит позначено на шкалі ресурсу й рівнем deficit (⛔) у статусі', () => {
+    const { container } = renderBudget();
+    act(() => store().setTime(3500));
+
+    // 3500 с: час 100 < 720 резерву, O₂ 720 − 700 = 20 < 144 резерву — обидва в дефіциті.
+    const marked = [...container.querySelectorAll('.ui-gauge--deficit')].map((el) => el.textContent?.split(':')[0]);
+    expect(marked).toEqual(['Time', 'O₂']);
+    expect(screen.getByText('Return in 0 min')).toBeInTheDocument();
+    const status = screen.getAllByRole('status').find((el) => /deficit/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⛔');
+  });
+
+  it('#32: розрахунок маршруту — рівень pending (⏳)', () => {
+    renderBudget();
+    act(() => store().toggleTarget('mock-a'));
+    act(() => store().setPlan(emptyPlan('pending', 1)));
+    const status = screen.getAllByRole('status').find((el) => /calculating/i.test(el.textContent ?? ''))!;
+    expect(status).toHaveTextContent('⏳');
+  });
+
+  it('F5-AC5: BudgetEngine публікує reach.abort для чинного плану; «O₂ −40%» не покращує', async () => {
+    renderBudget();
+    const target = mockTargets.find((t) => t.id === 'mock-c')!;
+    const plan = planRoute({ grid: mockGrid, model: mockModel, start: mockBase, waypoints: [target.coordinates], base: mockBase, requestId: 1 });
+    act(() => store().toggleTarget('mock-c'));
+    act(() => store().setPlan(plan));
+
+    const normal = store().reach?.abort;
+    expect(normal?.segments).toHaveLength(plan.segments.length);
+
+    await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+    const reduced = store().reach?.abort;
+    expect(reduced?.segments.filter((s) => s.ok).length).toBeLessThanOrEqual(normal!.segments.filter((s) => s.ok).length);
+    reduced?.segments.forEach((s, i) => {
+      if (s.ok) expect(normal!.segments[i]!.ok).toBe(true);
+    });
+  });
+
+  it('F5-AC5: без чинного плану reach.abort = null', () => {
+    renderBudget();
+    expect(store().reach).not.toBeNull();
+    expect(store().reach?.abort).toBeNull();
   });
 });

@@ -52,6 +52,18 @@
 
 | id | Що | URL / product ID | Credit | Доступ | Статус | Примітка |
 |---|---|---|---|---|---|---|
+| nasa-bvad-rev2 | Life Support Baseline Values and Assumptions Document (BVAD), NASA/TP-2015-218570/REV2 | https://ntrs.nasa.gov/citations/20210024855 | NASA (Ewert, Chen, Powell, 2022) | 2026-11-14 | pending | Повний текст не звірено; довідкове джерело для життєзабезпечення |
+| nasa-o2-daily | «Metabolic oxygen consumption: 0.49–1.25 kg/person-day, 0.84 kg/person-day average» | https://ntrs.nasa.gov/api/citations/20120015343/downloads/20120015343.pdf | NASA | 2026-11-14 | verified | Добова норма в спокої ≈0.0097 г/с — нижня межа для перевірки `o2GPerS` |
+| jones-apollo-walk | Apollo: «Oxygen use was about 0.16 lb/hr per 1000 BTU/hr»; «1290 BTU/hr while walking at 2.7 km/hr, and 1560 BTU/hr at 3.5 km/hr»; аварійне повернення — «3.6 km/hr for periods of up to an hour, and 2.5 km/hr for longer» | https://www.osti.gov/servlets/purl/7168757 (E. M. Jones, «Working on the Moon: The Apollo Experience», LA-UR-89-3858) | E. M. Jones (Apollo Lunar Surface Journal) | 2026-11-14 | verified | **`o2GPerS` ≈ 0.031 г/с** (1560 × 0.16 / 1000 = 0.25 lb/год ≈ 113 г/год при 3.5 км/год); **`speedMps` = 1.0 м/с** (3.6 км/год до 1 год). Місяць 1/6 g — для Марса (0.38 g) перенесення, позначка «assumption» лишається |
+| apollo-eva-metabolic | «average lunar EVA metabolic rate of 234 kcal/hr» | https://ntrs.nasa.gov/citations/19910001262 (T. P. Moore, «U.S. Space Flight Experience: Physical Exertion and Metabolic Demand of EVA») | NASA | 2026-11-14 | verified | Перевірка: 234 kcal/год ÷ 5 kcal/л × 1.429 г/л ≈ 0.019 г/с — середнє за весь вихід, разом зі стоянками; ходьба — 0.031 (рядок вище) |
+| nasa-o2-kcal | «approximately 5 kcal of energy must be liberated to consume 1 liter of oxygen» | https://ntrs.nasa.gov/api/citations/20120003917/downloads/20120003917.pdf | NASA | 2026-11-14 | verified | Коефіцієнт для перерахунку рядка вище |
+| emu-sop-30min | EMU: «Secondary Oxygen Package (SOP) — Provides a minimum of 30 minutes of emergency O2 in open-loop purge mode»; ресурс виходу 7 год, з них «30 minutes for reserve» | https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf | NASA | 2026-11-14 | verified | `emergencyO2G = 1800 с × o2GPerS`: при 0.031 г/с ≈ 56 г (mock 360 г = 1800 × 0.2) |
+| assumption-slope-factors | `uphillFactor = 2`, `downhillFactor = 0.5` | — | — | — | assumption | Еталонне ребро SPEC §7.3; джерела немає |
+| assumption-max-slope | `maxSlopeDeg = 25` | — | — | — | assumption | На пакеті F3 блокує 27 % клітинок, маршрути будуються (#8) |
+| assumption-hazard | `hazardWeight = 0.5`, hazard = `min(1, slope/25) × 0.5` (F3) | — | — | — | assumption | Впливає лише на вибір маршруту, не на час і O₂ (#8) |
+| assumption-reserve | `reserveFraction = 0.2` | — | — | — | assumption | SPEC §7.4 |
+| assumption-energy | `energyWhPerM = 0.05`, `limits.energy = 600 Wh` | — | — | — | assumption | У SPEC не задано |
+| assumption-limits | `limits.time = 3600 с`, `limits.o2 = 720 г` | — | — | — | assumption | Ліміти демо SPEC §7.4. Довідково: EMU — до 7 год виходу (emu-sop-30min) |
 
 ## F6
 
