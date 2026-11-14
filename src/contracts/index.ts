@@ -237,3 +237,4 @@ export type MissionState = MissionData & MissionActions;
 export const VERTICAL_EXAGGERATION = 3;
 /** Метрів в 1° на екваторі Марса (R = 3396.19 км). */
 export const METERS_PER_DEG = (Math.PI * 3_396_190) / 180;
+// контроль: спільний файл
