@@ -4,6 +4,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useMission } from '../../store/useMission';
 import { EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
 import { abortLine } from './abortLine';
+import { GoNoGoPanel } from './GoNoGo';
+import { useGoNoGo } from './useGoNoGo';
 import { hudState } from './hudState';
 
 export function Hud() {
@@ -27,6 +29,9 @@ export function Hud() {
 
   const v = hudState(input);
   const abort = abortLine(input.reach?.abort ?? null, model);
+  const gng = useGoNoGo();
+  // Під час виходу NO-GO озвучує «Return to base now» (alert у GO / NO-GO); статус HUD тоді — status, щоб alert був один.
+  const live = gng.during && gng.verdict === 'nogo' ? 'status' : v.live;
 
   const onElapsed = (raw: string) => {
     setDraft(raw);
@@ -47,7 +52,7 @@ export function Hud() {
           Return in <strong>{v.minutes}</strong> min
         </p>
         <div className="hud__status">
-          <StatusNote level={v.level} live={v.live}>
+          <StatusNote level={v.level} live={live}>
             <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
           </StatusNote>
         </div>
@@ -96,6 +101,7 @@ export function Hud() {
             </span>
           )}
         </p>
+        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} />
       </div>
     </Panel>
   );

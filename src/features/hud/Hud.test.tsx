@@ -27,9 +27,9 @@ describe('F7 · Hud', () => {
   it('F7-AC3: еталон (план 900 с) → «Return in 33 min» і ризик іконкою + словами', () => {
     withPlan(reach());
     render(<Hud />);
-    const hero = screen.getByText(/Return in/);
+    const hero = screen.getByText(/Return in/, { selector: '.hud__return' });
     expect(hero).toHaveTextContent(`Return in ${REFERENCE_RETURN_MIN.plan} min`);
-    const status = screen.getByRole('status');
+    const status = screen.getAllByRole('status').find((el) => el.textContent?.includes('Estimate incomplete')) as HTMLElement;
     expect(status).toHaveTextContent('⚠');
     expect(status).toHaveTextContent('Estimate incomplete: dose — no data');
   });
@@ -37,14 +37,14 @@ describe('F7 · Hud', () => {
   it('F7-AC1: «Return in N min» — найбільший текст HUD (клас hero)', () => {
     withPlan(reach());
     render(<Hud />);
-    expect(screen.getByText(/Return in/)).toHaveClass('hud__return');
+    expect(screen.getByText(/Return in/, { selector: '.hud__return' })).toHaveClass('hud__return');
   });
 
   it('F7-AC4: NaN → «Return in — min», не «NaN min»', () => {
     withPlan(reach({ status: 'estimated', returnInS: NaN }));
     useMission.setState({ budget: { time: NaN, o2: NaN, energy: NaN, dose: null } });
     render(<Hud />);
-    expect(screen.getByText(/Return in/)).toHaveTextContent('Return in — min');
+    expect(screen.getByText(/Return in/, { selector: '.hud__return' })).toHaveTextContent('Return in — min');
     expect(document.body.textContent).not.toMatch(/NaN/);
   });
 
@@ -104,7 +104,7 @@ describe('F7 · Hud', () => {
     withPlan(reach({ warnings: ['Calculating route…'] }));
     useMission.setState({ plan: { ...okPlan, status: 'pending' } });
     render(<Hud />);
-    expect(screen.queryByText('Calculating route…')).toBeNull();
+    expect(screen.queryByRole('list', { name: 'Model warnings' })).toBeNull();
   });
 
   it('витрати чинного плану видно в HUD: «Plan 900 s · 180 g O₂» (як на концепті)', () => {
@@ -123,7 +123,7 @@ describe('F7 · Hud', () => {
   it('F7-AC6: точка неповернення видно знаком ◆! і текстом, поруч аварійний запас з «assumption»', () => {
     withPlan(reach({ abort: { segments: [], pointOfNoReturnS: 1380, emergencyO2G: 360 } }));
     render(<Hud />);
-    const line = screen.getByText('Point of no return in 23 min').closest('p') as HTMLElement;
+    const line = screen.getByText('Point of no return in 23 min', { selector: '.hud__abort strong' }).closest('p') as HTMLElement;
     expect(within(line).getByRole('img', { name: 'Point of no return' })).toBeInTheDocument();
     expect(screen.getByText(/Emergency O₂ reserve 360 g/)).toBeInTheDocument();
     expect(screen.getByText('assumption')).toBeInTheDocument();
@@ -132,13 +132,13 @@ describe('F7 · Hud', () => {
   it('F7-AC6: повернення звідусіль — «Return possible along the whole route»', () => {
     withPlan(reach({ abort: { segments: [], pointOfNoReturnS: null, emergencyO2G: 360 } }));
     render(<Hud />);
-    expect(screen.getByText('Return possible along the whole route')).toBeInTheDocument();
+    expect(screen.getByText('Return possible along the whole route', { selector: '.hud__abort strong' })).toBeInTheDocument();
   });
 
   it('F7-AC6: abort = null → рядка немає', () => {
     withPlan(reach({ abort: null }));
     render(<Hud />);
-    expect(screen.queryByText(/Point of no return|Return possible along/)).toBeNull();
+    expect(document.querySelector('.hud__abort')).toBeNull();
   });
 });
 
