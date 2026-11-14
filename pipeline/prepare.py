@@ -221,7 +221,7 @@ def build(cache):
                   grid=dict(width=W, height=H, metersPerPixel=cfg.MPP, originM=list(origin), rowOrder='north-to-south',
                             boundsLonLat=list(bbox), crs='Mars 2000 geographic (Trek bboxSR 104905)'),
                   files=dict(elevation='elevation.f32', slope='slope.f32', walkable='walkable.u8', hazard='hazard.f32',
-                             texture='hirise.jpg', targets='targets.geojson', traverse='traverse.geojson'),
+                             texture='hirise.jpg', targets='targets.geojson', traverse='traverse.geojson', photos='photos/photos.geojson'),
                   noData=NODATA, base=base, model=model,
                   limits=dict(time=3600, o2=720, energy=600, dose=None), layers=layers, sources=sources,
                   hazardFromSlope=HAZARD_MODEL)

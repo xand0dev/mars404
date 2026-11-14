@@ -188,7 +188,8 @@ export async function loadRegion(get: GetFile): Promise<RegionLoad> {
         lonLat: p.lonLat,
       }));
     } catch (e) {
-      issues.push({ id: 'photos', file: photosFile, message: describe(e) });
+      if (e instanceof FileMissingError) warnings.push(`No photos file (${photosFile}) yet: photos = []`);
+      else issues.push({ id: 'photos', file: photosFile, message: describe(e) });
     }
   }
 

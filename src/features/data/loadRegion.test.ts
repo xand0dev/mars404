@@ -159,6 +159,15 @@ describe('F3-AC5: photos і emergencyO2G', () => {
     expect(r.warnings.join(' ')).toMatch(/photo b.*outside/i);
   });
 
+  it('Given files.photos, але файла ще немає, Then photos = [] і попередження, не помилка', async () => {
+    const reg = await realRegion();
+    const r = await loadRegion(patched({ 'region.json': json({ ...reg, files: { ...reg.files, photos: 'photos/none.geojson' } }) }));
+    if (r.kind !== 'real') throw new Error(r.kind);
+    expect(r.photos).toEqual([]);
+    expect(r.issues).toEqual([]);
+    expect(r.warnings.join(' ')).toMatch(/photos/);
+  });
+
   it('Given без files.photos, Then photos = []', async () => {
     const r = await loadRegion(disk);
     if (r.kind !== 'real') throw new Error(r.kind);

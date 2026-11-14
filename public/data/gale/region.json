@@ -27,7 +27,8 @@
     "hazard": "hazard.f32",
     "texture": "hirise.jpg",
     "targets": "targets.geojson",
-    "traverse": "traverse.geojson"
+    "traverse": "traverse.geojson",
+    "photos": "photos/photos.geojson"
   },
   "noData": -9999.0,
   "base": [
