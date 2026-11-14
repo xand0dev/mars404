@@ -52,6 +52,12 @@ describe('guard (F0-AC2)', () => {
     expect(ownsFile('F3', 'public/data/mars/x.jpg')).toBe(false);
   });
 
+  it('картки локацій (15.11): public/data/sites — F6', () => {
+    expect(ownsFile('F6', 'public/data/sites/gale.json')).toBe(true);
+    expect(ownsFile('F6', 'public/data/sites/gale.jpg')).toBe(true);
+    expect(ownsFile('F3', 'public/data/sites/gale.json')).toBe(false);
+  });
+
   it('нові папки: notes — F1, prep — F6', () => {
     expect(ownsFile('F1', 'src/features/notes/NotesPanel.tsx')).toBe(true);
     expect(ownsFile('F6', 'src/features/prep/ChecklistPanel.tsx')).toBe(true);
