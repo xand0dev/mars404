@@ -37,6 +37,7 @@
 - **T5 — Вибір і reachability.** Під'єднати `toggleTarget(id)`, стани «Add to route» / «Remove» та текстове попередження поза ореолом; до рішення issue #14 тестувати на mocks без змін contracts/store (F6-AC3).
 - **T6 — Перевірені дані.** Після перевірки джерел підготувати 5–8 записів `targets.geojson` і локальні фото; перевірити bbox, схему, credit та sol. Непідтверджене явно позначити `assumption` / `MOCK` і додати джерела лише в `## F6` `docs/SOURCES.md`.
 - **T7 — Перевірка й handoff.** Довести AC-тести до green, перевірити 400 px і desktop, виконати `npm run check`, додати рядок у `## F6` `docs/AI_LOG.md` та відкрити draft PR з таблицею AC → доказ. `Ready for review` не ставити.
+- **T8 — Surface photos (#34).** За F6-AC5 додати red-тест і `photos/photos.geojson` для 8–20 локальних Navcam-знімків: точні MMGIS rover-stop координати, `alt`, credit, sol, `sourceUrl`, camera, `locationAccuracy: 'rover-stop'`; до появи `SurfacePhoto` у contracts не змінювати shared-файли.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
