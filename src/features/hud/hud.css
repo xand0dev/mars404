@@ -1,6 +1,6 @@
 /* F7 · смуга HUD (T26). «Return in N min» — найбільший текст (F7-AC1). Колір лише доповнює іконку й слово (§7.7). */
 /* Заголовок панелі HUD не займає рядок: назва — для екранних читалок, бейджі — у куті. */
-.ui-panel:has(> .hud) { position: relative; padding-top: var(--space-3); }
+.ui-panel:has(> .hud) { position: relative; padding-top: var(--space-4); border-top: 2px solid var(--accent); background: linear-gradient(180deg, var(--surface-2), var(--surface) 70%); }
 .ui-panel:has(> .hud) > header { position: absolute; bottom: var(--space-3); right: var(--space-3); margin: 0; min-height: 0; z-index: 1; }
 /* Бейджі HUD — праворуч у рядку станцій; на вузькому екрані — над ним, щоб не перекривати чипи. */
 @media (max-width: 1199px) { .ui-panel:has(> .hud) > header { position: static; margin-bottom: var(--space-2); justify-content: flex-end; } }
@@ -11,8 +11,9 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: 'hero' 'verdict' 'info' 'side' 'stations';
 }
-.hud__return { grid-area: hero; font-size: var(--fs-hero); line-height: 1; font-weight: 800; margin: 0; letter-spacing: -0.01em; white-space: nowrap; align-self: center; }
-.hud__return strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+/* Показ приладу: «RETURN IN» і «MIN» — дрібні позначки, число — найбільше на екрані. */
+.hud__return { grid-area: hero; display: flex; align-items: baseline; gap: 0.5em; margin: 0; white-space: nowrap; align-self: center; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em; color: var(--text-muted); }
+.hud__return strong { font-size: var(--fs-hero); line-height: 0.9; font-weight: 600; letter-spacing: -0.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
 .hud__info { grid-area: info; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .hud__side { grid-area: side; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .hud__status { font-size: var(--fs-body); }
@@ -22,14 +23,14 @@
 .hud__abort--ponr strong { color: var(--danger); }
 .hud__abort--clear strong { color: var(--ok); }
 .hud__abort-icon { color: var(--ok); font-weight: 700; }
-.hud__abort-reserve { font-size: var(--fs-small); color: var(--text-muted); }
-.hud__assumption { display: inline-flex; align-items: center; min-height: 20px; font-size: 0.72rem; line-height: 1; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--assumption-bg); color: var(--warn); }
+.hud__abort-reserve { font-size: var(--fs-small); color: var(--text-muted); font-family: var(--font-mono); }
+.hud__assumption { display: inline-flex; align-items: center; min-height: 18px; font-family: var(--font-mono); font-size: 0.66rem; line-height: 1; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 2px; border: 1px solid #5c4513; background: var(--assumption-bg); color: var(--warn); }
 .hud__warnings { margin: 0; padding-left: 1.2em; font-size: var(--fs-small); color: var(--warn); }
 .hud__controls { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: end; }
-.hud__elapsed { display: grid; gap: 2px; font-size: var(--fs-small); color: var(--text-muted); }
-.hud__elapsed input { width: 8rem; max-width: 100%; color: var(--text); font-variant-numeric: tabular-nums; }
+.hud__elapsed { display: grid; gap: 2px; font-family: var(--font-mono); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); }
+.hud__elapsed input { width: 8rem; max-width: 100%; color: var(--text); font-size: 1rem; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
 .hud__swap { border-color: var(--accent); font-weight: 600; max-width: 100%; white-space: normal; text-align: left; }
-.hud__left { margin: 0; font-size: var(--fs-small); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.hud__left { margin: 0; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 @media (min-width: 768px) {
   .hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'hero verdict' 'info side' 'stations stations'; }
@@ -45,14 +46,18 @@
 /* GO / NO-GO (F7-AC7, SPEC §7.10): вердикт і кнопка старту */
 .gonogo { grid-area: verdict; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .gonogo__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.gonogo__title { margin: 0; font-size: var(--fs-label); letter-spacing: 0.08em; color: var(--text-muted); }
-.gonogo__verdict { margin: 0; font-weight: 800; font-size: var(--fs-title); }
-.gonogo__verdict--go { color: var(--ok); }
-.gonogo__verdict--caution { color: var(--warn); }
-.gonogo__verdict--nogo { color: var(--danger); }
-.gonogo__verdict--hold { color: var(--info); }
+.gonogo__title { margin: 0; font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 500; letter-spacing: 0.14em; color: var(--text-muted); }
+/* Вердикт — табло: рамка й заливка кольором стану, слово й іконка всередині. */
+.gonogo__verdict { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border: 1px solid currentColor; border-radius: 2px; }
+.gonogo__verdict--go { color: var(--ok); background: var(--ok-bg); }
+.gonogo__verdict--caution { color: var(--warn); background: var(--warn-bg); }
+.gonogo__verdict--nogo { color: var(--danger); background: var(--danger-bg); }
+.gonogo__verdict--hold { color: var(--info); background: var(--info-bg); border-style: dashed; }
 .gonogo__start { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
-.gonogo__btn { font-weight: 700; border-color: var(--accent); }
+.gonogo__btn { font-weight: 600; border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.gonogo__btn:hover:not(:disabled) { background: #ff8247; border-color: #ff8247; }
+.gonogo__hold { background: var(--surface-3); color: var(--text); }
+.gonogo__hold:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
 .gonogo__hold { position: relative; overflow: hidden; touch-action: none; user-select: none; }
 .gonogo__fill { position: absolute; inset: 0; width: 0; background: var(--accent); opacity: 0.35; }
 .gonogo__hold.is-holding .gonogo__fill { width: 100%; transition: width 1.5s linear; }
@@ -61,19 +66,21 @@
 .gonogo__record { margin: 0; font-size: var(--fs-small); color: var(--text); }
 
 /* Станції — чипи «код · іконка · слово» (T27). Деталі (причина, дія) — по кліку; NO-GO і станції з кнопкою-виправленням розгорнуті. */
-.gonogo-stations { grid-area: stations; min-width: 0; border-top: 1px solid var(--line); padding-top: var(--space-2); }
-.gonogo__stations { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.gonogo__station { display: flex; flex-direction: column; flex: 0 1 auto; min-width: 0; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); border-left: 4px solid var(--text-muted); }
+.gonogo-stations { grid-area: stations; min-width: 0; border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.gonogo__stations { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.gonogo__station { display: flex; flex-direction: column; flex: 0 1 auto; min-width: 0; border-radius: 2px; background: transparent; border: 1px solid var(--border); }
 .gonogo__station.is-open { flex: 1 1 260px; max-width: 100%; }
-.gonogo__station--go { border-left-color: var(--ok); }
-.gonogo__station--caution { border-left-color: var(--warn); }
-.gonogo__station--nogo { border-left-color: var(--danger); border-style: solid dashed solid solid; }
-.gonogo__station--hold { border-left-color: var(--info); }
-.gonogo__chip { display: inline-flex; align-items: center; gap: var(--space-2); background: transparent; border: none; border-radius: 6px; padding: 0 var(--space-2); font-size: var(--fs-small); white-space: nowrap; }
-.gonogo__chip::after { content: '▸'; color: var(--text-muted); font-size: 0.75rem; }
-.gonogo__chip[aria-expanded='true']::after { content: '▾'; }
-.gonogo__id { font-family: ui-monospace, 'Courier New', monospace; font-weight: 700; color: var(--text-muted); }
-.gonogo__call { font-weight: 700; }
+/* Табло станцій: GO — тонка рамка, CAUTION — бурштинова заливка, NO-GO — червона, HOLD — пунктир. Слово й іконка завжди є. */
+.gonogo__station--go { border-color: #1b5a43; }
+.gonogo__station--caution { border-color: #6b5214; background: var(--warn-bg); }
+.gonogo__station--nogo { border-color: var(--danger); background: var(--danger-bg); }
+.gonogo__station--hold { border-color: #1d4469; border-style: dashed; }
+.gonogo__chip { display: inline-flex; align-items: center; gap: var(--space-2); background: transparent; border: none; border-radius: 2px; padding: 0 var(--space-3) 0 var(--space-2); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; white-space: nowrap; box-shadow: none; }
+.gonogo__chip:hover:not(:disabled) { background: rgb(255 255 255 / 0.04); }
+.gonogo__chip::after { content: ''; width: 5px; height: 5px; border-right: 1.5px solid var(--text-dim); border-bottom: 1.5px solid var(--text-dim); transform: rotate(45deg) translate(-1px, -1px); }
+.gonogo__chip[aria-expanded='true']::after { transform: rotate(-135deg); }
+.gonogo__id { font-weight: 600; color: var(--text); }
+.gonogo__call { font-weight: 600; }
 .gonogo__station--go .gonogo__call { color: var(--ok); }
 .gonogo__station--caution .gonogo__call { color: var(--warn); }
 .gonogo__station--nogo .gonogo__call { color: var(--danger); }

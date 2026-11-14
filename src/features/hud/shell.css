@@ -16,9 +16,9 @@
 /* Бренд — тонкий рядок: головне на екрані — HUD і карта. */
 .shell__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
 .shell__brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-3); min-width: 0; }
-.shell__title { font-size: 1rem; letter-spacing: 0.04em; margin: 0; }
-.shell__disclaimer { margin: 0; color: var(--text-muted); font-size: var(--fs-small); }
-.shell__glove { flex: none; }
+.shell__title { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; margin: 0; color: var(--text); }
+.shell__disclaimer { margin: 0; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
+.shell__glove { flex: none; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
 
 @media (min-width: 768px) {
   .shell__side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
