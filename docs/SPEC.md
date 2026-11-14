@@ -168,6 +168,7 @@ export interface Region {
   };
   noData: number;                                             // сирий sentinel у elevation.f32
   base: XY; model: ModelParams; limits: Resources;
+  limitsEvidence?: Record<keyof Resources, Source>;   // джерело кожного ліміту; немає — «assumption» (§7.6)
   layers: Layer[]; sources: Source[];
 }
 
@@ -357,7 +358,9 @@ export interface MissionState {
 - **Кандидати джерел** перевіряє Влад до сб 21:00:
   - швидкість пішохода в скафандрі й O₂ на виході — NASA BVAD / дані EVA;
   - поріг `maxSlopeDeg` — припущення;
-  - аварійний запас `emergencyO2G` — кандидат: аварійний кисневий блок скафандра EMU (~30 хв); до перевірки — «assumption», mock = 360 г (30 хв × 0.2 г/с).
+  - аварійний запас `emergencyO2G` = 30 хв × `o2GPerS` (мінімум аварійного запасу за EMU SOP; джерела — `docs/SOURCES.md ## F5`).
+- **Рішення 14.11 (#20, #41):** у реальній моделі `region.json` — `o2GPerS` ≈ 0.031 г/с (Apollo, ходьба), `emergencyO2G` = 30 хв × `o2GPerS` ≈ 56 г, `limits.o2` = **200 г** зі статусом «assumption» (залишок кисню на цей вихід для демо). Еталонні числа §7.3–7.4 і §7.8 лишаються **mock-фікстурою для тестів** і не є параметрами реальної моделі.
+- Джерела лімітів — `region.limitsEvidence` (по одному `Source` на `time`, `o2`, `energy`, `dose`); F5 і F7 показують біля шкали «assumption», якщо джерела немає або його статус не `verified`.
 - Доза — кандидат Curiosity RAD (перевіряє Настя). Карти радіації по місцевості немає: точкову дозу на карту не розтягуємо.
 - Mock завжди підписаний «MOCK». Кожне джерело — рядок у `docs/SOURCES.md` (id, URL, product ID, credit, дата доступу, статус).
 
