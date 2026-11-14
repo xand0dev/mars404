@@ -1,4 +1,4 @@
-# F3 · pipeline даних Gale (Максим)
+# F3 · pipeline даних районів (Максим)
 
 Два кроки. Лише стандартна бібліотека Python 3, numpy і GDAL не потрібні: float32 TIFF з Trek читає `trek.py`.
 
@@ -17,7 +17,9 @@
    - `limits` = 3600 с / 140 г (112 / 0.8, #64) / 600 Wh / null і `limitsEvidence` на кожен ліміт (усі assumption, SPEC §7.6);
    - `region.json`, `source.json` (входи + статистика), `traverse.geojson`, `SHA256SUMS`.
 
-Район — `region_config.py` (bbox B з #7: квадрат 2.56 км з центром у центроїді цілей F6). Вибір перевіряв `probe.py` (критерії SPEC §8).
+Райони — `region_config.REGIONS` (#101): `gale`, `columbia-hills` — EVA, будує `prepare.py --region <id>` з кешу `pipeline/.cache/<id>/` (`fetch.py --region <id>`); `olympus-mons`, `valles-marineris` — overview, будує `overview.py` (Іван, #113). Для кожного EVA-району `prepare` пише ще `elevation_render.f32` — 1024² по 2.5 м (середнє валідних 1-м пікселів, зважене площею перетину; лише 3D) — і `renderGrid` у `region.json`. Якщо в папці виходу вже лежить `context.json` (Іван), він переноситься в `region.json.context` і входить у `SHA256SUMS`.
+
+Gale — `region_config.py` (bbox B з #7: квадрат 2.56 км з центром у центроїді цілей F6). Вибір перевіряв `probe.py` (критерії SPEC §8).
 
 ```sh
 python -m unittest discover -s pipeline -p "test_*.py"
@@ -25,6 +27,7 @@ python -m unittest discover -s pipeline -p "test_*.py"
 docker build -f pipeline/Dockerfile -t mars404-data .
 docker run --rm -v "$PWD/pipeline/.cache/gale:/cache" mars404-data /work/fetch.py /cache   # лише без кешу
 docker run --rm --network none -v "$PWD/pipeline/.cache/gale:/cache:ro" -v "$PWD/public/data/gale:/out" mars404-data
+# інший район: … mars404-data /work/prepare.py --region columbia-hills --cache /cache --output /out
 ```
 
 Два запуски prepare у Docker дають однакові `SHA256SUMS` (F3-AC1, перевірено 14.11, Docker 29.9.3). Пакет у репо — з Docker. Локальний Python дає ті самі пікселі PNG, але інші байти (інша версія zlib), тому канонічний — Docker.

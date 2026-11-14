@@ -44,6 +44,54 @@ class Grid(unittest.TestCase):
         self.assertEqual(prepare.hazard(math.nan, m), 1)
 
 
+class Resample(unittest.TestCase):
+    def test_box_resample_fractional_area_weights(self):
+        # 5 пікселів → 2 клітинки по 2.5: клітинка 0 = (1·1 + 1·2 + 0.5·3) / 2.5
+        v = [1.0, 2.0, 3.0, 4.0, 5.0]
+        out = prepare.box_resample(v, 5, 1, 2, 1)
+        self.assertAlmostEqual(out[0], (1 + 2 + 1.5) / 2.5)
+        self.assertAlmostEqual(out[1], (1.5 + 4 + 5) / 2.5)
+
+    def test_box_resample_skips_nodata_and_keeps_integer_case(self):
+        self.assertEqual(prepare.box_resample([1, 3, ND, ND, 5, ND, ND, ND], 4, 2, 2, 1), [3.0, ND])
+        native = [float(i) for i in range(16)]
+        self.assertEqual(prepare.box_resample(native, 4, 4, 2, 2), prepare.block_mean(native, 4, 4, 2))
+
+    def test_hillshade_flat_is_cos_zenith(self):
+        s = prepare.hillshade([0.0] * 9, 3, 3, 1.0)
+        self.assertAlmostEqual(s[4], math.cos(math.radians(45)))
+
+    def test_hillshade_lit_from_north_west(self):
+        # Схил, що спадає на північний захід (до сонця), світліший за протилежний.
+        w = h = 3
+        to_sun = [float(r + c) for r in range(h) for c in range(w)]
+        away = [-v for v in to_sun]
+        self.assertGreater(prepare.hillshade(to_sun, w, h, 1.0)[4], prepare.hillshade(away, w, h, 1.0)[4])
+
+
+class Base(unittest.TestCase):
+    def test_reachable_respects_slope_and_walkable(self):
+        walk = [1, 1, 1,
+                1, 0, 1,
+                1, 1, 1]
+        slope = [0, 40, 0,
+                 0, 0, 0,
+                 0, 0, 0]
+        got = prepare.reachable(walk, slope, 3, 3, 0, 25)
+        self.assertNotIn(1, got)
+        self.assertNotIn(4, got)
+        self.assertIn(2, got)  # навколо через нижній ряд
+
+    def test_pick_base_needs_three_points(self):
+        walk = [1, 0, 1, 1]
+        slope = [0.0] * 4
+        # клітинка 0 ізольована (1 = 0, діагональ 3 — сусід), тож з 0 досяжні 0 і 3
+        cell, reach = prepare.pick_base(walk, slope, 2, 2, [0, 1, 2, 3], [0, 2, 3], need=3)
+        self.assertEqual(cell, 0)
+        with self.assertRaises(ValueError):
+            prepare.pick_base([1, 0, 0, 0], slope, 2, 2, [0], [0, 3], need=2)
+
+
 class Traverse(unittest.TestCase):
     def test_clip_splits_on_exit(self):
         bbox = (0, 0, 1, 1)

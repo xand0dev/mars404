@@ -69,3 +69,11 @@ def encode_rgba(w, h, rgba):
         raise ValueError('розмір RGBA')
     raw = b''.join(b'\x00' + bytes(rgba[r * w * 4:(r + 1) * w * 4]) for r in range(h))
     return SIG + _chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 6, 0, 0, 0)) + _chunk(b'IDAT', zlib.compress(raw, 9)) + _chunk(b'IEND', b'')
+
+
+def encode_gray(w, h, gray):
+    """Gray 8 біт, фільтр 0, zlib рівня 9 (texture hillshade, #101)."""
+    if len(gray) != w * h:
+        raise ValueError('розмір gray')
+    raw = b''.join(b'\x00' + bytes(gray[r * w:(r + 1) * w]) for r in range(h))
+    return SIG + _chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 0, 0, 0, 0)) + _chunk(b'IDAT', zlib.compress(raw, 9)) + _chunk(b'IEND', b'')

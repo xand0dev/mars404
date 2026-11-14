@@ -89,3 +89,13 @@ Edge через Playwright, https://xand0dev.github.io/mars404/, 1440×900 і 40
 - `screenshots/f3-pages-desktop-slope.png` — Pages, шар Slope увімкнено.
 - `screenshots/f3-pages-mobile400.png` — Pages, 400 px.
 - `screenshots/f3-*-o2-40-demo.png` — Resources після «O₂ −40%».
+
+## Кілька районів (#101, 14.11)
+Поділ з Іваном (#113): я — кроки 1, 2, 4 (`REGIONS`, `prepare.py --region`, Gale `elevation_render.f32`, Columbia Hills EVA-пакет); Іван — MOLA/HRSC і Viking (`context.*`, overview-пакети). Завантажувач і рендер — Олександр.
+
+| Крок | Що | Доказ |
+|---|---|---|
+| 1 | `region_config.REGIONS` (gale, columbia-hills, olympus-mons, valles-marineris), `prepare.py --region`, `fetch.py --region` | Docker `prepare` двічі → однакові `SHA256SUMS`; 9 наявних файлів Gale — ті самі sha256 |
+| 2 | Gale `elevation_render.f32`: 1024² по 2.5 м, середнє валідних 1-м пікселів, зважене площею перетину; `renderGrid`, `kind: 'eva'` | `test_prepare.Resample`, `test_packages.test_gale` (розмір, NoData 0 %, висоти −4217.2…−3734.4 м у межах нативного DEM) |
+| стик | `context.json` Івана в папці району → `region.json.context` (лише поля контракту) і в `SHA256SUMS` | `prepare.read_context` |
+| 4 | Columbia Hills — окремий PR | — |
