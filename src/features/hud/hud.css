@@ -43,6 +43,7 @@
 .gonogo__record { margin: 0; font-size: var(--fs-small); color: var(--text); }
 .gonogo__stations { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 6px; }
 @media (max-width: 600px) { .gonogo__stations { grid-template-columns: repeat(3, minmax(0, 1fr)); } .gonogo__station { padding: 5px 6px; } }
+@media (max-width: 379px) { .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .gonogo__station { display: flex; flex-wrap: wrap; align-items: baseline; align-content: flex-start; gap: 0 6px; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); border-left: 3px solid var(--text-muted); font-size: var(--fs-small); line-height: 1.3; min-width: 0; }
 .gonogo__station--go { border-left-color: var(--ok); }
 .gonogo__station--caution { border-left-color: var(--warn); }
@@ -63,6 +64,7 @@
 /* Glove mode: «Return in» і вердикт — зверху HUD */
 .shell--glove .hud { display: flex; flex-direction: column; align-items: stretch; }
 .shell--glove .hud__main, .shell--glove .hud__side { display: contents; }
+.shell--glove .hud__side { text-align: left; }
 .shell--glove .hud .hud__main > *, .shell--glove .hud .hud__side > * { order: 3; }
 .shell--glove .hud .hud__main > .hud__return { order: 0; }
 .shell--glove .hud > .gonogo { order: 1; border-top: none; padding-top: 0; }
