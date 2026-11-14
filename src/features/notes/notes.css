@@ -1,5 +1,5 @@
 /* Панель «Crew map notes» (F1-AC6). Токени — з src/ui/tokens.css. */
-.notes { display: grid; gap: var(--space-2); min-width: 0; }
+.notes { display: grid; gap: 8px; min-width: 0; }
 .notes__form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; }
 .notes__form button { grid-column: 1 / -1; }
 .notes__form select, .notes__form input { min-width: 0; width: 100%; }
@@ -17,6 +17,6 @@
 .notes__item > button { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
 .notes__io { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Файловий input прихований візуально, але фокусований; фокус видно на підписі-кнопці. */
-.notes__import { position: relative; display: inline-flex; align-items: center; min-height: var(--touch); padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
+.notes__import { position: relative; display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--text-muted); cursor: pointer; }
 .notes__import input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-.notes__import:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.notes__import:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
