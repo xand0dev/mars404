@@ -12,6 +12,8 @@ export interface RouteRequest {
   waypoints: XY[];
   base: XY;
   requestId: number;
+  /** Сирий sentinel `region.noData`; до завантаження району — немає. */
+  noData?: number;
 }
 
 export function emptyPlan(status: RoutePlan['status'], requestId: number, reason?: RouteFailure, warnings: string[] = []): RoutePlan {
@@ -27,11 +29,11 @@ export function emptyPlan(status: RoutePlan['status'], requestId: number, reason
   };
 }
 
-export function planRoute({ grid, model, start, waypoints, base, requestId }: RouteRequest): RoutePlan {
+export function planRoute({ grid, model, start, waypoints, base, requestId, noData }: RouteRequest): RoutePlan {
   const invalid = [...validateModel(model), ...validateGrid(grid)];
   if (invalid.length > 0) return emptyPlan('invalid', requestId, { code: 'invalid-params' }, invalid.map((e) => `invalid: ${e}`));
 
-  const graph = createWalkGraph(grid, model);
+  const graph = createWalkGraph(grid, model, noData);
   const points = [start, ...waypoints, base];
   const resolved = resolveCells(graph, points);
   if ('code' in resolved) return emptyPlan('no-path', requestId, resolved);

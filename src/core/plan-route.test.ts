@@ -76,6 +76,14 @@ describe('planRoute · F4-AC3 причини збою', () => {
     expect(plan.segments).toEqual([]);
   });
 
+  it('ціль на клітинці з сирим region.noData → blocked-point', () => {
+    const grid = makeTestGrid({ width: 5, height: 5 });
+    grid.elevationsM[2 * 5 + 4] = -9999;
+    const base = cellCenter(grid, 0, 0);
+    const plan = planRoute({ grid, model: testModel(), start: base, waypoints: [cellCenter(grid, 2, 4)], base, requestId: 1, noData: -9999 });
+    expect(plan.reason).toEqual({ code: 'blocked-point', pointIndex: 1 });
+  });
+
   it('ціль в ізольованій області → disconnected з номером точки', () => {
     const grid = makeTestGrid({ width: 7, height: 7, blocked: (r, c) => (r === 4 && c >= 4) || (c === 4 && r >= 4) });
     const base = cellCenter(grid, 0, 0);

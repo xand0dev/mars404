@@ -1,6 +1,6 @@
 // Ребра графа ходьби (SPEC §7.3): 8 сусідів, без зрізання кутів, асиметрична вартість за схилом.
 import type { ModelCoefficients, PlanningGrid } from '../contracts';
-import { isBlocked } from '../contracts/planning';
+import { isBlocked, isNoDataValue } from '../contracts/planning';
 
 export interface Edge {
   dist: number;
@@ -28,9 +28,13 @@ const NEIGHBOR_OFFSETS: readonly (readonly [dRow: number, dCol: number])[] = [
 
 const RAD_TO_DEG = 180 / Math.PI;
 
-export function createWalkGraph(grid: PlanningGrid, model: ModelCoefficients): WalkGraph {
+/** noData — сирий sentinel `region.noData`: за контрактом F3 кладе NaN, але sentinel теж блокуємо, як F2 (SPEC §7.2). */
+export function createWalkGraph(grid: PlanningGrid, model: ModelCoefficients, noData?: number): WalkGraph {
   const blocked = new Uint8Array(grid.width * grid.height);
-  for (let i = 0; i < blocked.length; i++) blocked[i] = isBlocked(grid, i, model.maxSlopeDeg) ? 1 : 0;
+  for (let i = 0; i < blocked.length; i++) {
+    const isRawNoData = noData !== undefined && isNoDataValue(grid.elevationsM[i] ?? NaN, noData);
+    blocked[i] = isRawNoData || isBlocked(grid, i, model.maxSlopeDeg) ? 1 : 0;
+  }
   return { grid, model, blocked };
 }
 

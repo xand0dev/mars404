@@ -56,6 +56,16 @@ describe('edge · сусіди', () => {
     expect(found).not.toContain(at(0, 2));
   });
 
+  it('сирий region.noData (sentinel замість NaN) теж заблокований', () => {
+    const grid = makeTestGrid({ width: 3, height: 1 });
+    grid.elevationsM[2] = -9999;
+    const graph = createWalkGraph(grid, model, -9999);
+    expect(graph.blocked[2]).toBe(1);
+    const found: number[] = [];
+    forEachEdge(graph, 1, 'forward', (to) => found.push(to));
+    expect(found).toEqual([0]);
+  });
+
   it('NoData (NaN при walkable = 1) не стає сусідом', () => {
     const grid = makeTestGrid({ width: 3, height: 1 });
     grid.elevationsM[2] = NaN;

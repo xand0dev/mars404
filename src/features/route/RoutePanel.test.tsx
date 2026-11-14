@@ -66,7 +66,7 @@ describe('RoutePanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
     await screen.findByText(/route found/i);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Select segment 3' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Segment 3: \d+\.\d m, [+−]\d+\.\d°$/ }));
 
     expect(store().selectedSegment).toBe(2);
     const details = screen.getByTestId('segment-details');
@@ -79,13 +79,13 @@ describe('RoutePanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
     await screen.findByText(/route found/i);
 
-    const rowButtons = screen.getAllByRole('button', { name: /^Select segment \d+$/ });
+    const rowButtons = screen.getAllByRole('button', { name: /^Segment \d+: / });
     expect(rowButtons.filter((b) => b.tabIndex === 0)).toHaveLength(1);
 
     rowButtons[0]!.focus();
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     expect(store().selectedSegment).toBe(2);
-    expect(screen.getByRole('button', { name: 'Select segment 3' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: /^Segment 3: \d+\.\d m, [+−]\d+\.\d°$/ })).toHaveFocus();
 
     await userEvent.keyboard('{End}');
     expect(store().selectedSegment).toBe(rowButtons.length - 1);

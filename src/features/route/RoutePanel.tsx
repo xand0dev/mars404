@@ -40,6 +40,7 @@ export function RoutePanel() {
   const plan = useMission((s) => s.plan);
   const targets = useMission((s) => s.targets);
   const region = useMission((s) => s.region);
+  const noData = region?.noData;
   const selectedSegment = useMission((s) => s.selectedSegment);
   const setWaypoints = useMission((s) => s.setWaypoints);
   const setSelectedSegment = useMission((s) => s.setSelectedSegment);
@@ -52,8 +53,8 @@ export function RoutePanel() {
       useMission.getState().setPlan(null);
       return;
     }
-    getRouteClient().request({ grid, model, start: position ?? base, waypoints, base });
-  }, [autoRebuild, grid, model, waypoints, base, position]);
+    getRouteClient().request({ grid, model, start: position ?? base, waypoints, base, noData });
+  }, [autoRebuild, grid, model, waypoints, base, position, noData]);
 
   const names = waypointNames(waypoints, targets);
   const labels = pointLabels(names);
@@ -61,7 +62,7 @@ export function RoutePanel() {
   const canBuild = waypoints.length > 0 && base !== null;
 
   const build = () => {
-    if (autoRebuild && base) getRouteClient().request({ grid, model, start: position ?? base, waypoints, base });
+    if (autoRebuild && base) getRouteClient().request({ grid, model, start: position ?? base, waypoints, base, noData });
     setAutoRebuild(true);
   };
 

@@ -59,7 +59,7 @@ export function SegmentTable({ plan, selectedSegment, onSelect }: SegmentTablePr
             {plan.segments.map((s, k) => (
               <tr key={k} aria-selected={k === selectedSegment}>
                 <td>
-                  <button type="button" aria-label={`Select segment ${k + 1}`} aria-pressed={k === selectedSegment}
+                  <button type="button" aria-label={`Segment ${k + 1}: ${formatDistance(s.dist)}, ${formatSlope(s.slope)}`} aria-pressed={k === selectedSegment}
                     tabIndex={k === tabStop ? 0 : -1}
                     onClick={() => onSelect(k)}
                     onKeyDown={(event) => handleKeyDown(event, k)}
