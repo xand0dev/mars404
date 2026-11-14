@@ -177,3 +177,27 @@ describe('F1-AC3 · перехід до Gale: анімація, Skip, reduced mo
     expect(useGlobe.getState().flying).toBe(false);
   });
 });
+
+describe('#5 · доступність Location (аудит F7-AC2)', () => {
+  it('Given панель; When Tab по черзі; Then кожна точка — кнопка, досяжна без canvas і без обертання глобуса', async () => {
+    const user = userEvent.setup();
+    render(<SitePanel />);
+    for (const s of SITES) {
+      await user.tab();
+      expect(screen.getByRole('button', { name: s.name })).toHaveFocus();
+    }
+  });
+
+  it.each(SITES.filter((s) => !s.modelled).map((s) => [s.name] as const))(
+    'Given фокус на %s; When Enter; Then картка «next site» читається як текст, site не змінюється',
+    async (name) => {
+      const user = userEvent.setup();
+      render(<SitePanel />);
+      screen.getByRole('button', { name }).focus();
+      await user.keyboard('{Enter}');
+      const card = screen.getByRole('region', { name });
+      expect(within(card).getByText(/next site — not modelled/)).toBeInTheDocument();
+      expect(useMission.getState().site).toBeNull();
+    },
+  );
+});
