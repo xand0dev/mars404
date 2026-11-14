@@ -13,6 +13,8 @@
 }
 /* Показ приладу: «RETURN IN» і «MIN» — дрібні позначки, число — найбільше на екрані. */
 .hud__return { grid-area: hero; display: flex; align-items: baseline; gap: 0.5em; margin: 0; white-space: nowrap; align-self: center; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em; color: var(--text-muted); }
+/* Немає оцінки — «—» приглушене, а не помаранчева риска. */
+.hud__return strong.hud__value--empty { color: var(--text-dim); font-weight: 400; }
 .hud__return strong { font-size: var(--fs-hero); line-height: 0.9; font-weight: 600; letter-spacing: -0.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
 .hud__info { grid-area: info; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .hud__side { grid-area: side; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }

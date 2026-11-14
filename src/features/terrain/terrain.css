@@ -21,3 +21,7 @@
 @media (min-width: 1200px) and (min-height: 700px) {
   .shell__map .terrain-stage { height: max(360px, calc(100dvh - var(--topbar-h) - 210px)); }
 }
+/* Рев'ю UI: рельєф одразу під заголовком; інструменти міток і легенда — під ним (на телефоні вони займали 3 рядки до карти). */
+.ui-panel:has(> .terrain-stage) { display: flex; flex-direction: column; }
+.ui-panel:has(> .terrain-stage) > .terrain-marks { order: 1; margin: 10px 0 0; }
+.ui-panel:has(> .terrain-stage) > .terrain-legend-eva { order: 2; }

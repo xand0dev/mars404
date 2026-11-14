@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useMission } from '../../store/useMission';
-import { EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
+import { DASH, EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
 import { abortLine } from './abortLine';
 import { GoNoGoPanel } from './GoNoGo';
 import { useGoNoGo } from './useGoNoGo';
@@ -50,7 +50,7 @@ export function Hud() {
       {/* Смуга HUD (T26): «Return in» · вердикт GO / NO-GO · статус і точка неповернення · «Elapsed» і залишки; під ними — станції. */}
       <div className="hud">
         <p className="hud__return">
-          Return in <strong>{v.minutes}</strong> min
+          Return in <strong className={v.minutes === DASH ? 'hud__value--empty' : undefined}>{v.minutes}</strong> min
         </p>
         <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} onFix={() => elapsedRef.current?.focus()} />
         <div className="hud__info">
