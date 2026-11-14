@@ -10,7 +10,7 @@ export type GridLayerKind = 'raster' | 'slope' | 'terrain';
  * Порядок малювання прозорих об'єктів 3D. Накладка ореолу/blocked напівпрозора, тож лінії й маркери
  * мають іти ПІСЛЯ неї (і теж у прозорому проході), інакше вона їх перекриває.
  */
-export const RENDER_ORDER = { layers: 1, overlay: 10, lines: 12, markers: 13, segment: 15, ring: 16, labels: 20 } as const;
+export const RENDER_ORDER = { layers: 1, overlay: 10, lines: 12, markers: 13, noReturn: 14, segment: 15, ring: 16, labels: 20 } as const;
 
 function hexToRgb(hex: string): RGB | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
