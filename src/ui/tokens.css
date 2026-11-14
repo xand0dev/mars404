@@ -43,5 +43,11 @@ button[aria-pressed='true'] { border-color: var(--accent); }
 .ui-note--deficit { color: var(--danger); background: var(--deficit-bg); border-radius: 8px; padding: 6px 8px; }
 .ui-note > span:first-child { flex: none; }
 .ui-gauge { display: grid; gap: 4px; margin: 6px 0; }
-.ui-gauge meter { width: 100%; height: 12px; }
+.ui-gauge meter { width: 100%; height: 12px; display: block; }
+.ui-gauge__track { position: relative; }
+.ui-gauge__reserve { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--warn); transform: translateX(-1px); }
+.ui-gauge__extra { color: var(--text-muted); font-size: var(--fs-small); }
+.ui-gauge--unknown { color: var(--warn); }
+.ui-gauge--deficit meter::-webkit-meter-optimum-value, .ui-gauge--deficit meter::-webkit-meter-suboptimum-value { background: var(--danger); }
+.ui-gauge--deficit meter::-moz-meter-bar { background: var(--danger); }
 .ui-stub { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
