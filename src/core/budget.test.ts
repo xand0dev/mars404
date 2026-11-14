@@ -65,6 +65,13 @@ describe('budget · елементи формули', () => {
     expect(result.returnInS).toBeLessThan(0);
     expect(result.deficits).toContain('time');
   });
+
+  it('план рівно в бюджет із похибкою float — не дефіцит, returnInS = 0 (рівність допустима)', () => {
+    const planned = { ...NO_PLAN, time: 2880 + 1e-10, o2: 0 };
+    const result = estimateReturn({ budget: computeBudget(mockLimits, mockModel, 0), reserve: reserveOf(mockLimits, mockModel), model: mockModel, planned });
+    expect(result.deficits).toEqual([]);
+    expect(result.returnInS).toBe(0);
+  });
 });
 
 describe('budget · F5-AC4 невалідні параметри', () => {

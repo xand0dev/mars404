@@ -70,8 +70,8 @@ export function BudgetPanel() {
         <button type="button" aria-pressed={scenarioOn} onClick={() => setLimits(scenarioOn ? baseline : o2Scenario)}>O₂ −40%</button>
         <button type="button" onClick={() => setLimits(baseline)}>Reset</button>
       </div>
-      {notes.map((note) => (
-        <StatusNote key={note} level="warn" live="status">{note}</StatusNote>
+      {notes.map((note, k) => (
+        <StatusNote key={`${k}-${note}`} level="warn" live="status">{note}</StatusNote>
       ))}
       {reach?.swap && (
         <StatusNote level="info">

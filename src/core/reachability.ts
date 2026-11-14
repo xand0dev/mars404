@@ -1,7 +1,7 @@
 // Ореол досяжності, «Return in N» і кандидат заміни (SPEC §7.4). Єдине джерело чисел повернення (SPEC §5.2).
 import type { ModelParams, PlanningGrid, ReachabilityResult, Resources, RoutePlan, Target, XY } from '../contracts';
 import { validateGrid, xyToCell } from '../contracts/planning';
-import { availableOf, budgetStatus, computeBudget, estimateReturn, reserveOf, validateBudgetInputs } from './budget';
+import { availableOf, budgetStatus, computeBudget, estimateReturn, fitsWithin, reserveOf, validateBudgetInputs } from './budget';
 import { buildCostTree, type CostTree } from './cost-tree';
 import { createWalkGraph } from './edge';
 import { validateModel } from './model';
@@ -31,10 +31,6 @@ export const REACH_WARNINGS = {
   buildRoute: 'Build route to assess return',
   noPathBack: 'No path from current position back to base',
 } as const;
-
-/** Рівність допустима; допуск лише на похибку float. */
-const FLOAT_TOLERANCE = 1e-9;
-const fits = (usage: number, available: number) => usage <= available + FLOAT_TOLERANCE * Math.max(1, Math.abs(available));
 
 /** Дерева залежать лише від сітки, моделі, position і base — їх варто кешувати між змінами бюджету. */
 export function buildReachTrees(grid: PlanningGrid, model: ModelParams, position: XY | null, base: XY | null): ReachTrees {
@@ -97,8 +93,8 @@ function buildMask(cellCount: number, fromPosition: CostTree, toBase: CostTree, 
     const time = fromPosition.time[i]! + toBase.time[i]!;
     if (!Number.isFinite(time)) continue;
     const dist = fromPosition.dist[i]! + toBase.dist[i]!;
-    const doseFits = available.dose === null || model.doseUSvPerS === null || fits(time * model.doseUSvPerS, available.dose);
-    if (fits(time, available.time) && fits(time * model.o2GPerS, available.o2) && fits(dist * model.energyWhPerM, available.energy) && doseFits) {
+    const doseFits = available.dose === null || model.doseUSvPerS === null || fitsWithin(time * model.doseUSvPerS, available.dose);
+    if (fitsWithin(time, available.time) && fitsWithin(time * model.o2GPerS, available.o2) && fitsWithin(dist * model.energyWhPerM, available.energy) && doseFits) {
       mask[i] = 1;
     }
   }

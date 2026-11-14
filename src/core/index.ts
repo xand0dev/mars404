@@ -5,5 +5,5 @@ export { buildCostTree, type CostTree } from './cost-tree';
 export { createWalkGraph, edgeBetween, forEachEdge, type Edge, type EdgeDirection, type WalkGraph } from './edge';
 export { validateModel } from './model';
 export { emptyPlan, planRoute, type RouteRequest } from './plan-route';
-export { availableOf, budgetStatus, computeBudget, estimateReturn, reserveOf, validateBudgetInputs } from './budget';
+export { availableOf, budgetStatus, computeBudget, estimateReturn, fitsWithin, reserveOf, validateBudgetInputs } from './budget';
 export { assessReach, buildReachTrees, REACH_WARNINGS, type ReachInput, type ReachTrees } from './reachability';

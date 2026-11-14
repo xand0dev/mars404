@@ -2,6 +2,14 @@
 import type { ModelCoefficients, ReachabilityResult, ResourceKey, Resources } from '../contracts';
 import { validateModel } from './model';
 
+/** Рівність допустима; допуск лише на похибку float (суми сотень ребер). */
+const FLOAT_TOLERANCE = 1e-9;
+
+/** Витрата вкладається в доступне — одне правило для маски, дефіцитів і returnInS. */
+export function fitsWithin(usage: number, available: number): boolean {
+  return usage <= available + FLOAT_TOLERANCE * Math.max(1, Math.abs(available));
+}
+
 /** Бюджет після elapsed: час, O₂ і доза тануть з часом, енергія — лише від руху. */
 export function computeBudget(limits: Resources, model: ModelCoefficients, elapsedS: number): Resources {
   return {
@@ -43,11 +51,15 @@ export interface ReturnEstimateInput {
 /** returnInS = min_k((budget − reserve − planned) / rate) для time, O₂ і дози (якщо відома); енергія — лише в deficits. */
 export function estimateReturn({ budget, reserve, model, planned }: ReturnEstimateInput): { returnInS: number; deficits: ResourceKey[] } {
   const available = availableOf(budget, reserve);
+  const marginOf = (avail: number | null, usage: number | null) => {
+    if (avail === null || usage === null) return null;
+    return fitsWithin(usage, avail) ? Math.max(0, avail - usage) : avail - usage;
+  };
   const margins: Record<ResourceKey, number | null> = {
-    time: available.time - planned.time,
-    o2: available.o2 - planned.o2,
-    energy: available.energy - planned.energy,
-    dose: available.dose === null || planned.dose === null ? null : available.dose - planned.dose,
+    time: marginOf(available.time, planned.time),
+    o2: marginOf(available.o2, planned.o2),
+    energy: marginOf(available.energy, planned.energy),
+    dose: marginOf(available.dose, planned.dose),
   };
   const rates: [ResourceKey, number | null][] = [['time', 1], ['o2', model.o2GPerS], ['dose', model.doseUSvPerS]];
 
