@@ -20,6 +20,31 @@ test.beforeEach(async ({ page }) => {
   await page.goto(START);
 });
 
+test('перший візит: підказка «How it works» пояснює 4 кроки, «Got it» ховає її назавжди', async ({ page }) => {
+  const help = page.getByRole('dialog', { name: 'Plan a walk on Mount Sharp in 4 steps' });
+  await expect(help).toBeVisible();
+  await expect(help, 'підказка — у першому екрані').toBeInViewport();
+  await expect(help.getByRole('listitem')).toHaveCount(4);
+  await help.getByRole('button', { name: 'Got it' }).click();
+  await expect(help).toBeHidden();
+  await page.reload();
+  await expect(help, 'вдруге не показується').toBeHidden();
+  await page.getByRole('button', { name: 'How it works' }).click();
+  await expect(help).toBeVisible();
+});
+
+test('наступна дія підсвічена на кожному кроці', async ({ page }) => {
+  const lit = async (target: Locator) => {
+    const name = await target.evaluate((e) => getComputedStyle(e).animationName);
+    expect(name, 'кнопка наступної дії підсвічена').toBe('next-action');
+  };
+  await lit(page.getByRole('button', { name: 'Gale / Mount Sharp' }));
+  await page.getByRole('button', { name: 'Gale / Mount Sharp' }).click();
+  await expect(currentStep(page)).toContainText('Targets');
+  await page.getByRole('button', { name: 'Add Brantôme' }).click();
+  await lit(page.getByRole('button', { name: 'Build route' }));
+});
+
 test('перший екран: видно поточний крок і що зробити далі', async ({ page }) => {
   await expect(currentStep(page)).toContainText('Location');
   const hint = page.locator('.hud__status');
