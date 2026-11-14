@@ -71,6 +71,7 @@ describe('mocks', () => {
   });
 
   it('кожен коефіцієнт моделі має джерело', () => {
-    for (const s of Object.values(mockModel.evidence)) expect(s.status).toBe('mock');
+    for (const s of Object.values(mockModel.evidence)) expect(['mock', 'assumption']).toContain(s.status);
+    expect(Object.keys(mockModel.evidence)).toContain('emergencyO2G');
   });
 });

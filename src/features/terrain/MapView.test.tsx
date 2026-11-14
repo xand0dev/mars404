@@ -66,7 +66,7 @@ describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
     gale();
     act(() =>
       useMission.setState({
-        reach: { status: 'estimated', mask: new Uint8Array(128 * 128).fill(1), returnInS: 600, deficits: [], swap: null, warnings: [] },
+        reach: { status: 'estimated', mask: new Uint8Array(128 * 128).fill(1), returnInS: 600, deficits: [], swap: null, abort: null, warnings: [] },
       }),
     );
     expect(screen.getByRole('img', { name: /2D plan/ }).querySelector('[data-kind="halo"]')).not.toBeNull();

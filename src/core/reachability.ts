@@ -81,11 +81,11 @@ export function assessReach(input: ReachInput, trees?: ReachTrees): { budget: Re
   for (const t of outside) warnings.push(`${t.name} is outside the reachable area (model)`);
 
   const swap = deficits.length > 0 || outside.length > 0 ? pickSwap(selected, input.targets, roundTripCost, inMask) : null;
-  return { budget, reach: { status, mask, returnInS, deficits, swap, warnings } };
+  return { budget, reach: { status, mask, returnInS, deficits, swap, abort: null, warnings } };
 }
 
 function invalidReach(cellCount: number, errors: string[]): ReachabilityResult {
-  return { status: 'invalid', mask: new Uint8Array(cellCount), returnInS: null, deficits: [], swap: null, warnings: errors.map((e) => `invalid: ${e}`) };
+  return { status: 'invalid', mask: new Uint8Array(cellCount), returnInS: null, deficits: [], swap: null, abort: null, warnings: errors.map((e) => `invalid: ${e}`) };
 }
 
 /** Клітинка в масці, якщо обидва шляхи існують і кожен відомий ресурс туди й назад ≤ доступного до резерву. */

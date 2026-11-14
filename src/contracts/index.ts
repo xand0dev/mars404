@@ -61,6 +61,8 @@ export interface Region {
     texture: string;
     targets: string;
     traverse?: string;
+    /** photos.geojson (F6), SPEC §6.0 */
+    photos?: string;
   };
   /** Сирий sentinel у elevation.f32 */
   noData: number;
@@ -90,6 +92,34 @@ export interface Target {
   status: Evidence;
   locationAccuracy: 'verified' | 'approximate' | 'mock';
   photo: TargetPhoto | null;
+}
+
+/** Знімок з поверхні для «View from here» (SPEC §7.9). Координати — зупинка ровера за sol, а не місце кадру. */
+export interface SurfacePhoto {
+  id: string;
+  coordinates: XY;
+  lonLat: readonly [lon: number, lat: number];
+  url: string;
+  alt: string;
+  sourceUrl: string;
+  credit: string;
+  sol: number;
+  /** 'NAV_LEFT_B' тощо, як дає raw images API */
+  camera: string;
+  locationAccuracy: 'rover-stop' | 'approximate';
+  status: Evidence;
+}
+
+/** photos/photos.geojson (F6): geometry = [lon, lat] зупинки; coordinates/lonLat заповнює DataLoader. */
+export interface SurfacePhotoFeature {
+  type: 'Feature';
+  id: string;
+  geometry: { type: 'Point'; coordinates: [lon: number, lat: number] };
+  properties: Omit<SurfacePhoto, 'coordinates' | 'lonLat'>;
+}
+export interface SurfacePhotosGeoJSON {
+  type: 'FeatureCollection';
+  features: SurfacePhotoFeature[];
 }
 
 /** targets.geojson (F6): geometry.coordinates = [lon, lat]; coordinates/lonLat заповнює DataLoader. */
@@ -131,6 +161,8 @@ export interface ModelCoefficients {
   hazardWeight: number;
   /** [0, 1) */
   reserveFraction: number;
+  /** Аварійний запас O₂, г; на план не витрачається (SPEC §7.8). */
+  emergencyO2G: number;
 }
 export interface ModelParams extends ModelCoefficients {
   evidence: Record<keyof ModelCoefficients, Source>;
@@ -181,6 +213,16 @@ export interface RoutePlan {
   requestId: number;
 }
 
+/** Abort map (SPEC §7.8). */
+export interface AbortPlan {
+  /** По одному на plan.segments[i]; returnS — час до бази з кінця відрізка, null — шляху назад немає. */
+  segments: { returnS: number | null; ok: boolean }[];
+  /** с від початку плану до першого відрізка з ok = false; null — повернення звідусіль. */
+  pointOfNoReturnS: number | null;
+  /** Який аварійний запас враховано (з model). */
+  emergencyO2G: number;
+}
+
 export interface ReachabilityResult {
   status: 'estimated' | 'incomplete' | 'invalid';
   /** 1 = туди й назад у межах бюджету з резервом */
@@ -189,6 +231,8 @@ export interface ReachabilityResult {
   returnInS: number | null;
   deficits: ResourceKey[];
   swap: { dropId: string; addId: string } | null;
+  /** SPEC §7.8; null — немає чинного плану. */
+  abort: AbortPlan | null;
   warnings: string[];
 }
 
@@ -198,6 +242,8 @@ export interface MissionData {
   site: SiteId | null;
   layers: Record<string, boolean>;
   targets: Target[];
+  /** Знімки для «View from here»; до завантаження — []. */
+  photos: SurfacePhoto[];
   selectedTargetIds: string[];
   selectedSegment: number | null;
   region: Region | null;
@@ -218,7 +264,7 @@ export interface MissionData {
 export interface MissionActions {
   setSite(site: SiteId | null): void;
   toggleLayer(id: string): void;
-  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[] }): void;
+  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[]; photos?: SurfacePhoto[] }): void;
   toggleTarget(id: string): void;
   replaceTarget(dropId: string, addId: string): void;
   setWaypoints(points: XY[]): void;

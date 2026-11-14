@@ -6,4 +6,5 @@ export { createWalkGraph, edgeBetween, forEachEdge, type Edge, type EdgeDirectio
 export { validateModel } from './model';
 export { emptyPlan, planRoute, type RouteRequest } from './plan-route';
 export { availableOf, budgetStatus, computeBudget, estimateReturn, fitsWithin, reserveOf, validateBudgetInputs } from './budget';
+export { assessAbort, type AbortAssessment, type AbortInput } from './abort';
 export { assessReach, buildReachTrees, REACH_WARNINGS, type ReachInput, type ReachTrees } from './reachability';
