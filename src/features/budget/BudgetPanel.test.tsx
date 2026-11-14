@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { emptyPlan, planRoute } from '../../core';
-import type { Region, Source } from '../../contracts';
+import { assessReach, buildReachTrees, emptyPlan, planRoute } from '../../core';
+import type { Annotation, Region, Source } from '../../contracts';
+import { applyAnnotations, xyToCell } from '../../contracts/planning';
 import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { BudgetEngine } from './BudgetEngine';
@@ -178,6 +179,46 @@ describe('BudgetEngine + BudgetPanel', () => {
     it('до завантаження району — mock-ліміти позначені «MOCK»', () => {
       renderBudget();
       for (const key of ['time', 'o2', 'energy', 'dose']) expect(evidenceOf(key)).toMatch(/limit: MOCK/);
+    });
+  });
+
+  describe('F5-AC6: мітки екіпажу в ореолі й Abort map (SPEC §7.12)', () => {
+    const mark = (kind: Annotation['kind']): Annotation => ({
+      id: `${kind}-1`, kind, coordinates: mockTargets.find((t) => t.id === 'mock-a')!.coordinates, radiusM: 12, text: '', createdAt: '2026-11-14T12:00:00Z', origin: 'this-eva',
+    });
+    const cellA = () => xyToCell(mockGrid, mockTargets.find((t) => t.id === 'mock-a')!.coordinates)!.index;
+
+    it('impassable — клітинки під міткою не входять в ореол', () => {
+      renderBudget();
+      expect(store().reach?.mask[cellA()]).toBe(1);
+      act(() => store().addAnnotation(mark('impassable')));
+      expect(store().reach?.mask[cellA()]).toBe(0);
+    });
+
+    it('hazard — клітинка лишається в ореолі (прохідна, лише дорожча)', () => {
+      renderBudget();
+      act(() => store().addAnnotation(mark('hazard')));
+      expect(store().reach?.mask[cellA()]).toBe(1);
+    });
+
+    it('Abort map рахується на тій самій сітці з мітками, що й ореол', () => {
+      renderBudget();
+      const target = mockTargets.find((t) => t.id === 'mock-c')!;
+      const plan = planRoute({ grid: mockGrid, model: mockModel, start: mockBase, waypoints: [target.coordinates], base: mockBase, requestId: 1 });
+      act(() => store().toggleTarget('mock-c'));
+      act(() => store().setPlan(plan));
+      const plainAbort = store().reach!.abort;
+
+      const blocker: Annotation = { ...mark('impassable'), coordinates: plan.path[Math.floor(plan.path.length / 3)]!, radiusM: 25 };
+      act(() => useMission.setState({ annotations: [blocker] }));
+
+      const marked = applyAnnotations(mockGrid, [blocker]);
+      const expected = assessReach(
+        { grid: marked, model: mockModel, limits: mockLimits, elapsedS: 0, position: mockBase, base: mockBase, plan, targets: mockTargets, selectedTargetIds: ['mock-c'] },
+        buildReachTrees(marked, mockModel, mockBase, mockBase),
+      ).reach.abort;
+      expect(expected).not.toEqual(plainAbort);
+      expect(store().reach?.abort).toEqual(expected);
     });
   });
 });
