@@ -29,3 +29,15 @@
 .route-view-note { font-size: 0.85em; opacity: 0.85; overflow-wrap: anywhere; }
 
 .route-risk { color: var(--warn); }
+
+/* Traverse plan: точка неповернення й ноги маршруту. Колір лише доповнює іконку й слово (SPEC §7.7). */
+.traverse { margin: 8px 0; }
+.traverse-pnr { margin: 0 0 8px; padding: 10px 12px; border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius, 10px); }
+.traverse-pnr p { margin: 0; }
+.traverse-pnr--ok { border-left-color: var(--ok); }
+.traverse-pnr--danger { border-left-color: var(--danger); background: var(--deficit-bg, transparent); }
+.traverse-pnr__title { font-size: 1.15rem; color: var(--danger); }
+.traverse-pnr__text { margin-top: 4px !important; font-size: 0.85rem; color: var(--text-muted); }
+.traverse-word { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.traverse-word--ok { color: var(--ok); }
+.traverse-word--danger { color: var(--danger); }
