@@ -14,10 +14,12 @@ import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
 import { planReason, type PlanReason } from './lib/plan2d';
+import { isRasterUrl, traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
 import { TerrainInfo } from './TerrainInfo';
 import { TerrainScene } from './TerrainScene';
 import { useOptionalTexture } from './useRegionTexture';
+import { useTraverse } from './useTraverse';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -147,13 +149,31 @@ export function MapView({ globe }: MapViewProps) {
     () => (region ? region.layers.filter((l) => layerFlags[l.id] && l.url) : []),
     [region, layerFlags],
   );
-  const layerUrls = useMemo(() => (region ? enabledLayers.map((l) => ({ id: l.id, url: regionFileUrl(region.id, l.url) })) : []), [region, enabledLayers]);
+  // Текстурами вантажимо лише растри; traverse (geojson) малюється лінією нижче.
+  const layerUrls = useMemo(
+    () => (region ? enabledLayers.filter((l) => l.id !== 'traverse' && isRasterUrl(l.url)).map((l) => ({ id: l.id, url: regionFileUrl(region.id, l.url) })) : []),
+    [region, enabledLayers],
+  );
+
+  const traverseFile = site !== null && traverseVisible(region, layerFlags) ? region?.files.traverse : undefined;
+  const traverse = useTraverse(region && traverseFile ? regionFileUrl(region.id, traverseFile) : null);
+  const traverseXY = useMemo(
+    () => (traverse.status === 'ready' && region && valid ? traverseToXY(region, grid, traverse.lines) : null),
+    [traverse, region, grid, valid],
+  );
+  const traverseLines = traverseXY?.lines ?? [];
+  const traverseStatus = region?.layers.find((l) => l.id === 'traverse')?.status ?? region?.status ?? 'mock';
+  const traverseWarnings = [
+    ...(traverse.status === 'error' ? [`Traverse failed to load (${traverse.message})`] : []),
+    ...(traverse.status === 'ready' ? traverse.warnings : []),
+    ...(traverseXY && traverseXY.outside > 0 ? [`Traverse: ${traverseXY.outside} point(s) outside the grid skipped`] : []),
+  ];
 
   const status = region?.status ?? 'mock';
   const redrawKey = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- новий ключ на будь-яку зміну сцени
-    [site, sceneData, texture, layerUrls, targets, selectedIds, plan, selectedSegment, base, position, mode],
+    [site, sceneData, texture, layerUrls, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode],
   );
 
   const plan2D = (r: PlanReason) =>
@@ -166,6 +186,7 @@ export function MapView({ globe }: MapViewProps) {
         rasterRGBA={raster2D ?? (heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null)}
         mask={mask ?? null}
         layerUrls={layerUrls}
+        traverse={traverseLines}
         targets={targets}
         selectedIds={selectedIds}
         plan={plan}
@@ -199,8 +220,9 @@ export function MapView({ globe }: MapViewProps) {
           haloShown={(sceneData?.haloCells ?? 0) > 0}
           routeShown={(plan?.path.length ?? 0) >= 2}
           segmentShown={plan !== null && selectedSegment !== null && plan.segments[selectedSegment] !== undefined}
-          layers={enabledLayers.map((l) => ({ name: l.name, status: l.status }))}
-          warnings={sceneData?.warnings ?? []}
+          layers={enabledLayers.filter((l) => l.id !== 'traverse').map((l) => ({ name: l.name, status: l.status }))}
+          traverse={traverseLines.length > 0 ? { status: traverseStatus } : null}
+          warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings]}
         />
       )}
       <div className="terrain-stage">
@@ -224,6 +246,7 @@ export function MapView({ globe }: MapViewProps) {
                       data={sceneData}
                       texture={texture}
                       layerUrls={layerUrls}
+                      traverse={traverseLines}
                       targets={targets}
                       selectedIds={selectedIds}
                       plan={plan}

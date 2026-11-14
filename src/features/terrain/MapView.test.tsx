@@ -1,7 +1,7 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MissionState, PlanningGrid } from '../../contracts';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
+import type { Layer, MissionState, PlanningGrid, Region } from '../../contracts';
 import { mockGrid } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { useCameraMode } from './cameraStore';
@@ -124,6 +124,9 @@ describe('F2-AC3: F2 нічого не пише в store', () => {
       'setSelectedSegment', 'setBudget', 'setReach', 'setLimits', 'setTime', 'setPosition',
     ] as const satisfies readonly (keyof MissionState)[];
     const spies = Object.fromEntries(names.map((n) => [n, vi.fn()]));
+    // resetMission() відновлює лише дані, тож справжні дії повертаємо самі.
+    const original = Object.fromEntries(names.map((n) => [n, useMission.getState()[n]]));
+    onTestFinished(() => useMission.setState(original));
     useMission.setState({ ...spies, site: 'gale', selectedTargetIds: ['mock-a'] });
     render(
       <>
@@ -137,5 +140,63 @@ describe('F2-AC3: F2 нічого не пише в store', () => {
     for (const b of ['Top', 'POV', 'Orbit']) await user.click(screen.getByRole('button', { name: b }));
     expect(useCameraMode.getState().mode).toBe('orbit');
     for (const n of names) expect(spies[n], n).not.toHaveBeenCalled();
+  });
+});
+
+describe('T12: траверс марсохода (region.files.traverse)', () => {
+  const geojson = {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: [[137.405, -4.735, -4400], [137.41, -4.74, -4410], [137.5, -4.74, 0]] }, properties: {} }],
+  };
+  const traverseLayer: Layer = {
+    id: 'traverse', name: 'Rover traverse', kind: 'mission', url: 'traverse.geojson', sourceIds: [], status: 'verified',
+    units: '', nativeResolutionM: null, gridResolutionM: 10, method: 'MMGIS export', legend: [],
+  };
+  const withTraverse = (layers: Layer[] = []): Region => ({
+    ...testRegion(mockGrid, 'verified'),
+    files: { ...testRegion(mockGrid).files, traverse: 'traverse.geojson' },
+    layers,
+  });
+  const open = (region: Region, flags: Record<string, boolean> = {}) => {
+    render(<MapView globe={null} />);
+    act(() => {
+      useMission.getState().setRegionData({ region, grid: mockGrid, targets: [] });
+      useMission.setState({ site: 'gale', layers: flags });
+    });
+  };
+  const svg = () => screen.getByRole('img', { name: /2D plan/ });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('Given файл траверсу; Then лінія в 2D, підпис у легенді й попередження про точку поза сіткою', async () => {
+    const fetchMock = vi.fn(async (url: string) => new Response(url && JSON.stringify(geojson)));
+    vi.stubGlobal('fetch', fetchMock);
+    open(withTraverse());
+    await waitFor(() => expect(svg().querySelector('[data-kind="traverse"]')).not.toBeNull());
+    expect(String(fetchMock.mock.calls[0]?.[0])).toMatch(/data\/gale\/traverse\.geojson$/);
+    expect(within(terrain()).getByText(/Rover traverse/)).toBeInTheDocument();
+    expect(screen.getByText(/Traverse: 1 point\(s\) outside the grid skipped/)).toBeInTheDocument();
+  });
+
+  it('Given шар traverse вимкнено в F3; Then лінії немає і файл не вантажиться', () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(geojson)));
+    vi.stubGlobal('fetch', fetchMock);
+    open(withTraverse([traverseLayer]), { traverse: false });
+    expect(svg().querySelector('[data-kind="traverse"]')).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('Given шар traverse увімкнено; Then лінія є, а geojson не вантажиться як растр', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(geojson))));
+    open(withTraverse([traverseLayer]), { traverse: true });
+    await waitFor(() => expect(svg().querySelector('[data-kind="traverse"]')).not.toBeNull());
+    expect(svg().querySelector('[data-layer="traverse"]')).toBeNull();
+  });
+
+  it('Given файл не завантажився; Then чесне попередження, без лінії', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 404 })));
+    open(withTraverse());
+    expect(await screen.findByText(/Traverse failed to load \(HTTP 404\)/)).toBeInTheDocument();
+    expect(svg().querySelector('[data-kind="traverse"]')).toBeNull();
   });
 });

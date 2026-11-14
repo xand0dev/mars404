@@ -29,6 +29,8 @@ export interface SceneProps {
   texture: Texture | null;
   /** Увімкнені шари (region.layers[].url, уже через dataUrl) */
   layerUrls: { id: string; url: string }[];
+  /** Траверс марсохода, локальні метри (T12) */
+  traverse: XY[][];
   targets: Target[];
   selectedIds: string[];
   plan: RoutePlan | null;
@@ -88,7 +90,7 @@ function LayerOverlay({ url, geometry, order }: { url: string; geometry: BufferG
   );
 }
 
-export function TerrainScene({ data, texture, layerUrls, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, traverse, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
   const { grid, heights, noData } = data;
   const geometry = useMemo(() => {
     const g = buildTerrainGeometry(grid, heights);
@@ -113,6 +115,17 @@ export function TerrainScene({ data, texture, layerUrls, targets, selectedIds, p
       return s ? [s.position] : [];
     });
   }, [plan, grid, heights, noData]);
+
+  const traversePts = useMemo(
+    () =>
+      traverse
+        .map((l) => l.flatMap((p) => {
+          const s = surfacePoint(grid, heights, noData, p, LIFT_M * 0.6);
+          return s ? [s.position] : [];
+        }))
+        .filter((l) => l.length >= 2),
+    [traverse, grid, heights, noData],
+  );
 
   const segPts = useMemo(() => {
     const s = plan && selectedSegment !== null ? plan.segments[selectedSegment] : undefined;
@@ -156,6 +169,9 @@ export function TerrainScene({ data, texture, layerUrls, targets, selectedIds, p
         <meshBasicMaterial map={topTex} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-8} polygonOffsetUnits={-8} />
       </mesh>
 
+      {traversePts.map((l, k) => (
+        <Line key={k} points={l} color={CSS.traverse} lineWidth={2.5} dashed dashSize={grid.metersPerPixel * 1.5} gapSize={grid.metersPerPixel} />
+      ))}
       {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} />}
       {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} renderOrder={15} />}
 

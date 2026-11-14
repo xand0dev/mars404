@@ -15,13 +15,15 @@ export interface TerrainInfoProps {
   haloShown: boolean;
   routeShown: boolean;
   segmentShown: boolean;
+  /** Траверс марсохода показано (T12) */
+  traverse: { status: Evidence } | null;
   layers: { name: string; status: Evidence }[];
   warnings: string[];
 }
 
 const Swatch = ({ color }: { color: string }) => <span className="terrain-swatch" style={{ background: color }} aria-hidden="true" />;
 
-export function TerrainInfo({ width, height, metersPerPixel, status, texture, counts, haloShown, routeShown, segmentShown, layers, warnings }: TerrainInfoProps) {
+export function TerrainInfo({ width, height, metersPerPixel, status, texture, counts, haloShown, routeShown, segmentShown, traverse, layers, warnings }: TerrainInfoProps) {
   return (
     <div className="terrain-info">
       <p className="terrain-facts" aria-label="Terrain facts">
@@ -55,6 +57,11 @@ export function TerrainInfo({ width, height, metersPerPixel, status, texture, co
         {segmentShown && (
           <span>
             <Swatch color={CSS.segment} />━ Selected segment
+          </span>
+        )}
+        {traverse && (
+          <span>
+            <Swatch color={CSS.traverse} />┅ Rover traverse ({EVIDENCE_LABEL[traverse.status]})
           </span>
         )}
         {layers.map((l) => (
