@@ -181,8 +181,9 @@ describe('F3-AC5: photos і emergencyO2G', () => {
     expect(reg.model.o2GPerS).toBe(0.031);
     expect(reg.model.emergencyO2G).toBe(Math.round(1800 * reg.model.o2GPerS)); // 55.8 → 56 (#64)
     expect(reg.model.evidence.emergencyO2G).toMatchObject({ id: 'emu-sop-30min', status: 'verified', url: expect.stringContaining('ntrs.nasa.gov') });
-    expect(reg.model.evidence.o2GPerS).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
-    expect(reg.model.evidence.speedMps).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
+    // Apollo (Місяць) перенесено на Марс → assumption (рев'ю #63).
+    expect(reg.model.evidence.o2GPerS).toMatchObject({ id: 'jones-apollo-walk', status: 'assumption' });
+    expect(reg.model.evidence.speedMps).toMatchObject({ id: 'jones-apollo-walk', status: 'assumption' });
   });
 
   it('Then limits.o2 = 140 г (assumption, #64) і limitsEvidence має джерело на кожен ліміт (§7.6)', async () => {

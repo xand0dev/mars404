@@ -201,9 +201,9 @@ def build(cache):
         *thermal_sources,
         src('hazard-from-slope', 'Hazard derived from slope', 'assumption', f"hazard = min(1, slopeDeg / {HAZARD_MODEL['slopeDegAtMax']}) x {HAZARD_MODEL['maxHazard']}; NoData = 1. Test coefficients, not measured hazard."),
         src('base-assumption', 'Habitat base', 'assumption', f"Walkable cell nearest to bbox centre (lon {cfg.CENTER[0]}, lat {cfg.CENTER[1]}, centroid of F6 targets); not a real habitat site."),
-        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'verified',
+        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'assumption',
             f'"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr"; "1560 BTU/hr at 3.5 km/hr" -> ~113 g/h = {O2_G_PER_S} g/s (o2GPerS). '
-            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.',
+            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).',
             JONES_URL, 'LA-UR-89-3858', 'E. M. Jones, Apollo Lunar Surface Journal', '2026-11-14'),
         src('emu-sop-30min', 'Emergency O2 reserve (EMU Secondary Oxygen Package)', 'verified',
             f'NASA EVA overview (NTRS 20140009556): the EMU SOP "provides a minimum of {EMERGENCY_O2_MIN} minutes of emergency O2". '

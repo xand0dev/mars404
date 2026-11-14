@@ -50,8 +50,8 @@
       "speedMps": {
         "id": "jones-apollo-walk",
         "title": "Apollo EVA walking: O2 use and speed",
-        "status": "verified",
-        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+        "status": "assumption",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).",
         "url": "https://www.osti.gov/servlets/purl/7168757",
         "productId": "LA-UR-89-3858",
         "credit": "E. M. Jones, Apollo Lunar Surface Journal",
@@ -72,8 +72,8 @@
       "o2GPerS": {
         "id": "jones-apollo-walk",
         "title": "Apollo EVA walking: O2 use and speed",
-        "status": "verified",
-        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+        "status": "assumption",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).",
         "url": "https://www.osti.gov/servlets/purl/7168757",
         "productId": "LA-UR-89-3858",
         "credit": "E. M. Jones, Apollo Lunar Surface Journal",
@@ -388,8 +388,8 @@
     {
       "id": "jones-apollo-walk",
       "title": "Apollo EVA walking: O2 use and speed",
-      "status": "verified",
-      "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+      "status": "assumption",
+      "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).",
       "url": "https://www.osti.gov/servlets/purl/7168757",
       "productId": "LA-UR-89-3858",
       "credit": "E. M. Jones, Apollo Lunar Surface Journal",
