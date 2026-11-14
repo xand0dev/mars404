@@ -12,6 +12,22 @@
 | Доступність Location (аудит F7-AC2): усі точки — кнопки, Tab + Enter, картка без canvas — ✔, тест `#5 · доступність` у `SitePanel.test.tsx`. Скидання цілей після перельоту — стик з F6: пропозиція показувати цілі лише при `site = 'gale'` (у шляхах F6) | SPEC §7.7 | #5 | F6 |
 | Прогін демо за §3 | SPEC §3 | #36 | інтеграція сб 21:00 |
 
+## F1-AC6 · Жива карта — панель «Crew map notes» (#57, SPEC §7.12)
+Контракт — PR #56 (змерджено). Гілка `feat/F1-notes`, папка `src/features/notes/**`.
+
+**F1-AC6. Given** відкрито Gale; **When** у панелі «Crew map notes» додано, видалено, експортовано й імпортовано мітки; **Then** список показує вид, текст, час і `origin`; мітки переживають перезавантаження сторінки (`localStorage`, без нього — працює без збереження); експорт дає `AnnotationsFile` JSON, імпорт невалідного файла показує помилку і не змінює мітки.
+
+| # | Задача | Файли |
+|---|---|---|
+| N1 | Чисті функції: `toAnnotationsFile`, `parseAnnotationsFile` (валідація схеми v1, `site = 'gale'`, вид, скінченні координати, радіус ≥ 0, ISO-час; усім імпортованим `origin = 'imported'`), `mergeImported` | `notes/annotationsFile.ts` + test |
+| N2 | Сховище: `loadStoredAnnotations` / `saveStoredAnnotations` у `localStorage` (ключ `mars404.annotations.v1`), try/catch — без сховища працює без збереження | `notes/storage.ts` + test |
+| N3 | `NotesPanel`: при `site !== 'gale'` — підказка «Open Gale…»; форма (вид, текст) → `addAnnotation` у точці `position ?? base`, радіус 20 м з позначкою «assumption»; список: вид (іконка + текст), текст, час UTC, `origin`, «Remove»; «Export marks» (`<a download>` з blob); «Import marks» (файл → помилка `role=alert` або злиття) | `notes/NotesPanel.tsx` + test |
+
+Рішення:
+- **Імпорт зливає, а не замінює:** поточні мітки лишаються, імпортовані додаються (той самий `id` — береться імпортована). Список передається в `setAnnotations` (SPEC: «Import marks — `setAnnotations`»), тож план інвалідується. Так мітки цього виходу не губляться при імпорті попереднього.
+- **Відновлення після перезавантаження:** при монтуванні, якщо в store міток немає, а в сховищі є — `setAnnotations(stored)` зі збереженим `origin`. Далі кожна зміна `annotations` пишеться у сховище.
+- Координати мітки з панелі — поточна позиція екіпажу (`position`, або `base`); точне розміщення кліком по карті — F2 (F2-AC8).
+
 ## Мета й обсяг
 3D-глобус Марса з текстурою (джерело й credit у SOURCES, файл у `public/data/mars/`) і 3–5 точками за координатами IAU Gazetteer. Gale відкриває район, інші точки показують картку «next site». Обертання перетягуванням, без самообертання.
 
