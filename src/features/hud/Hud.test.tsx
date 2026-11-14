@@ -12,7 +12,7 @@ const okPlan: RoutePlan = {
   warnings: [], requestId: 1,
 };
 const reach = (extra: Partial<ReachabilityResult> = {}): ReachabilityResult => ({
-  status: 'incomplete', mask: new Uint8Array(0), returnInS: 1980, deficits: [], swap: null, warnings: [], ...extra,
+  status: 'incomplete', mask: new Uint8Array(0), returnInS: 1980, deficits: [], swap: null, abort: null, warnings: [], ...extra,
 });
 const withPlan = (r: ReachabilityResult) => {
   useMission.getState().setSite('gale');

@@ -49,6 +49,8 @@
 | O₂, енергія, час, доза (якщо відома), резерв, ореол, сценарій «O₂ −40%» | Пилова буря як модель погоди, реальна телеметрія |
 | Abort map: відрізки без повернення з аварійним запасом O₂, «Point of no return in N min» (§7.8) | Камені з HiRISE — офлайн-шар «model-derived» (рішення о сб 21:00) |
 | «View from here»: найближчий справжній знімок Navcam до обраного відрізка (§7.9) | — |
+| GO / NO-GO: опитування станцій перед виходом і вердикт у HUD (§7.10) | Анімація опитування, тінь зв'язку як станція |
+| EVA-символіка: одна мова знаків на карті, у 2D і в списках (§7.11) | Знаки в 3D (лишаються 2D і HUD) |
 | Планшетний HUD, клавіатура, 400 px, reduced motion, 2D-план Б | VR, мультиплеєр, складні ефекти |
 | Статичний сайт, локальні дані, provenance кожного шару | Backend, облікові записи, LLM, ключі в браузері |
 | — | Текстовий брифінг з RoutePlan, AI-зведення сектора, шторка порівняння шарів |
@@ -260,6 +262,8 @@ export interface MissionState {
 
 `src/contracts/planning.ts` — чисте ядро координат без React і стану: `cellIndex(grid, row, col)`, `inGrid(grid, row, col)`, `cellCenter(grid, row, col)`, `xyToCell(grid, xy)`, `lonLatToXY(region, lonLat)`, `toR3F(xy, h)`, `isNoDataValue(h, noData?)`, `isBlocked(grid, i, maxSlopeDeg?)`, `validateGrid(grid)`, `dataUrl(path)` (через Vite `BASE_URL`).
 
+`src/contracts/gonogo.ts` — чиста функція `evaluateGoNoGo(state) → { verdict, during, stations[] }` за §7.10. Її викликає HUD (F7) і тести; власних розрахунків маршруту чи бюджету вона не робить.
+
 ### 6.0 Файли даних
 
 - **`targets.geojson`** (пише F6): `FeatureCollection` точок, `geometry.coordinates = [lon, lat]` у градусах, `properties` = `Target` без `coordinates` і `lonLat`. `DataLoader` (F3) перетворює `[lon, lat]` через `lonLatToXY` і заповнює `Target.coordinates` та `lonLat`; ціль поза сіткою відкидається з попередженням.
@@ -386,6 +390,38 @@ export interface MissionState {
 - Підпис чесний: «Navcam, sol N, taken ~D m from this segment (rover stop)», credit як дає джерело, `alt`, посилання на `sourceUrl`. Знімок — вид із зупинки ровера, а не з точки маршруту.
 - Немає файла знімка або не завантажився — заглушка з `alt`, а не порожня рамка.
 
+### 7.10 GO / NO-GO (F7 показує, рахує `src/contracts/gonogo.ts`)
+Як передстартове опитування: кожна станція відповідає GO, CAUTION, NO-GO або HOLD з причиною одним рядком; вердикт — найгірший виклик (HOLD > NO-GO > CAUTION > GO).
+
+| Станція | Читає | GO | CAUTION | NO-GO | HOLD | Дія |
+|---|---|---|---|---|---|---|
+| RTE маршрут | `plan` | `ok` | — | `no-path` / `invalid` з кодом | немає цілей, немає плану, `pending` | обрати цілі / «Build route» |
+| LSS ресурси | `reach.deficits` | порожньо | — | будь-який дефіцит | немає `reach` | `replaceTarget(swap)` або прибрати ціль |
+| RTN повернення | `reach.returnInS` | ≥ 15 хв | 0 – 15 хв (поріг — assumption) | < 0 | `null` | «Return now» |
+| SCI цілі | `reach.mask` + `xyToCell` | усі обрані в ореолі | — | ціль поза ореолом | маска не тієї сітки | `replaceTarget(swap)` або прибрати ціль |
+| ABT abort map | `reach.abort` (§7.8) | `pointOfNoReturnS = null` | точка неповернення є; або `abort = null` | точка неповернення = 0 | — | — |
+| DAT рельєф | `grid`, `region.status` | `verified` | MOCK / інший статус | `validateGrid` з помилками | — | — |
+| RAD радіація | `model.doseUSvPerS`, `limits.dose` | обидва відомі | немає даних | — (дефіцит дози — у LSS) | — | — |
+| MDL модель | `reach.status` | `estimated` | `incomplete` | `invalid` | немає `reach` | — |
+
+- Без сайту — усі станції HOLD «No site selected». Невідоме ніколи не дає GO.
+- **Перед виходом** (`time = 0`): GO — кнопка виходу; CAUTION — вихід лише після утримування кнопки 1,5 с, у HUD лишається запис часу й підтверджених станцій; NO-GO — кнопки виходу немає, біля станцій дії виправлення; HOLD — наступна дія.
+- **Під час виходу** (`time > 0`): вердикт оновлюється сам; NO-GO → «Return to base now» з `role="alert"`.
+- Найкращий текст вердикту — «within model», ніколи не «safe».
+
+### 7.11 EVA-символіка (F7 визначає, F2 і F6 використовують)
+Форма знака — тип об'єкта, заливка й контур — стан, підпис поруч — деталі. Колір лише доповнює. Знаки — SVG-компоненти в `src/ui`, однакові в 3D-підписах, 2D-плані, HUD і списках.
+
+| Об'єкт | Знак | Стан |
+|---|---|---|
+| База / хабітат | квадрат | — |
+| Наукова ціль | коло | обрана — заливка; необрана — контур; поза ореолом — пунктир і «!» |
+| Небезпека (схил, пісок) | трикутник | рівень — заливка або контур + текст |
+| NoData / невідоме | ромб із «?» | завжди однаковий, ніколи не колір «прохідно» |
+| Астронавт | шеврон за напрямком руху | — |
+| Точка неповернення | ромб із «!» | на маршруті, з часом у підписі |
+| Знімок Navcam | квадрат-рамка з крапкою | — |
+
 ## 8. Дані NASA
 
 | Шар / дані | Джерело | Як беремо | Тип |
@@ -456,6 +492,7 @@ Vite-проєкт, contracts, store з правилами §6.1, mocks (128×128
 - **F2-AC4. Given** WebGL недоступний, контекст втрачено або сітка невалідна; **When** відкрито Gale; **Then** видно причину і 2D-план з blocked, цілями й маршрутом.
 - **F2-AC5. Given** 3D з увімкненими шарами на ноутбуці демо; **When** зроблено 60-секундний замір; **Then** у PR записано пристрій, браузер, роздільність і медіанний FPS ≥30 (або чесно «не пройдено»).
 - **F2-AC6. Given** `reach.abort` з відрізками `ok = false`; **When** відмальовано 3D або 2D; **Then** ці відрізки маршруту червоні з легендою іконкою й текстом «No return with emergency O₂», а при `abort = null` маршрут звичайний.
+- **F2-AC7. Given** цілі, база, небезпеки, NoData і точка неповернення; **When** відмальовано 2D-план (і 3D, якщо встигаємо); **Then** кожен об'єкт має знак з `src/ui` за §7.11, а легенда пояснює знаки словами.
 
 ### F3 — Дані й шари (Максим)
 Pipeline у Docker вивантажує bbox (§8), рахує схил, walkable і hazard, валідує й пише `public/data/gale/`. `DataLoader` вантажить пакет і викликає `setRegionData`. `LayersPanel` перемикає шари й показує легенду та походження.
@@ -498,6 +535,8 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F7-AC4. Given** стани empty, «цілі обрано, плану немає», pending, invalid, no-path, deficit, incomplete, estimated, MOCK і `NaN` у budget; **When** відкрито HUD; **Then** для кожного видно пояснення й наступну дію, `NaN` показано як «—», а не «NaN min». Найкращий статус — «within model».
 - **F7-AC5. Given** `reach.swap = {dropId, addId}`; **When** натиснуто «Replace ‹A› with ‹B›»; **Then** викликано `replaceTarget(dropId, addId)` і фокус перейшов на «Elapsed». При `swap = null` кнопки немає, є порада «Remove a target or return to base now». Reduced motion прибирає переходи.
 - **F7-AC6. Given** `reach.abort`; **When** відкрито HUD; **Then** видно «Point of no return in N min» (`N = floor(pointOfNoReturnS / 60)`) або «Return possible along the whole route», з іконкою й текстом; при `abort = null` рядка немає, а «assumption» біля аварійного запасу видно, якщо `emergencyO2G` без джерела.
+- **F7-AC7. Given** будь-який стан store; **When** відкрито HUD; **Then** видно вердикт `evaluateGoNoGo` (GO / GO · CAUTION / NO-GO / HOLD) і список станцій з причинами; для CAUTION перед виходом вихід підтверджується утримуванням 1,5 с (миша й клавіатура) з записом часу; для NO-GO видно дії виправлення; під час виходу NO-GO — «Return to base now» з `role="alert"`.
+- **F7-AC8. Given** `src/ui`; **When** використано знаки §7.11; **Then** є компонент знака для кожного типу й стану з `aria-label`, і знаки однакові в HUD, списку цілей і легенді карти.
 
 ### F8 — Демо й сабміт (Олександр)
 Сценарій і відео ≤30 с з англійськими субтитрами, ≤7 слайдів (з Олею), сторінка сабміту, AI_LOG, SOURCES, релізний URL.
@@ -528,7 +567,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 | Сб, старт + каркас | Усі починають на mocks: spec → тести → код у `feat/F<N>` | усі |
 | **Сб 14:00** | Bbox і пакет даних Gale у `main` (F3); список 5–8 цілей і фото (F6); джерела в SOURCES | Максим, Настя |
 | **Сб 15:00** | Погодження Abort map і «View from here» (§7.8–7.9) | усі |
-| **Сб 16:00** | Contract-PR у `main`: `reach.abort`, `emergencyO2G`, `SurfacePhoto`, `photos` у store і mocks | Олександр |
+| **Сб 16:00** | Contract-PR у `main`: `reach.abort`, `emergencyO2G`, `SurfacePhoto`, `photos` у store і mocks; `evaluateGoNoGo` (§7.10) і символіка (§7.11) | Олександр |
 | Сб 14:00–21:00 | F2 на реальній сітці; F4/F5 на реальній сітці й замір ≤2 с; F1 текстура; F7 HUD на store | Олександр, Влад, Іван, Оля |
 | **Сб 21:00** | Перша інтеграція: повний ланцюг демо на Pages на реальних даних (з Abort і знімками); список багів; рішення щодо каменів з HiRISE | усі, QA — Настя |
 | Нд до 12:00 | Добудова AC, баги, доступність 400 px, FPS-замір | усі |
