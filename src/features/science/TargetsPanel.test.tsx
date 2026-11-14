@@ -83,6 +83,7 @@ describe('F6-AC3 · вибір цілі й reachability', () => {
       returnInS: 600,
       deficits: ['o2'],
       swap: { dropId: 'a', addId: 'b' },
+      abort: null,
       warnings: ['Target A is outside the return envelope.'],
     };
     loadTargets(targets.slice(0, 2), reach);

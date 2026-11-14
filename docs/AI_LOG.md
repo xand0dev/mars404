@@ -59,7 +59,7 @@
 
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
-| 2026-11-14 | Настя | Codex · GPT-5 | T1–T8: контракти, AC-тести, UI цілей, 8 MMGIS stops, локальні NASA Navcam фото й каталог F6-AC5 (#34) | `specs/F6/spec.md`, `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`, F6 у `docs/SOURCES.md` | red→green: UI 4/4, data 3/3; `npm run check` — 355/355; браузер 400/1440: без horizontal overflow і console errors | #21 (draft) |
+| 2026-11-14 | Настя | Codex · GPT-5 | T1–T8: контракти, AC-тести, UI цілей, 8 MMGIS stops, локальні NASA Navcam фото й каталог F6-AC5 (#34) | `specs/F6/spec.md`, `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`, F6 у `docs/SOURCES.md` | red→green: UI 4/4, data 3/3; `npm run check` — 376/376; браузер 400/1440: без horizontal overflow і console errors | #21 (draft) |
 
 ## F7
 
