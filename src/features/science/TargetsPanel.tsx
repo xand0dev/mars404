@@ -80,11 +80,13 @@ export function TargetsPanel() {
               actions={
                 <button
                   type="button"
-                  className={isSelected ? undefined : 'ui-btn--primary'}
+                  className={isSelected ? 'targets-remove' : 'ui-btn--primary'}
                   aria-pressed={isSelected}
+                  aria-label={`${isSelected ? 'Remove' : 'Add'} ${target.name}`}
                   onClick={() => toggleTarget(target.id)}
                 >
-                  {isSelected ? 'Remove' : 'Add'} {target.name}
+                  {/* Назва вже є в рядку: на кнопці — лише дія, щоб у вузькій колонці назва не ламалась по літерах. */}
+                  {isSelected ? 'Remove' : 'Add'}
                 </button>
               }
             />

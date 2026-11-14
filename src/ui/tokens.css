@@ -156,7 +156,13 @@ input[type='radio'] { accent-color: var(--accent); padding: 0; }
 .ui-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--line); min-width: 0; }
 .ui-row > :only-child { grid-column: 1 / -1; }
 .ui-row__sign { display: inline-flex; }
-.ui-row__title { min-width: 0; font-weight: 500; }
+/* Назва переноситься по словах, а не по літерах (body має overflow-wrap: anywhere). */
+.ui-row__title { min-width: 0; font-weight: 500; overflow-wrap: break-word; word-break: normal; }
+.ui-row__title > * { overflow-wrap: break-word; }
+.ui-row__actions > button { min-width: 84px; }
+/* Вибраний пункт: «Remove» спокійна, без червоного світіння. */
+.ui-row__actions > button[aria-pressed='true'] { background: transparent; border-color: var(--border); color: var(--text-muted); box-shadow: none; }
+.ui-row__actions > button[aria-pressed='true']:hover:not(:disabled) { color: var(--text); border-color: #3a3c42; }
 .ui-row__meta { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); justify-content: flex-end; }
 .ui-row__actions { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
 @media (max-width: 520px) {

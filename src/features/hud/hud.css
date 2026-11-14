@@ -15,7 +15,7 @@
 /* Показ приладу: «RETURN IN» і «MIN» — дрібні позначки, число — найбільше на екрані. */
 .hud__return { grid-area: hero; display: flex; align-items: baseline; gap: 0.45em; margin: 0; white-space: nowrap; align-self: center; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-dim); }
 /* Немає оцінки — «—» приглушене, а не помаранчева риска. */
-.hud__return strong.hud__value--empty { color: var(--text-dim); font-weight: 400; text-shadow: none; }
+.hud__return strong.hud__value--empty { color: var(--text-dim); font-size: 1.6rem; font-weight: 600; text-shadow: none; }
 .hud__return strong { font-family: var(--font); font-size: var(--fs-hero); line-height: 0.9; font-weight: 800; letter-spacing: -0.045em; color: var(--accent); text-shadow: 0 0 28px rgb(224 16 26 / 0.55); font-variant-numeric: tabular-nums; }
 .hud__info { grid-area: info; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
 .hud__side { grid-area: side; display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
@@ -74,10 +74,11 @@
 .gonogo__station { display: flex; flex-direction: column; flex: 0 1 auto; min-width: 0; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--line); }
 .gonogo__station.is-open { flex: 1 1 260px; max-width: 100%; }
 /* Табло станцій: GO — тонка рамка, CAUTION — бурштинова заливка, NO-GO — червона, HOLD — пунктир. Слово й іконка завжди є. */
-.gonogo__station--go { border-color: #0f3d29; }
+.gonogo__station--go { border-color: var(--line); }
 .gonogo__station--caution { border-color: #4d3a0a; background: var(--warn-bg); }
 .gonogo__station--nogo { border-color: #7a1a22; background: var(--danger-bg); box-shadow: 0 0 16px -6px rgb(224 16 26 / 0.8); }
-.gonogo__station--hold { border-color: #2a2c31; border-style: dashed; background: transparent; }
+.gonogo__station--hold { border-color: var(--line); background: transparent; }
+.gonogo__station--hold .gonogo__id { color: var(--text-muted); }
 .gonogo__chip { display: inline-flex; align-items: center; gap: var(--space-2); background: transparent; border: none; border-radius: var(--radius-sm); padding: 0 var(--space-3) 0 var(--space-2); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; white-space: nowrap; box-shadow: none; }
 .gonogo__chip:hover:not(:disabled) { background: rgb(255 255 255 / 0.04); }
 .gonogo__chip::after { content: ''; width: 5px; height: 5px; border-right: 1.5px solid var(--text-dim); border-bottom: 1.5px solid var(--text-dim); transform: rotate(45deg) translate(-1px, -1px); }
@@ -97,7 +98,8 @@
   .gonogo__stations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .gonogo__station.is-open { grid-column: 1 / -1; }
   .gonogo__station { overflow: hidden; }
-  .gonogo__chip { padding: 0 4px 0 6px; gap: 3px; justify-content: flex-start; font-size: 0.72rem; min-width: 0; }
+  .gonogo__chip { padding: 0 6px; gap: 4px; justify-content: flex-start; font-size: 0.68rem; letter-spacing: 0; min-width: 0; }
+  .gonogo__chip .gonogo__call { white-space: nowrap; }
   .gonogo__chip::after { content: none; }
   .gonogo__chip[aria-expanded='true']::after { content: none; }
 }
