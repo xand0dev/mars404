@@ -1,8 +1,8 @@
 // 3D-сцена Gale (F2): рельєф, текстура/колір за висотою, шари, blocked/NoData, ореол, цілі, маршрут, камери.
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Line, OrbitControls } from '@react-three/drei';
-import { useThree, type ThreeEvent } from '@react-three/fiber';
-import { BufferAttribute, BufferGeometry, DataTexture, NearestFilter, RGBAFormat, type Texture } from 'three';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
+import { BufferAttribute, BufferGeometry, DataTexture, NearestFilter, RGBAFormat, Vector3, type Texture } from 'three';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
@@ -10,8 +10,9 @@ import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
 import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
 import { segmentMarker } from './lib/segment';
-import { Label3D } from './Label3D';
+import { LABEL_HEIGHT, Label3D } from './Label3D';
 import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
+import { labelAspect, labelledTargetIds, stackLabels } from './lib/labels';
 import { useOptionalTexture } from './useRegionTexture';
 
 /** Підйом ліній і маркерів над поверхнею, м (лише візуально, щоб не тонули в меші). */
@@ -200,6 +201,43 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   // Розмір маркера — від розміру району, щоб його було видно і на 128×128 по 10 м, і на більших сітках.
   const markerR = Math.max(grid.metersPerPixel, Math.max(grid.width, grid.height) * grid.metersPerPixel / 100);
 
+  // Підписи без накладань: текст — лише обрані цілі й та, що під курсором;
+  // ті, що злипаються на екрані, піднімаємо сходинками (рахуємо в пікселях після кожного кадру).
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const labelled = useMemo(() => labelledTargetIds(targets, selectedIds, hoveredId), [targets, selectedIds, hoveredId]);
+  const labelText = (t: Target, sel: boolean, out: boolean, heightUnknown: boolean) =>
+    `${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${heightUnknown ? ' · elev. unknown' : ''}`;
+  const anchors = useMemo(() => {
+    const list: { id: string; pos: Vector3; text: string }[] = [];
+    const b = base ? at(base) : null;
+    if (b) list.push({ id: '__base', pos: new Vector3(b.position[0], b.position[1] + markerR * 3, b.position[2]), text: '■ Base' });
+    for (const t of targets) {
+      if (!labelled.has(t.id)) continue;
+      const p = at(t.coordinates);
+      if (!p) continue;
+      const text = labelText(t, selectedIds.includes(t.id), !inReach(t.coordinates), p.heightM === null);
+      list.push({ id: t.id, pos: new Vector3(p.position[0], p.position[1] + markerR * 3, p.position[2]), text });
+    }
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- at() залежить від grid / heights / noData
+  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach]);
+  const [levels, setLevels] = useState<Record<string, number>>({});
+  const levelsKey = useRef('');
+  const proj = useMemo(() => new Vector3(), []);
+  useFrame(({ camera, size }) => {
+    const hPx = (LABEL_HEIGHT * camera.projectionMatrix.elements[5]! * size.height) / 2;
+    const boxes = anchors.map((a) => {
+      proj.copy(a.pos).project(camera);
+      return { x: ((proj.x + 1) / 2) * size.width, y: ((1 - proj.y) / 2) * size.height, w: hPx * labelAspect(a.text), h: hPx };
+    });
+    const lv = stackLabels(boxes);
+    const key = anchors.map((a, i) => `${a.id}:${lv[i]}`).join('|');
+    if (key !== levelsKey.current) {
+      levelsKey.current = key;
+      setLevels(Object.fromEntries(anchors.map((a, i) => [a.id, lv[i]!])));
+    }
+  });
+
   return (
     <group>
       <ambientLight intensity={0.55} />
@@ -270,15 +308,26 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         const out = !inReach(t.coordinates);
         return (
           <group key={t.id} position={p.position}>
-            <mesh position={[0, markerR, 0]} renderOrder={RENDER_ORDER.markers}>
+            <mesh
+              position={[0, markerR, 0]}
+              renderOrder={RENDER_ORDER.markers}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                setHoveredId(t.id);
+              }}
+              onPointerOut={() => setHoveredId((h) => (h === t.id ? null : h))}
+            >
               <coneGeometry args={[markerR * (sel ? 1.3 : 0.9), markerR * 2.5, 12]} />
               <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent />
             </mesh>
-            <Label3D
-              position={[0, markerR * 3, 0]}
-              color={out ? '#e8b84a' : sel ? '#ffd38a' : '#f3ece6'}
-              text={`${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${p.heightM === null ? ' · elev. unknown' : ''}`}
-            />
+            {labelled.has(t.id) && (
+              <Label3D
+                position={[0, markerR * 3, 0]}
+                level={levels[t.id] ?? 0}
+                color={out ? '#e8b84a' : sel ? '#ffd38a' : '#f3ece6'}
+                text={labelText(t, sel, out, p.heightM === null)}
+              />
+            )}
           </group>
         );
       })}
@@ -289,7 +338,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
             <boxGeometry args={[markerR * 1.6, markerR * 2, markerR * 1.6]} />
             <meshBasicMaterial color="#6cc28a" transparent />
           </mesh>
-          <Label3D position={[0, markerR * 3, 0]} text="■ Base" />
+          <Label3D position={[0, markerR * 3, 0]} level={levels.__base ?? 0} text="■ Base" />
         </group>
       )}
       {position && base && (position[0] !== base[0] || position[1] !== base[1]) && at(position) && (
