@@ -41,6 +41,7 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC6 (#27): червоні відрізки без повернення з `reach.abort` (SPEC §7.8) у 3D і 2D, легенда «⛔ No return with emergency O₂ (N g, assumption)»; до contract-PR #26 — локальний тип за SPEC §6 | src/features/terrain/**, specs/F2/** | npm run check зелений; браузер: маршрут F4 + тестовий abort — червоні серії в 3D (Top) і `?2d`, без помилок консолі | draft PR feat/F2-abort |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC6: перехід на `AbortPlan` з контракту (#43), «assumption» з `model.evidence.emergencyO2G` | src/features/terrain/**, specs/F2/** | npm run check зелений (з main); браузер: тестовий abort — червоні відрізки й легенда | PR #38 |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC7 / F2-AC8 (#46, #58, #73): мітки екіпажу на 3D і 2D, режим «Add mark», EVA-знаки й легенда на 2D | src/features/terrain/* | npm run check (502 тести); браузер 1440 px: клік по рельєфу ставить мітку, ?2d — знаки й легенда, без помилок у консолі | feat/F2-marks |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Рев'ю 14.11: підписи цілей у 3D без накладань — текст лише в обраних і наведеної цілі, злиплі на екрані підписи сходинками вгору (`lib/labels.ts`) | src/features/terrain/* | npm run check (577 тестів); браузер 1440 px, Gale, 3 цілі: Orbit і Top — підписи не накладаються | feat/F2-labels |
 
 ## F3
 

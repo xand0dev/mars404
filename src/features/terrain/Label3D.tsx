@@ -2,6 +2,7 @@
 import { useEffect, useMemo } from 'react';
 import { CanvasTexture, SRGBColorSpace } from 'three';
 import { RENDER_ORDER } from './lib/layerRaster';
+import { LABEL_GAP } from './lib/labels';
 
 const PX = 40;
 
@@ -30,14 +31,15 @@ function makeLabel(text: string, color: string): { texture: CanvasTexture; aspec
 }
 
 /** Розмір підпису — частка висоти полотна (не залежить від відстані камери). */
-const HEIGHT = 0.036;
+export const LABEL_HEIGHT = 0.036;
 
-export function Label3D({ text, color = '#f3ece6', position }: { text: string; color?: string; position: [number, number, number] }) {
+/** `level` — на скільки висот підпису підняти його на екрані (розкладка без накладань, lib/labels). */
+export function Label3D({ text, color = '#f3ece6', position, level = 0 }: { text: string; color?: string; position: [number, number, number]; level?: number }) {
   const label = useMemo(() => makeLabel(text, color), [text, color]);
   useEffect(() => () => label?.texture.dispose(), [label]);
   if (!label) return null;
   return (
-    <sprite position={position} center={[0.5, 0]} scale={[HEIGHT * label.aspect, HEIGHT, 1]} renderOrder={RENDER_ORDER.labels}>
+    <sprite position={position} center={[0.5, -level * LABEL_GAP]} scale={[LABEL_HEIGHT * label.aspect, LABEL_HEIGHT, 1]} renderOrder={RENDER_ORDER.labels}>
       <spriteMaterial map={label.texture} sizeAttenuation={false} depthTest={false} depthWrite={false} transparent />
     </sprite>
   );
