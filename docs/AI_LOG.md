@@ -83,7 +83,9 @@
 | 2026-11-14 | Оля | Claude Code | Аудит доступності панелей (F7-AC2); прогін F7-AC1…AC5 у браузері на dev-сервері зі станами `reach`; правка текстів HUD | `specs/F7/**`, `src/features/hud/**` | `npm run check` зелений (72 тести); Playwright: усі 5 AC пройдено | #17 |
 | 2026-11-14 | Оля | Claude Code | HUD: рядок витрат чинного плану «Plan N s · N g O₂» (як на концепт-сторінці команди) | `src/features/hud/**` | `npm run check` зелений (74 тести); Chromium 400/1440 px без гор. скролу | #17 |
 | 2026-11-14 | Оля | Claude Code | Злиття `main` (F1, F4, F5) у `feat/F7`; наскрізна перевірка HUD на справжньому `reach` (Build route → 30 хв, +600 с → 20, O₂ −40% → 10, дефіцит); прибрано дублі попереджень F5 у HUD | `src/features/hud/**` | `npm run check` зелений (237 тестів); Playwright 400/1440: N у HUD = N у BudgetPanel, без помилок консолі | #17 |
-| 2026-11-14 | Оля | Claude Code | T9 (#45, F7-AC8): EVA-символіка `EvaSign` / `EvaSignShape` / `EvaLegend` у `src/ui`; план етапу 2 у spec | `src/ui/**`, `specs/F7/**` | `npm run check` зелений (430 тестів); знаки відрендерено в Chromium | — |
+| 2026-11-14 | Оля | Claude Code | T9 (#45, F7-AC8): EVA-символіка `EvaSign` / `EvaSignShape` / `EvaLegend` у `src/ui`; план етапу 2 у spec | `src/ui/**`, `specs/F7/**` | `npm run check` зелений (430 тестів); знаки відрендерено в Chromium | #53 |
+| 2026-11-14 | Оля | Claude Code | T11–T12 (#33, F7-AC6): «Point of no return» / «Return possible along the whole route» у HUD, аварійний запас з «assumption» | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (440 тестів); Chromium 400/1440 на справжній сітці Gale і F4/F5: «O₂ −40%» → «Point of no return in 2 min», без гор. скролу й помилок | #55 |
+| 2026-11-14 | Оля | Claude Code | T13–T14 (#44, F7-AC7): GO / NO-GO у HUD — вердикт, 8 станцій, дії виправлення, утримування 1,5 с для CAUTION, «Return to base now» під час виходу | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (468 тестів); Chromium 400/1440 на справжній сітці й F4/F5: HOLD → GO · CAUTION → утримування мишею і Space → NO-GO з одним alert, без гор. скролу й помилок | #55 |
 
 
 ## F8
