@@ -12,6 +12,20 @@
 | Доступність Location (аудит F7-AC2): усі точки — кнопки, Tab + Enter, картка без canvas — ✔, тест `#5 · доступність` у `SitePanel.test.tsx`. Скидання цілей після перельоту — стик з F6: пропозиція показувати цілі лише при `site = 'gale'` (у шляхах F6) | SPEC §7.7 | #5 | F6 |
 | Прогін демо за §3 | SPEC §3 | #36 | інтеграція сб 21:00 |
 
+## #80 · Масштаб глобуса (від F7)
+Колесо / тачпад (зокрема «щипок» macOS, `wheel` + `ctrlKey`), два пальці на телефоні й кнопки «Zoom in / Zoom out / Reset view». Гілка `feat/F1-zoom`.
+
+| # | Задача | Файли |
+|---|---|---|
+| Z1 | `zoom.ts`: `ZOOM_MIN = 0.7`, `ZOOM_MAX = 3`, `clampZoom(z, max)`, `wheelFactor(deltaY, deltaMode, ctrlKey)`, `pinchFactor(prev, next)`, `maxZoomFor({ scale, distance, radius })`; локальний zustand `useZoom` (`zoom`, `maxZoom`, `zoomBy`, `zoomIn/Out`, `reset`, `resetTick`) + тести | `globe/zoom.ts`, `zoom.test.ts` |
+| Z2 | `SitePanel`: кнопки «Zoom in», «Zoom out», «Reset view» (нативні `<button>`, ≥ 40 px), коли `site = null` і сцена змонтована; на межах — `disabled` + тести | `SitePanel.tsx`, `SitePanel.test.tsx` |
+| Z3 | `GlobeScene`: `scale * zoom`; `wheel` (`passive: false`) лише коли промінь влучає в сферу — інакше сторінка прокручується; два пальці — pointer-події на `gl.domElement`, під час «щипка» обертання скасовано; `invalidate()` на зміну; «Reset view» повертає й поворот | `GlobeScene.tsx` |
+
+Рішення:
+- **Верхня межа залежить від камери.** Камера F2 стоїть на відстані 3, а `fitScale` на десктопі дає 1, тож 3× завела б камеру всередину сфери. `maxZoom = min(3, 0.85 · distance / (radius · scale))` — на десктопі ≈ 2.4×, на 400 px (менший `fitScale`) — повні 3×. Кнопка «Zoom in» на межі вимикається.
+- Без WebGL (немає сцени) кнопки масштабу не показуємо — їм нічого масштабувати.
+- Числа 0.7 / 3 / крок 1.25 / чутливість колеса — UI-вибір, не дані.
+
 ## F1-AC6 · Жива карта — панель «Crew map notes» (#57, SPEC §7.12)
 Контракт — PR #56 (змерджено). Гілка `feat/F1-notes`, папка `src/features/notes/**`.
 

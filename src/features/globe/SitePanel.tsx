@@ -6,11 +6,37 @@ import { useGlobe } from './globeState';
 import { chooseSite, openGale } from './choose';
 import { FLY_MS } from './motion';
 import { GALE_ID, SITES, siteById, type Site } from './sites';
+import { ZOOM_MIN, useZoom } from './zoom';
 
 const listStyle = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 } as const;
 
 function formatLatLon({ latDeg, lonEastDeg }: Site): string {
   return `${Math.abs(latDeg).toFixed(2)}° ${latDeg < 0 ? 'S' : 'N'}, ${lonEastDeg.toFixed(2)}° E`;
+}
+
+const zoomBtnStyle = { minWidth: 40, minHeight: 40 } as const;
+
+/** #80: кнопки масштабу — для клавіатури й тих, хто без тачпада. */
+function ZoomControls() {
+  const zoom = useZoom((s) => s.zoom);
+  const maxZoom = useZoom((s) => s.maxZoom);
+  const { zoomIn, zoomOut, reset } = useZoom.getState();
+  return (
+    <div role="group" aria-label="Globe zoom" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <button type="button" style={zoomBtnStyle} onClick={zoomOut} disabled={zoom <= ZOOM_MIN + 1e-9} aria-label="Zoom out">
+        −
+      </button>
+      <button type="button" style={zoomBtnStyle} onClick={zoomIn} disabled={zoom >= maxZoom - 1e-9} aria-label="Zoom in">
+        +
+      </button>
+      <button type="button" style={zoomBtnStyle} onClick={reset}>
+        Reset view
+      </button>
+      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }} aria-live="polite">
+        {zoom.toFixed(1)}×
+      </span>
+    </div>
+  );
 }
 
 function SiteCard({ site }: { site: Site }) {
@@ -41,6 +67,7 @@ export function SitePanel() {
   const resetUi = useGlobe((s) => s.resetUi);
   const texture = useGlobe((s) => s.texture);
   const flying = useGlobe((s) => s.flying);
+  const sceneReady = useGlobe((s) => s.sceneReady);
 
   // F1-AC3: один таймер на перехід; пише в store рівно раз — у кінці. Skip / скасування прибирають його.
   useEffect(() => {
@@ -70,6 +97,7 @@ export function SitePanel() {
           </li>
         ))}
       </ul>
+      {site === null && sceneReady && <ZoomControls />}
       {flying && (
         <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <StatusNote level="info" live="status">

@@ -6,6 +6,7 @@ import { SitePanel } from './SitePanel';
 import { resetGlobe, useGlobe } from './globeState';
 import { SITES } from './sites';
 import { FLY_MS } from './motion';
+import { ZOOM_MIN, ZOOM_STEP, resetZoom, useZoom } from './zoom';
 
 beforeEach(() => {
   resetMission();
@@ -200,4 +201,53 @@ describe('#5 · доступність Location (аудит F7-AC2)', () => {
       expect(useMission.getState().site).toBeNull();
     },
   );
+});
+
+describe('#80 · кнопки масштабу', () => {
+  const zoomBtn = (name: string) => screen.getByRole('button', { name });
+  beforeEach(() => {
+    resetZoom();
+    useGlobe.setState({ sceneReady: true });
+  });
+
+  it('Given глобус (site = null) і сцена; Then є Zoom in / Zoom out / Reset view', () => {
+    render(<SitePanel />);
+    for (const n of ['Zoom in', 'Zoom out', 'Reset view']) expect(zoomBtn(n)).toBeInTheDocument();
+  });
+
+  it('When Enter на Zoom in, Space на Zoom out, Reset view; Then масштаб змінюється й скидається', async () => {
+    const user = userEvent.setup();
+    render(<SitePanel />);
+    zoomBtn('Zoom in').focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard('{Enter}');
+    expect(useZoom.getState().zoom).toBeCloseTo(ZOOM_STEP * ZOOM_STEP);
+    zoomBtn('Zoom out').focus();
+    await user.keyboard(' ');
+    expect(useZoom.getState().zoom).toBeCloseTo(ZOOM_STEP);
+    await user.click(zoomBtn('Reset view'));
+    expect(useZoom.getState().zoom).toBe(1);
+  });
+
+  it('на межах кнопки вимкнено: мінімум — Zoom out, верхня межа камери — Zoom in', () => {
+    useZoom.setState({ zoom: ZOOM_MIN });
+    const { rerender } = render(<SitePanel />);
+    expect(zoomBtn('Zoom out')).toBeDisabled();
+    act(() => useZoom.getState().setMaxZoom(1.2));
+    act(() => useZoom.getState().zoomBy(10));
+    rerender(<SitePanel />);
+    expect(zoomBtn('Zoom in')).toBeDisabled();
+    expect(zoomBtn('Zoom out')).toBeEnabled();
+  });
+
+  it('Given відкрито Gale або немає сцени (WebGL); Then кнопок масштабу немає', () => {
+    useMission.getState().setSite('gale');
+    const { unmount } = render(<SitePanel />);
+    expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
+    unmount();
+    useMission.getState().setSite(null);
+    useGlobe.setState({ sceneReady: false });
+    render(<SitePanel />);
+    expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
+  });
 });
