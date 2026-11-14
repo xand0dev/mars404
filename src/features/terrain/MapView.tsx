@@ -1,12 +1,19 @@
 // F2: єдиний R3F Canvas (frameloop="demand"): глобус F1 при site = null, рельєф Gale — інакше.
-// Без WebGL, після втрати контексту або з невалідною сіткою — 2D-план Б з причиною. У store нічого не пише.
+// Без WebGL, після втрати контексту або з невалідною сіткою — 2D-план Б з причиною.
+// У store пише лише addAnnotation — мітку екіпажу в режимі «Add mark» (F2-AC8, SPEC §7.12).
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { validateGrid } from '../../contracts/planning';
 import { mockModel } from '../../mocks';
 import { useMission } from '../../store/useMission';
-import { Panel, StatusNote } from '../../ui';
+import { EvaLegend, Panel, StatusNote } from '../../ui';
 import { useCameraMode } from './cameraStore';
+import { createMark, keyboardMarkPoint, visibleMarks } from './lib/marks';
+import { MarkGlyphIcon } from './MarkGlyph';
+import { MarkTools } from './MarkTools';
+import { useMarkTool } from './markStore';
+import { xyToCell } from '../../contracts/planning';
+import type { AnnotationKind, XY } from '../../contracts';
 import { FpsProbe, type FpsReport } from './FpsProbe';
 import { fpsEnabled } from './lib/fps';
 import { applyGlobeCamera } from './lib/camera';
@@ -124,6 +131,9 @@ export function MapView({ globe }: MapViewProps) {
   const base = useMission((s) => s.base);
   const position = useMission((s) => s.position);
   const mode = useCameraMode((s) => s.mode);
+  const annotations = useMission((s) => s.annotations);
+  const addAnnotation = useMission((s) => s.addAnnotation);
+  const adding = useMarkTool((s) => s.adding);
 
   const [webgl] = useState(hasWebGL);
   const [lost, setLost] = useState(false);
@@ -144,6 +154,33 @@ export function MapView({ globe }: MapViewProps) {
   const noReturnLines = useMemo(() => noReturn.runs.map((r) => r.points), [noReturn]);
   // Без перевіреного джерела для emergencyO2G на екрані «assumption» (§7.8).
   const emergencyAssumption = (region?.model ?? mockModel).evidence.emergencyO2G?.status !== 'verified';
+
+  const marks = useMemo(() => (valid ? visibleMarks(grid, annotations) : []), [valid, grid, annotations]);
+  // Точка неповернення (§7.8): початок першого відрізка без повернення.
+  const ponr = useMemo(() => {
+    const i = abort ? abort.segments.findIndex((x) => !x.ok) : -1;
+    return i >= 0 && plan ? (plan.segments[i]?.from ?? null) : null;
+  }, [abort, plan]);
+  const inReach = useMemo(
+    () => (xy: XY) => {
+      if (!mask || mask.length !== grid.width * grid.height) return true;
+      const c = xyToCell(grid, xy);
+      return c !== null && mask[c.index] === 1;
+    },
+    [mask, grid],
+  );
+  const place = (xy: XY) => {
+    const { kind, text, setMessage } = useMarkTool.getState();
+    const m = createMark(grid, xy, kind as AnnotationKind, text);
+    if (!m) {
+      setMessage('Outside the grid — mark not placed');
+      return;
+    }
+    addAnnotation(m);
+    setMessage(`${kind[0]!.toUpperCase()}${kind.slice(1)} mark added`);
+  };
+  const segmentPoint = keyboardMarkPoint(plan, selectedSegment);
+  const onPick = adding && valid ? place : null;
 
   const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
@@ -213,7 +250,7 @@ export function MapView({ globe }: MapViewProps) {
   const redrawKey = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- новий ключ на будь-яку зміну сцени
-    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode],
+    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode, marks, mask],
   );
 
   const plan2D = (r: PlanReason) =>
@@ -234,6 +271,10 @@ export function MapView({ globe }: MapViewProps) {
         plan={plan}
         selectedSegment={selectedSegment}
         base={base}
+        position={position}
+        ponr={ponr}
+        marks={marks}
+        onPick={onPick}
       />
     ) : (
       <StatusNote level="danger" live="alert">
@@ -268,7 +309,8 @@ export function MapView({ globe }: MapViewProps) {
           warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings, ...(noReturn.warning ? [noReturn.warning] : [])]}
         />
       )}
-      <div className="terrain-stage">
+      {site !== null && valid && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
+      <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
         {show3D ? (
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas
@@ -296,6 +338,9 @@ export function MapView({ globe }: MapViewProps) {
                       base={base}
                       position={position}
                       mode={mode}
+                      marks={marks}
+                      onPick={onPick}
+                      inReach={inReach}
                     />
                     {fps && <FpsProbe onReport={setFpsReport} />}
                   </>
@@ -316,6 +361,20 @@ export function MapView({ globe }: MapViewProps) {
           </p>
         )}
       </div>
+      {site !== null && valid && (
+        <div className="terrain-legend-eva">
+          <EvaLegend kinds={['base', 'target', 'astronaut', 'ponr']} size={16} />
+          <ul className="terrain-legend-marks" aria-label="Crew mark legend">
+            {(['impassable', 'hazard', 'note', 'plan'] as const).map((k) => (
+              <li key={k}>
+                <MarkGlyphIcon kind={k} size={16} label="" />
+                <span>{k === 'impassable' ? 'Impassable (route avoids)' : k === 'hazard' ? 'Hazard (route costs more)' : k === 'note' ? 'Note' : 'Plan'}</span>
+              </li>
+            ))}
+          </ul>
+          {marks.length > 0 && <p className="terrain-counter" style={{ margin: 0, fontWeight: 400 }}>{marks.length} crew mark{marks.length === 1 ? '' : 's'} on map</p>}
+        </div>
+      )}
     </Panel>
   );
 }
