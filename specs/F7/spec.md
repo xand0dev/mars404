@@ -62,8 +62,23 @@
 
 Порядок: T1 → … → T8. До сб 21:00 — T1–T4 на mocks; після F5 — перевірка на реальному `reach`.
 
+### Етап 2 (сб 16:00 →): символіка, Abort map, GO / NO-GO
+
+**Звірка з контрактом (`main` @ 3c2d160, #43).** Є все потрібне: `reach.abort: AbortPlan | null` (`segments[].ok`, `pointOfNoReturnS`, `emergencyO2G`), `model.emergencyO2G` + `model.evidence.emergencyO2G` (у mocks — `assumption`), `src/contracts/gonogo.ts` (`evaluateGoNoGo`, `StationCall`, `Fix`, `STATION_ORDER`, тести). Для символіки типу в контракті немає — її визначає F7 у `src/ui` (§7.11), тож issue `contract` не потрібен. Стор не змінюється.
+
+Порядок за дедлайнами: T9 (до 19:00, чекають F2 / F6) → T10 → T11–T12 → T13–T14.
+
+- **T9 · F7-AC8 символіка (#45), `src/ui/EvaSign.tsx`.** Один компонент `EvaSign` з `kind` = `base | target | hazard | nodata | astronaut | ponr | photo` і `state` для цілі (`selected | unselected | outside`) та небезпеки (`high | low`), `heading` для шеврона. Два способи вживання: `<EvaSign …/>` — окремий `<svg role="img" aria-label>` (HUD, списки, легенда); `<EvaSignShape x y size …/>` — `<g>` усередині чужого `<svg>` (2D-план F2). Форма = тип, заливка / контур / пунктир = стан, колір — лише токени й лише доповнює; NoData ніколи не кольору «прохідно». `EVA_SIGN_LABEL` — тексти `aria-label` англійською. Тести: кожен `kind × state` має свій `aria-label` і різну геометрію (форма не залежить від кольору); пропи лише додаються.
+- **T10 · легенда знаків** `EvaLegend` у `src/ui` — для HUD і щоб F2 / F6 могли показати ту саму легенду (F7-AC8 «однакові в HUD, списку цілей і легенді карти»). Підключення в їхні панелі — їхні PR; я напишу в #46 і F6, як імпортувати.
+- **T11 · F7-AC6 Point of no return (#33).** У `hudState` — поле `abort`: `null` → рядка немає; `pointOfNoReturnS = null` → ✔ «Return possible along the whole route»; інакше ◆! «Point of no return in N min», `N = formatMinutes(pointOfNoReturnS)`; `0` → «Point of no return: now». Біля — «Emergency O₂ N g», і «assumption», якщо `model.evidence.emergencyO2G.status ≠ 'verified'`. У HUD — знак `ponr` з T9.
+- **T12 · тести AC6** (red → green): `abort = null` → рядка немає; `null` → «Return possible…»; 1380 с → «in 23 min»; NaN → «—»; `assumption` видно / не видно залежно від `evidence`.
+- **T13 · F7-AC7 GO / NO-GO (#44), `features/hud/GoNoGo.tsx`.** Лише показ `evaluateGoNoGo(store)` (рахувати нічого): вердикт GO / GO · CAUTION / NO-GO / HOLD (іконка + слово, найкращий — «GO · within model», ніколи «safe») і список 8 станцій `STATION_ORDER` з причиною. Дії `Fix`: `select-targets` → порада, `build-route` → «Press “Build route”», `replace-target` → кнопка `replaceTarget(dropId, addId)`, `remove-target` → кнопка `toggleTarget(id)`, `return-now` → текст. Перед виходом (`time = 0`): GO → кнопка «Start EVA»; CAUTION → «Hold to confirm» 1,5 с (pointer і Space / Enter; відпустив — скасовано) → запис «Confirmed HH:MM:SS · CAUTION: RTN, ABT…» у HUD; NO-GO → кнопки немає, біля станцій дії; HOLD → наступна дія. Під час виходу (`time > 0`) NO-GO → «Return to base now» з `role="alert"` (один alert на сторінці). Reduced motion — без анімації заповнення; анімацію опитування станцій ріжемо першою.
+- **T14 · тести AC7** (red → green, `vi.useFakeTimers`): вердикт і 8 станцій для кожного виклику; утримування < 1,5 с не підтверджує, ≥ 1,5 с — підтверджує й пише час (миша і клавіатура); NO-GO перед виходом — без кнопки, з діями; дія `replace-target` викликає `replaceTarget`; під час виходу NO-GO → `alert`. Потім Playwright 400 / 1440 і на справжньому F5.
+- **T15 · перевірка, PR.** `npm run check`, браузер (dev-сервер, стани через store), AI_LOG, draft PR з `feat/F7` (AC6–AC8 → доказ); «Ready» — на твоє рішення.
+
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
-| F5 ще заглушка (`reach = null`) — HUD завжди «Calculating…»/порада | Влад | сб 21:00 | Тести на фікстурах `reach`; у UI бейдж MOCK |
-| «Тієї ж N, що й BudgetPanel» — обидва беруть `reach.returnInS`; хелпер `formatMinutes` у `src/ui` може взяти й F5 | Оля / Влад | сб 21:00 | F7 перевіряє тестом лише свій HUD |
+| Що саме робить «Start EVA» у store? У контракті немає «вихід почато»; «під час виходу» = `time > 0` | Олександр | до 19:00 | Кнопка лише пише підтвердження в HUD і переводить фокус на «Elapsed»; `time` рухає астронавт полем |
+| Запис підтвердження CAUTION живе лише в HUD (локальний стан) і зникає після перезавантаження — достатньо для демо? | Олександр | до 21:00 | Так, з підписом «not saved» |
+| Хто пише `position` (геопозиція, #20)? Впливає на точку неповернення під час виходу | Олександр | до 21:00 | Відлік від старту плану, як у §7.8 |

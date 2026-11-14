@@ -51,3 +51,20 @@ button[aria-pressed='true'] { border-color: var(--accent); }
 .ui-gauge--deficit meter::-webkit-meter-optimum-value, .ui-gauge--deficit meter::-webkit-meter-suboptimum-value { background: var(--danger); }
 .ui-gauge--deficit meter::-moz-meter-bar { background: var(--danger); }
 .ui-stub { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+/* EVA-символіка (SPEC §7.11): колір лише доповнює форму. */
+.eva-sign { display: inline-block; vertical-align: middle; flex: none; overflow: visible; color: var(--text); }
+.eva-sign .eva-sign__mark { fill: var(--bg); stroke: none; font-family: var(--font); }
+.eva-sign--target.eva-sign--unselected .eva-sign__mark,
+.eva-sign--target.eva-sign--outside .eva-sign__mark,
+.eva-sign--nodata .eva-sign__mark { fill: currentColor; }
+.eva-sign--base { color: var(--ok); }
+.eva-sign--target { color: var(--accent); }
+.eva-sign--target.eva-sign--outside { color: var(--warn); }
+.eva-sign--hazard { color: var(--warn); }
+.eva-sign--nodata { color: var(--text-muted); }
+.eva-sign--astronaut { color: var(--info); }
+.eva-sign--ponr { color: var(--danger); }
+.eva-sign--photo { color: var(--text); }
+.eva-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-small); color: var(--text-muted); }
+.eva-legend li { display: inline-flex; align-items: center; gap: 6px; }
