@@ -1,0 +1,22 @@
+.route-order { list-style: decimal inside; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.route-order li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.route-order li > span:first-child { overflow-wrap: anywhere; }
+.route-order__actions { display: flex; gap: 4px; flex-shrink: 0; }
+.route-order__actions button { min-width: var(--touch); padding: 0; }
+.route-build { width: 100%; margin: 4px 0; font-weight: 600; border-color: var(--accent); }
+.route-profile { margin: 8px 0; }
+.route-profile svg { width: 100%; height: 80px; display: block; background: var(--surface-2); border-radius: 6px; }
+.route-profile__line { fill: none; stroke: var(--info); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.route-profile__selected { stroke: #ff4fd8; stroke-width: 4; vector-effect: non-scaling-stroke; }
+.route-profile__hit { fill: transparent; cursor: pointer; }
+.route-profile__hit:hover { fill: rgb(255 255 255 / 0.08); }
+.route-profile figcaption { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.route-details { font-size: 0.9rem; margin: 4px 0; overflow-wrap: anywhere; }
+.route-table { max-height: 220px; overflow: auto; border-radius: 6px; }
+.route-table table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.route-table caption { text-align: left; color: var(--text-muted); font-size: 0.8rem; padding-bottom: 4px; }
+.route-table th, .route-table td { padding: 2px 6px; text-align: right; white-space: nowrap; }
+.route-table th { position: sticky; top: 0; background: var(--surface); }
+.route-table tr[aria-selected='true'] { background: rgb(255 79 216 / 0.18); }
+.route-table td button { min-height: 32px; min-width: var(--touch); }
+.route-count { margin: 0 0 4px; color: var(--text-muted); font-size: 0.85rem; }
