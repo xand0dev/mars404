@@ -58,7 +58,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
 
   return (
     <GloveContext.Provider value={glove}>
-      <div className={`shell${glove ? ' shell--glove' : ''}`}>
+      <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}`}>
         <header className="shell__bar">
           <div className="shell__brand">
             <h1 className="shell__title">MARS::404 · Gale EVA planner</h1>
