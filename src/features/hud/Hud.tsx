@@ -77,6 +77,11 @@ export function Hud() {
         </div>
         <p className="hud__left">
           Time left {formatAmount(input.budget.time, 's')} · O₂ left {formatAmount(input.budget.o2, 'g')}
+          {input.plan?.status === 'ok' && (
+            <span className="hud__plan">
+              {' '}· Plan {formatAmount(input.plan.totals.time, 's')} · {formatAmount(input.plan.totals.o2, 'g')} O₂
+            </span>
+          )}
         </p>
       </div>
     </Panel>

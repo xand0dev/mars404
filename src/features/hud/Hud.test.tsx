@@ -106,4 +106,17 @@ describe('F7 · Hud', () => {
     render(<Hud />);
     expect(screen.queryByText('Calculating route…')).toBeNull();
   });
+
+  it('витрати чинного плану видно в HUD: «Plan 900 s · 180 g O₂» (як на концепті)', () => {
+    withPlan(reach());
+    render(<Hud />);
+    expect(screen.getByText(/Plan 900 s · 180 g O₂/)).toBeInTheDocument();
+  });
+
+  it('без чинного плану рядка витрат немає', () => {
+    withPlan(reach());
+    useMission.setState({ plan: { ...okPlan, status: 'pending' } });
+    render(<Hud />);
+    expect(screen.queryByText(/^Plan /)).toBeNull();
+  });
 });
