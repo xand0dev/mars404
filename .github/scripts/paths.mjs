@@ -19,7 +19,7 @@ export const FEATURES = {
   F5: { owner: 'Влад', nick: 'froozy3', title: 'Бюджет і повернення', allow: ['src/features/budget/**', 'src/core/**'] },
   F6: { owner: 'Настя', nick: 'Bulka0801', title: 'Наукові цілі й фото', allow: ['src/features/science/**', 'src/features/prep/**', 'public/data/gale/targets*', 'public/data/gale/photos/**'] },
   F7: { owner: 'Оля', nick: 'oljyaaa', title: 'UI, HUD, дизайн-токени', allow: ['src/features/hud/**', 'src/ui/**'] },
-  F8: { owner: 'Олександр', nick: 'xand0dev', title: 'Демо й сабміт', allow: ['docs/demo/**', 'docs/submission/**', 'README.md'] },
+  F8: { owner: 'Оля', nick: 'oljyaaa', title: 'Демо й сабміт', allow: ['docs/demo/**', 'docs/submission/**', 'README.md'] },
 };
 
 /** Явно спільні (SPEC §5.3); будь-який невказаний шлях — теж спільний. */

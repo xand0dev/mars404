@@ -500,7 +500,7 @@ export interface ChecklistItem { id: string; label: string; reason: string; done
 | F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds, annotations | `setBudget`, `setReach`, `setLimits` |
 | F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `src/features/prep/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach, grid, plan, photos, checklist | `toggleTarget`, `setChecklist`, `toggleChecklistItem` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
-| F8 Демо й сабміт | Олександр | xand0dev | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
+| F8 Демо й сабміт | Оля | oljyaaa | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
 Кожній фічі F1–F8 (і F0) також дозволено: `specs/F<N>/**`, свій розділ у `docs/AI_LOG.md` і `docs/SOURCES.md`. **Тести лежать поруч із кодом** у своїй папці (`*.test.ts(x)`).
 
@@ -588,7 +588,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F7-AC8. Given** `src/ui`; **When** використано знаки §7.11; **Then** є компонент знака для кожного типу й стану з `aria-label`, і знаки однакові в HUD, списку цілей і легенді карти.
 - **F7-AC9. Given** увімкнено «Glove mode»; **When** відкрито сторінку на 1024 px і 400 px; **Then** усі кнопки й поля ≥ 64 px заввишки, вердикт GO / NO-GO і «Return in» видно без прокрутки, другорядні панелі згорнуті, горизонтального скролу немає; стан перемикача переживає перезавантаження.
 
-### F8 — Демо й сабміт (Олександр)
+### F8 — Демо й сабміт (Оля)
 Сценарій і відео ≤30 с з англійськими субтитрами, ≤7 слайдів (з Олею), сторінка сабміту, AI_LOG, SOURCES, релізний URL.
 - **F8-AC1. Given** релізний build; **When** відтворено сценарій §3; **Then** відео ≤30 с з англійськими субтитрами показує Gale, ≥3 типи даних, ціль з фото, маршрут, знімок «View from here», «O₂ −40%», ореол, червоні відрізки й «Point of no return», «Return in N min», заміну цілі й плашку обмежень.
 - **F8-AC2. Given** мережу вимкнено після локального запуску (`npm run preview`); **When** пройдено сценарій; **Then** усі дані локальні, а резервне відео відтворюється офлайн.
