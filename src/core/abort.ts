@@ -1,15 +1,11 @@
 // Abort map і точка неповернення (SPEC §7.8): з кінця якого відрізка плану можна дійти до бази з аварійним запасом O₂.
-import type { ModelCoefficients, PlanningGrid, Resources, RoutePlan } from '../contracts';
+import type { AbortPlan, ModelCoefficients, PlanningGrid, Resources, RoutePlan } from '../contracts';
 import { xyToCell } from '../contracts/planning';
 import { fitsWithin } from './budget';
 import type { CostTree } from './cost-tree';
 
-// TODO(#26): після мержу контракту — тип AbortPlan із src/contracts, emergencyO2G з model.
-export interface AbortAssessment {
-  segments: { returnS: number | null; ok: boolean }[];
-  pointOfNoReturnS: number | null;
-  emergencyO2G: number;
-}
+/** Тип результату — AbortPlan з контракту (#26). */
+export type AbortAssessment = AbortPlan;
 
 export interface AbortInput {
   plan: RoutePlan | null;
