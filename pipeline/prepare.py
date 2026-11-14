@@ -27,8 +27,11 @@ SPEED_MPS = 1.0
 # Аварійний запас O₂ (SPEC §7.6): SOP скафандра EMU — мінімум 30 хв; грами = 1800 с × o2GPerS.
 EMERGENCY_O2_MIN = 30
 LIMIT_TIME_S = 3600
-# limits.o2 = 1 год ходьби × витрата Apollo (той самий принцип, що 720 г = 0.2 × 3600 у SPEC §7.4) — assumption.
-LIMIT_O2_G = round(O2_G_PER_S * LIMIT_TIME_S)
+RESERVE_FRACTION = 0.2
+# limits.o2 = година ходьби з витратою Apollo після резерву 20 %: 0.031 × 3600 / 0.8 ≈ 140 г — assumption (рішення #20 14:11, #64).
+LIMIT_O2_G = round(round(O2_G_PER_S * LIMIT_TIME_S) / (1 - RESERVE_FRACTION))  # 112 / 0.8 = 140
+# Аварійний запас округлено до грама, як у рішенні #20 і розрахунках F5 (1800 × 0.031 = 55.8 → 56).
+EMERGENCY_O2_G = round(EMERGENCY_O2_MIN * 60 * O2_G_PER_S)
 JONES_URL = 'https://www.osti.gov/servlets/purl/7168757'
 EMU_SOP_URL = 'https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf'
 # Тексти легенд THEMIS: лише те, що сказано в описі продукту Trek.
@@ -198,25 +201,25 @@ def build(cache):
         *thermal_sources,
         src('hazard-from-slope', 'Hazard derived from slope', 'assumption', f"hazard = min(1, slopeDeg / {HAZARD_MODEL['slopeDegAtMax']}) x {HAZARD_MODEL['maxHazard']}; NoData = 1. Test coefficients, not measured hazard."),
         src('base-assumption', 'Habitat base', 'assumption', f"Walkable cell nearest to bbox centre (lon {cfg.CENTER[0]}, lat {cfg.CENTER[1]}, centroid of F6 targets); not a real habitat site."),
-        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'verified',
+        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'assumption',
             f'"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr"; "1560 BTU/hr at 3.5 km/hr" -> ~113 g/h = {O2_G_PER_S} g/s (o2GPerS). '
-            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.',
+            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).',
             JONES_URL, 'LA-UR-89-3858', 'E. M. Jones, Apollo Lunar Surface Journal', '2026-11-14'),
         src('emu-sop-30min', 'Emergency O2 reserve (EMU Secondary Oxygen Package)', 'verified',
             f'NASA EVA overview (NTRS 20140009556): the EMU SOP "provides a minimum of {EMERGENCY_O2_MIN} minutes of emergency O2". '
-            f'Grams = {EMERGENCY_O2_MIN * 60} s x {O2_G_PER_S} g/s = {round(EMERGENCY_O2_MIN * 60 * O2_G_PER_S, 1):g} g. ISS suit, not a Mars suit.',
+            f'Grams = {EMERGENCY_O2_MIN * 60} s x {O2_G_PER_S} g/s = {EMERGENCY_O2_MIN * 60 * O2_G_PER_S:.1f} -> {EMERGENCY_O2_G} g. ISS suit, not a Mars suit.',
             EMU_SOP_URL, 'NTRS 20140009556', 'NASA', '2026-11-14'),
         src('model-assumption', 'Walk model coefficients', 'assumption', 'uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5).'),
-        src('limit-time-assumption', 'EVA time limit', 'assumption', f'{LIMIT_TIME_S} s demo limit (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556).'),
-        src('limit-o2-assumption', 'O2 available for this EVA', 'assumption', f'{LIMIT_O2_G} g = 1 h of walking x Apollo rate ({O2_G_PER_S} g/s x {LIMIT_TIME_S} s), same principle as SPEC §7.4; decision #20.'),
-        src('limit-energy-assumption', 'Suit energy limit', 'assumption', '600 Wh; not set in SPEC, no source.'),
-        src('limit-dose-assumption', 'Radiation dose limit', 'assumption', 'Unknown -> null -> budget status incomplete (SPEC §7.6); no point dose is spread over the map.'),
+        src('limit-time-assumption', 'EVA time limit', 'assumption', f'{LIMIT_TIME_S} s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556).'),
+        src('limit-o2-assumption', 'O2 available for this EVA', 'assumption', f'{LIMIT_O2_G} g: 1 h of walking at the Apollo rate after the {round(RESERVE_FRACTION * 100)}% reserve ({O2_G_PER_S} g/s x {LIMIT_TIME_S} s / {1 - RESERVE_FRACTION:g} = {round(O2_G_PER_S * LIMIT_TIME_S)} / {1 - RESERVE_FRACTION:g}); decision #20.'),
+        src('limit-energy-assumption', 'Suit energy limit', 'assumption', '600 Wh; not set in SPEC.'),
+        src('limit-dose-assumption', 'Radiation dose limit', 'assumption', 'No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6).'),
     ]
     by_id = {s['id']: s for s in sources}
-    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None, maxSlopeDeg=25, hazardWeight=0.5, reserveFraction=0.2)
+    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None, maxSlopeDeg=25, hazardWeight=0.5, reserveFraction=RESERVE_FRACTION)
     evidence = {key: by_id['model-assumption'] for key in model_vals}
     evidence.update(speedMps=by_id['jones-apollo-walk'], o2GPerS=by_id['jones-apollo-walk'], emergencyO2G=by_id['emu-sop-30min'])
-    model = dict(model_vals, emergencyO2G=round(EMERGENCY_O2_MIN * 60 * O2_G_PER_S, 3), evidence=evidence)
+    model = dict(model_vals, emergencyO2G=EMERGENCY_O2_G, evidence=evidence)
     limits = dict(time=LIMIT_TIME_S, o2=LIMIT_O2_G, energy=600, dose=None)
     limits_evidence = {k: by_id[f'limit-{k}-assumption'] for k in limits}
     lo, hi = math.floor(min(finite_e)), math.ceil(max(finite_e))
