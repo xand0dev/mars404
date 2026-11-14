@@ -1,6 +1,6 @@
 // Чисте ядро координат (SPEC §7.1–7.2). Без React і стану.
-import type { Annotation, PlanningGrid, Region, XY } from './index';
-import { METERS_PER_DEG, VERTICAL_EXAGGERATION } from './index';
+import type { Annotation, PlanningGrid, Region, RegionKind, SiteId, XY } from './index';
+import { METERS_PER_DEG, SITE_IDS, VERTICAL_EXAGGERATION } from './index';
 
 type GridShape = Pick<PlanningGrid, 'width' | 'height' | 'metersPerPixel' | 'originM'>;
 
@@ -79,6 +79,16 @@ export function validateGrid(grid: PlanningGrid): string[] {
   return errors;
 }
 
+/** Режим району: немає поля — 'eva'. */
+export function regionKind(region: Pick<Region, 'kind'> | null | undefined): RegionKind {
+  return region?.kind === 'overview' ? 'overview' : 'eva';
+}
+
+/** Чи рядок — відомий SiteId (для імпорту файлів і URL). */
+export function isSiteId(v: unknown): v is SiteId {
+  return typeof v === 'string' && (SITE_IDS as readonly string[]).includes(v);
+}
+
 /** URL файлу даних через Vite BASE_URL (працює на GitHub Pages і офлайн). */
 export function dataUrl(path: string): string {
   const base = import.meta.env.BASE_URL ?? './';
@@ -117,4 +127,9 @@ export function applyAnnotations(grid: PlanningGrid, annotations: readonly Annot
 function xyToCellUnbounded(grid: Pick<PlanningGrid, 'metersPerPixel' | 'originM'>, [x, y]: XY): { row: number; col: number } {
   const [ox, oy] = grid.originM;
   return { col: Math.floor((x - ox) / grid.metersPerPixel), row: Math.floor((oy - y) / grid.metersPerPixel) };
+}
+
+/** URL файлу району: `data/<site>/<path>`. */
+export function siteDataUrl(site: SiteId, path: string): string {
+  return dataUrl(`${site}/${path.replace(/^\/+/, '')}`);
 }
