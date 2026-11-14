@@ -6,11 +6,11 @@
 ## Нові задачі (14.11): Abort map + «View from here»
 План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
 
-| Задача | AC / правило | Issue | Залежить від |
+| Задача | AC / правило | Issue | Стан |
 |---|---|---|---|
-| `DataLoader`: `region.files.photos` → `setRegionData({ …, photos })`, поза сіткою — відкинути з попередженням | F3-AC5, §6.0 | #35 | #26, #34 |
-| `region.json`: `model.emergencyO2G` з `evidence` (без джерела — `assumption`) | F3-AC5, §7.6 | #35 | #26, #31 |
-| Перевірити, що демо-цілі в ореолі (≈19.5 % реальної сітки) і є одна ближня для заміни | §12 | #35 | F6 цілі |
+| `DataLoader`: `region.files.photos` → `setRegionData({ …, photos })`, поза сіткою — відкинути з попередженням | F3-AC5, §6.0 | #35 | ✅ #23, #51 |
+| `region.json`: `model.emergencyO2G` з `evidence` (без джерела — `assumption`) | F3-AC5, §7.6 | #35, #64 | ✅ #23, #63, #67, #70 |
+| Перевірити, що демо-цілі в ореолі і є одна ближня для заміни | §12 | #35 | ✅ ореол 46.9 % сітки, 7/8 цілей (поза ним `nontron-drill`, схил 29.7°), найближча — `brantome`, 265 м (#20) |
 
 ## Мета й обсяг
 Pipeline у Docker вивантажує bbox (§8), рахує схил, walkable і hazard, валідує й пише `public/data/gale/`. `DataLoader` вантажить пакет і викликає `setRegionData`. `LayersPanel` перемикає шари й показує легенду та походження.
@@ -27,6 +27,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F3-AC2. Given** пакет Gale; **When** відкрито район; **Then** `grid` у store — реальна сітка (не mock), статус «verified», а висоти лежать у діапазоні, який повертає `exportImage` для bbox.
 - **F3-AC3. Given** панель шарів; **When** перемикаються terrain, optical, thermal, slope, traverse (мишею чи клавіатурою); **Then** кожен шар має легенду з текстом, одиниці й рядок походження (product ID/URL, нативна й цільова роздільність, метод, credit).
 - **F3-AC4. Given** файл шару відсутній або має інший розмір сітки; **When** вантажиться район; **Then** видно помилку саме цього шару, решта UI працює, а битий шар не потрапляє в `grid`. Якщо бита сама сітка — лишається mock з бейджем.
+- **F3-AC5. Given** `region.files.photos` і `photos.geojson`; **When** вантажиться район; **Then** `photos` у store мають `coordinates` з `lonLatToXY`, знімки поза сіткою відкинуто з попередженням; без файла — `photos = []`. `region.json` має `model.emergencyO2G` з `evidence` (без джерела — `assumption`).
 
 ## Правила, на які спирається
 `docs/SPEC.md` §5.2 (обмін), §6 (контракти), §7 (обчислення), §7.6 (чесність даних), §7.7 (доступність). Еталонні числа — `src/mocks` (`REFERENCE_*`).
@@ -55,19 +56,36 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - [x] T5 Тести AC2 і AC4 → `DataLoader`: вантажить пакет, перевіряє сітку й кожен шар окремо, `targets.geojson` → `lonLatToXY`, `setRegionData` лише для актуального `site`. Бита сітка → mock з бейджем.
 - [x] T6 Тести AC3 → `LayersPanel`: 5 шарів (terrain, optical, thermal, slope, traverse), `aria-pressed` → `toggleLayer`, легенда текстом, одиниці, походження (product ID/URL, нативна й цільова роздільність, метод, credit), статус словом.
   - 14.11: `loadRegion.ts` (чиста функція) + `DataLoader` + локальний `dataStatus`. Бита висота чи walkable → mock із причиною; битий slope/hazard → NaN (клітинки заблоковані) і помилка шару; бита накладка, текстура чи траверс → лише помилка шару. Відсутній `targets.geojson` (F6 ще не додала) → `targets = []` і попередження. Vite і SPA-fallback віддають `index.html` зі статусом 200 → `httpGet` вважає це відсутнім файлом.
-  - AC5 (#35): `photos.geojson` парситься (`lonLatToXY`, поза сіткою — попередження) і передається в `setRegionData`; store прийме `photos` після contract-PR #26 (до того — локальний тип `LoadedPhoto` з TODO). `model.emergencyO2G` з evidence (NTRS 20140009556); з рішенням #20 — 56 г (30 хв × 0.031 г/с, verified), `limits.o2 = 140` г (#64) і `limitsEvidence` (assumption). Перевірку «демо-цілі в ореолі» можна зробити лише після `targets.geojson` від F6.
+  - AC5 (#35): `photos.geojson` парситься (`lonLatToXY`, поза сіткою — попередження) і передається в `setRegionData`; `photos` ідуть у store через `setRegionData` (контракт #43, тип `SurfacePhoto`). `model.emergencyO2G` з evidence (NTRS 20140009556); з рішенням #20 — 56 г (30 хв × 0.031 г/с, verified), `limits.o2 = 140` г (#64) і `limitsEvidence` (assumption). Модель за рішенням #20: `o2GPerS = 0.031`, `speedMps = 1.0` (`jones-apollo-walk`, assumption — Apollo, Місяць → Марс).
 - [x] T7 `npm run check`, браузер 400 px і десктоп, скриншоти, таблиця AC → доказ у PR, рядок у `docs/AI_LOG.md`, джерела в `docs/SOURCES.md`.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
-| Docker і GDAL локально не встановлені — як запускати pipeline для AC1? | Максим | сб 12:00 | `exportImage` у сирому форматі (bip/bsq, перевірити) читається без GDAL; Docker — для відтворюваності |
-| Bbox навколо Curiosity: NoData <5% і ≥5 зупинок з фото? | Максим, Настя | сб 14:00 | перевірений bbox 137.400–137.422 / −4.750…−4.728 |
-| База (хабітат) у bbox | Максим, Настя | сб 14:00 | центр прохідної клітинки, assumption |
-| Коефіцієнти hazard від схилу | Максим, Влад | сб 21:00 | малі коефіцієнти, assumption на екрані |
+| Docker і GDAL локально не встановлені — як запускати pipeline для AC1? | Максим | сб 12:00 | ✅ закрито: Docker 29.9.3, `prepare` двічі → однакові SHA256SUMS |
+| Bbox навколо Curiosity: NoData <5% і ≥5 зупинок з фото? | Максим, Настя | сб 14:00 | ✅ закрито: bbox B (#7), 8/8 цілей і 8 фото F6 на сітці |
+| База (хабітат) у bbox | Максим, Настя | сб 14:00 | ✅ закрито: прохідна клітинка біля центроїда цілей, assumption |
+| Коефіцієнти hazard від схилу | Максим, Влад | сб 21:00 | ✅ закрито: `assumption-hazard` у SOURCES ## F5, на екрані — статус assumption |
 
 ## Перевірка в браузері (14.11)
 Edge через Playwright, dev-сервер, 1440×900 і 400×860. Відкрито Gale → «Real grid 256×256 · 10 m/cell · verified», 6 шарів; Thermal IR night вмикається мишею (`aria-pressed=true`), Slope — Enter і пробіл; кнопки 40 px; на 400 px немає горизонтального скролу. У консолі лише очікувані попередження «No targets/photos file yet».
 - `screenshots/f3-desktop-gale.png` — реальний рельєф, ореол, blocked.
 - `screenshots/f3-desktop-top-thermal-traverse.png` — THEMIS night + траверс, вид Top.
 - `screenshots/f3-mobile400-layers-panel.png` — панель шарів на 400 px.
+
+## Перевірка на Pages (14.11, після #70)
+Edge через Playwright, https://xand0dev.github.io/mars404/, 1440×900 і 400×860.
+
+| AC | Доказ |
+|---|---|
+| AC1 | Docker `prepare` двічі → однакові `SHA256SUMS` (#23, #63, #67, #70); `package.test.ts` перевіряє схему, розміри, NoData |
+| AC2 | «Real grid 256×256 · 10 m/cell · verified»; станція DAT у GO / NO-GO — «GO · Gale terrain verified»; `loadRegion.test.ts` |
+| AC3 | 6 шарів (terrain, optical, thermal night/day, slope, traverse) вмикаються мишею, `aria-pressed` false → true, кнопки 40 px; 6 легенд, 6 рядків походження з посиланням; клавіатура — `LayersPanel.test.tsx` |
+| AC4 | `loadRegion.test.ts`, `DataLoader.test.tsx`, `LayersPanel.test.tsx` (битий шар, бита сітка → mock); на Pages «Layer failed» — 0 |
+| AC5 | 8/8 цілей і 8/8 фото F6 у межах сітки, блоку попереджень немає; усі 8 JPEG віддаються (200, image/jpeg); `region.json`: `emergencyO2G = 56` (`emu-sop-30min`), `limits.o2 = 140` з `limitsEvidence` |
+| Демо §3 | HUD «O₂ left 140 g»; Mont Mercou + Gardonne → Build route → 23 min; «O₂ −40%» → 11 min, 45/110 «no return», «Point of no return in 13 min» (dev-сервер, 1440 і 400 px) |
+
+Горизонтального скролу немає. Єдина 404 у консолі — `/favicon.ico` у корені домену (`index.html`, не F3).
+- `screenshots/f3-pages-desktop-slope.png` — Pages, шар Slope увімкнено.
+- `screenshots/f3-pages-mobile400.png` — Pages, 400 px.
+- `screenshots/f3-*-o2-40-demo.png` — Resources після «O₂ −40%».
