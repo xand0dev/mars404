@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { assessReach, buildReachTrees, emptyPlan, planRoute } from '../../core';
 import type { Annotation, Region, Source } from '../../contracts';
@@ -219,6 +219,58 @@ describe('BudgetEngine + BudgetPanel', () => {
       ).reach.abort;
       expect(expected).not.toEqual(plainAbort);
       expect(store().reach?.abort).toEqual(expected);
+    });
+  });
+
+  describe('Life support: головне число, статус словом, що обмежує', () => {
+    const lifeStatus = () => screen.getByTestId('life-support-status').textContent;
+    const resourceStatus = (key: string) => screen.getByTestId(`resource-status-${key}`).textContent;
+    const planWith = (o2: number) => ({ ...emptyPlan('ok', 1), totals: { time: 900, o2, energy: 10, dose: null, dist: 900 } });
+
+    it('у базі без цілей — «Life support», «WITHIN MODEL», ресурси OK, доза NO DATA', () => {
+      renderBudget();
+      expect(screen.getByText('Life support')).toBeInTheDocument();
+      expect(lifeStatus()).toBe('WITHIN MODEL');
+      expect(resourceStatus('o2')).toBe('OK');
+      expect(resourceStatus('time')).toBe('OK');
+      expect(resourceStatus('dose')).toBe('NO DATA');
+    });
+
+    it('запас < 15 хв (поріг GO / NO-GO, SPEC §7.10) — «LOW MARGIN»', () => {
+      renderBudget();
+      act(() => store().setTime(2300));
+      expect(screen.getByText('Return in 9 min')).toBeInTheDocument();
+      expect(lifeStatus()).toBe('LOW MARGIN');
+    });
+
+    it('дефіцит — «RETURN NOW» і «DEFICIT» на ресурсі', () => {
+      renderBudget();
+      act(() => store().setTime(3500));
+      expect(lifeStatus()).toBe('RETURN NOW');
+      expect(resourceStatus('time')).toBe('DEFICIT');
+    });
+
+    it('чинний план — «limited by: time»; після «O₂ −40%» — «limited by: O₂»', async () => {
+      renderBudget();
+      act(() => store().toggleTarget('mock-a'));
+      act(() => store().setPlan(planWith(50)));
+      expect(screen.getByText('limited by: time')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+      expect(screen.getByText('limited by: O₂')).toBeInTheDocument();
+    });
+
+    it('сценарії підписані «What if»', () => {
+      renderBudget();
+      const whatIf = screen.getByRole('group', { name: 'What if' });
+      expect(within(whatIf).getByRole('button', { name: 'O₂ −40%' })).toBeInTheDocument();
+      expect(within(whatIf).getByRole('button', { name: 'Reset' })).toBeInTheDocument();
+    });
+
+    it('невалідна модель — «NOT ASSESSED»', () => {
+      renderBudget();
+      act(() => useMission.setState({ model: { ...mockModel, speedMps: 0 } }));
+      expect(lifeStatus()).toBe('NOT ASSESSED');
     });
   });
 });

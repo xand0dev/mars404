@@ -3,3 +3,22 @@
 .budget-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 
 .budget-evidence { margin: -4px 0 6px; font-size: 0.8em; color: var(--warn); }
+
+/* Life support: головне число, статус словом, ресурси зі словом стану. Колір лише доповнює слово (SPEC §7.7). */
+.life-hero { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px var(--space-3, 12px); padding: var(--space-3, 12px); margin-bottom: var(--space-2, 8px); border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius, 10px); background: var(--surface-2, transparent); }
+.life-hero--ok { border-left-color: var(--ok); }
+.life-hero--warn { border-left-color: var(--warn); }
+.life-hero--danger { border-left-color: var(--danger); background: var(--deficit-bg, transparent); }
+.life-hero--info { border-left-color: var(--info); }
+.life-hero .budget-return { grid-column: 1; margin: 0; font-size: clamp(1.35rem, 6vw, 1.9rem); line-height: 1.1; white-space: nowrap; }
+.life-hero__status { grid-column: 2; grid-row: 2; }
+.life-label { grid-column: 1 / -1; margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.life-limited { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+.life-word { justify-self: end; padding: 2px 8px; border: 1px solid currentColor; border-radius: 999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
+.life-word--ok { color: var(--ok); }
+.life-word--warn { color: var(--warn); }
+.life-word--danger { color: var(--danger); }
+.life-word--info { color: var(--info); }
+.life-resource { margin-bottom: var(--space-2, 8px); }
+.life-resource__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-2, 8px); }
+.budget-actions .life-label { align-self: center; grid-column: auto; }
