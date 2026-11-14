@@ -87,6 +87,16 @@ describe('F7 · Hud', () => {
     expect(screen.getByRole('spinbutton', { name: 'Elapsed, s' })).toHaveFocus();
   });
 
+  it('F7-AC5: «Replace» у станції GO / NO-GO теж переводить фокус на «Elapsed»', async () => {
+    const user = userEvent.setup();
+    withPlan(reach({ returnInS: -60, deficits: ['o2'], swap: { dropId: 'mock-a', addId: 'mock-d' } }));
+    render(<Hud />);
+    const fix = screen.getAllByRole('button', { name: /fix: Replace MOCK Site A with MOCK Site D$/ })[0]!;
+    await user.click(fix);
+    expect(useMission.getState().selectedTargetIds).toEqual(['mock-d', 'mock-b']);
+    expect(screen.getByRole('spinbutton', { name: 'Elapsed, s' })).toHaveFocus();
+  });
+
   it('F7-AC5: swap = null → кнопки немає, є порада', () => {
     withPlan(reach({ returnInS: -60, deficits: ['o2'] }));
     render(<Hud />);

@@ -43,6 +43,7 @@
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC7 / F2-AC8 (#46, #58, #73): мітки екіпажу на 3D і 2D, режим «Add mark», EVA-знаки й легенда на 2D | src/features/terrain/* | npm run check (502 тести); браузер 1440 px: клік по рельєфу ставить мітку, ?2d — знаки й легенда, без помилок у консолі | feat/F2-marks |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Рев'ю 14.11: підписи цілей у 3D без накладань — текст лише в обраних і наведеної цілі, злиплі на екрані підписи сходинками вгору (`lib/labels.ts`) | src/features/terrain/* | npm run check (577 тестів); браузер 1440 px, Gale, 3 цілі: Orbit і Top — підписи не накладаються | feat/F2-labels |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F2-AC5: 60-секундний замір FPS на Pages, усі шари + маршрут | specs/F2/spec.md | медіана 120 FPS @ 1440×900 @2x, M5 Pro; камеру не рухали | feat/F2-fps |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Інтеграція 21:00: підпис обраного відрізка в розкладці підписів 3D — не перекриває цілі | src/features/terrain/TerrainScene.tsx | npm run check (610); браузер 1440 px: Segment 41, Brantôme, Mont Mercou, Base — окремо | fix/replace-focus-seglabel |
 
 ## F3
 
@@ -112,7 +113,7 @@
 | 2026-11-14 | Олександр (замість Олі) | Claude Code / Opus | T22–T29: UI-редизайн «пульт місії» — токени, однакові заголовки й бейджі, Panel згортається в правій колонці (відкрита панель кроку), сітка Shell (sticky HUD ≥ 1200, карта головна, Route \| Resources під картою), HUD однією смугою, станції GO / NO-GO — чипи; вирівнювання чужих css під токени (фокус 3 px, кнопки таблиці маршруту 40 px) | `src/ui/**`, `src/features/hud/**`, `src/features/*/*.css`, `specs/F7/**` | `npm run check` зелений (590 тестів); браузер 400 / 768 / 1024 / 1440, звичайний і glove: `scrollWidth ≤ clientWidth`, усі цілі ≥ 40 / 64 px, «Return in» — найбільший текст; скріни `specs/F7/screens/ui-*` | #85 |
 | 2026-11-14 | Олександр | Claude Code / Opus | Візуальний стиль «пульт керування польотом»: холодний графіт, тонкі лінії, прямі кути, IBM Plex Sans / Mono, табло станцій GO / NO-GO, показ «RETURN IN N MIN» як прилад, кадр рельєфу; контурні дії в списках | `src/ui/tokens.css`, `src/features/hud/*.css`, `src/features/terrain/terrain.css`, `index.html` | `npm run check` зелений (609); браузер 1440 і 400, звичайний і glove: без гор. скролу, цілі ≥ 40 / 64 px | — |
 | 2026-11-14 | Олександр | Claude Code / Opus | Рев'ю UI (1440 / 400): рельєф на весь кадр (`ORBIT_ZOOM`), рядок цілі — один рядок із компактною дією, назва — текст-посилання; «Return in» у Resources — рядком; порожнє «—» у HUD приглушене; ⏳ — текстовий гліф; ноги маршруту — «OK» праворуч; інструменти міток під картою | `src/ui/tokens.css`, `src/features/{hud,terrain,budget}/**` | `npm run check` зелений (609); браузер 1440 і 400: без гор. скролу, цілі ≥ 40 px | — |
-
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Інтеграція 21:00: «Replace» / «Remove» у станції GO / NO-GO переводять фокус на «Elapsed» (F7-AC5) | src/features/hud/{GoNoGo,Hud}.tsx, Hud.test.tsx | тест red → green; npm run check (610) | fix/replace-focus-seglabel |
 
 ## F8
 
