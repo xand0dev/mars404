@@ -22,7 +22,7 @@ import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
 import { force2DRequested, planReason, type PlanReason } from './lib/plan2d';
-import { noReturnRuns, readAbort } from './lib/abort';
+import { noReturnRuns, pointOfNoReturnMarker, readAbort } from './lib/abort';
 import { gridLayerKind, gridLayerRGBA } from './lib/layerRaster';
 import { traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
@@ -157,10 +157,8 @@ export function MapView({ globe }: MapViewProps) {
 
   const marks = useMemo(() => (valid ? visibleMarks(grid, annotations) : []), [valid, grid, annotations]);
   // Точка неповернення (§7.8): початок першого відрізка без повернення.
-  const ponr = useMemo(() => {
-    const i = abort ? abort.segments.findIndex((x) => !x.ok) : -1;
-    return i >= 0 && plan ? (plan.segments[i]?.from ?? null) : null;
-  }, [abort, plan]);
+  const ponrMarker = useMemo(() => pointOfNoReturnMarker(plan, abort), [plan, abort]);
+  const ponr = ponrMarker?.xy ?? null;
   const inReach = useMemo(
     () => (xy: XY) => {
       if (!mask || mask.length !== grid.width * grid.height) return true;
@@ -250,7 +248,7 @@ export function MapView({ globe }: MapViewProps) {
   const redrawKey = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- новий ключ на будь-яку зміну сцени
-    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode, marks, mask],
+    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode, marks, mask, ponrMarker],
   );
 
   const plan2D = (r: PlanReason) =>
@@ -341,6 +339,7 @@ export function MapView({ globe }: MapViewProps) {
                       marks={marks}
                       onPick={onPick}
                       inReach={inReach}
+                      ponr={ponrMarker}
                     />
                     {fps && <FpsProbe onReport={setFpsReport} />}
                   </>

@@ -57,3 +57,12 @@ export function noReturnRuns(plan: RoutePlan | null, abort: AbortPlan | null): N
   });
   return { runs, count, warning: null };
 }
+
+/** Знак точки неповернення (SPEC §7.8): початок першого відрізка без повернення й підпис «хвилини від старту». */
+export function pointOfNoReturnMarker(plan: RoutePlan | null, abort: AbortPlan | null): { xy: XY; label: string } | null {
+  if (!plan || !abort || abort.segments.length !== plan.segments.length || abort.pointOfNoReturnS === null) return null;
+  const first = abort.segments.findIndex((s) => !s.ok);
+  const segment = first >= 0 ? plan.segments[first] : undefined;
+  if (!segment) return null;
+  return { xy: segment.from, label: `Point of no return · ${Math.floor(abort.pointOfNoReturnS / 60)} min` };
+}

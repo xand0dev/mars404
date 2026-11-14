@@ -52,6 +52,8 @@ export interface SceneProps {
   onPick?: ((xy: XY) => void) | null;
   /** Позначка «поза ореолом» для цілей (маска reach) */
   inReach?: (xy: XY) => boolean;
+  /** Точка неповернення (SPEC §7.8): де стоїть і підпис «хвилини від старту»; у 2D — той самий знак */
+  ponr?: { xy: XY; label: string } | null;
 }
 
 function useDataTexture(rgba: Uint8Array, width: number, height: number): DataTexture {
@@ -114,7 +116,7 @@ function GridLayerOverlay({ rgba, grid, geometry, order }: { rgba: Uint8Array; g
   );
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null }: SceneProps) {
   const { grid, heights, noData } = data;
   const geometry = useMemo(() => {
     const g = buildTerrainGeometry(grid, heights);
@@ -181,6 +183,12 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     return m && p ? { label: m.label, position: p.position } : null;
   }, [plan, selectedSegment, grid, heights, noData]);
 
+  // Точка неповернення — червоний маяк з кільцем, як у обраного відрізка, але нижчий: підписи не злипаються.
+  const ponrMark = useMemo(() => {
+    const p = ponr ? surfacePoint(grid, heights, noData, ponr.xy, LIFT_M) : null;
+    return ponr && p ? { label: ponr.label, position: p.position } : null;
+  }, [ponr, grid, heights, noData]);
+
   const pov = useMemo(() => {
     // Висота форми меша (NoData уже заповнено сусідами) — щоб очі не опинились під поверхнею.
     const ground = (xy: XY) => {
@@ -212,6 +220,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     const b = base ? at(base) : null;
     // Підпис обраного відрізка — першим: він лишається біля маяка, а цілі й база піднімаються над ним.
     if (segMark) list.push({ id: '__seg', pos: new Vector3(segMark.position[0], segMark.position[1] + markerR * 8.5, segMark.position[2]), text: segMark.label });
+    if (ponrMark) list.push({ id: '__ponr', pos: new Vector3(ponrMark.position[0], ponrMark.position[1] + markerR * 6, ponrMark.position[2]), text: `◆ ${ponrMark.label}` });
     if (b) list.push({ id: '__base', pos: new Vector3(b.position[0], b.position[1] + markerR * 3, b.position[2]), text: '■ Base' });
     for (const t of targets) {
       if (!labelled.has(t.id)) continue;
@@ -222,7 +231,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- at() залежить від grid / heights / noData
-  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach, segMark]);
+  }, [targets, labelled, selectedIds, base, grid, heights, noData, markerR, inReach, segMark, ponrMark]);
   const [levels, setLevels] = useState<Record<string, number>>({});
   const levelsKey = useRef('');
   const proj = useMemo(() => new Vector3(), []);
@@ -300,6 +309,20 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
             <meshBasicMaterial color={CSS.segment} transparent />
           </mesh>
           <Label3D position={[0, markerR * 8.5, 0]} level={levels.__seg ?? 0} color={CSS.segment} text={segMark.label} />
+        </group>
+      )}
+
+      {ponrMark && (
+        <group position={ponrMark.position}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={RENDER_ORDER.ring}>
+            <ringGeometry args={[markerR * 1.4, markerR * 2, 4]} />
+            <meshBasicMaterial color={CSS.noReturn} depthTest={false} transparent />
+          </mesh>
+          <mesh position={[0, markerR * 3, 0]} renderOrder={RENDER_ORDER.ring}>
+            <cylinderGeometry args={[markerR * 0.25, markerR * 0.25, markerR * 6, 8]} />
+            <meshBasicMaterial color={CSS.noReturn} transparent />
+          </mesh>
+          <Label3D position={[0, markerR * 6, 0]} level={levels.__ponr ?? 0} color={CSS.noReturn} text={`◆ ${ponrMark.label}`} />
         </group>
       )}
 
