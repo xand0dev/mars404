@@ -56,6 +56,15 @@ describe('reachability · F5-AC2 маска туди й назад', () => {
     expect(trees.fromPosition!.time[8]).not.toBeCloseTo(trees.toBase!.time[8]!, 3);
   });
 
+  it('сирий region.noData не входить у маску й не пропускає крізь себе', () => {
+    // Sentinel близький до рельєфу, щоб клітинку не відсікав схил, а лише перевірка noData.
+    const corridor = makeTestGrid({ width: 5, height: 1, elevation: () => 1 });
+    corridor.elevationsM[2] = 0;
+    const start = cellCenter(corridor, 0, 0);
+    const { reach } = assessReach({ ...input(1e6), grid: corridor, position: start, base: start, noData: 0 });
+    expect(Array.from(reach.mask)).toEqual([1, 1, 0, 0, 0]);
+  });
+
   it('blocked і NoData не входять у маску', () => {
     const { reach } = assessReach(mockInput());
     expect(reach.mask[50 * mockGrid.width + 90]).toBe(0);

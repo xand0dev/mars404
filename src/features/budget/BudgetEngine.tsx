@@ -13,16 +13,17 @@ export function BudgetEngine() {
   const position = useMission((s) => s.position);
   const targets = useMission((s) => s.targets);
   const selectedTargetIds = useMission((s) => s.selectedTargetIds);
+  const noData = useMission((s) => s.region?.noData);
 
   // Дерева — найдорожча частина; не перебудовуємо їх на зміну лімітів, часу чи плану.
-  const trees = useMemo(() => buildReachTrees(grid, model, position, base), [grid, model, position, base]);
+  const trees = useMemo(() => buildReachTrees(grid, model, position, base, noData), [grid, model, position, base, noData]);
 
   useEffect(() => {
-    const { budget, reach } = assessReach({ grid, model, limits, elapsedS, position, base, plan, targets, selectedTargetIds }, trees);
+    const { budget, reach } = assessReach({ grid, model, limits, elapsedS, position, base, plan, targets, selectedTargetIds, noData }, trees);
     const { setBudget, setReach } = useMission.getState();
     setBudget(budget);
     setReach(reach);
-  }, [trees, grid, model, limits, elapsedS, position, base, plan, targets, selectedTargetIds]);
+  }, [trees, grid, model, limits, elapsedS, position, base, plan, targets, selectedTargetIds, noData]);
 
   return null;
 }

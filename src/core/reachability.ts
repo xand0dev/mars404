@@ -22,6 +22,8 @@ export interface ReachInput {
   plan: RoutePlan | null;
   targets: Target[];
   selectedTargetIds: string[];
+  /** Сирий sentinel `region.noData`; до завантаження району — немає. */
+  noData?: number;
 }
 
 /** Тексти попереджень у reach.warnings; панелі показують їх у власних місцях. */
@@ -33,12 +35,12 @@ export const REACH_WARNINGS = {
 } as const;
 
 /** Дерева залежать лише від сітки, моделі, position і base — їх варто кешувати між змінами бюджету. */
-export function buildReachTrees(grid: PlanningGrid, model: ModelParams, position: XY | null, base: XY | null): ReachTrees {
+export function buildReachTrees(grid: PlanningGrid, model: ModelParams, position: XY | null, base: XY | null, noData?: number): ReachTrees {
   const positionCell = position && xyToCell(grid, position);
   const baseCell = base && xyToCell(grid, base);
   if (!positionCell || !baseCell || validateModel(model).length > 0 || validateGrid(grid).length > 0) return { fromPosition: null, toBase: null };
 
-  const graph = createWalkGraph(grid, model);
+  const graph = createWalkGraph(grid, model, noData);
   return { fromPosition: buildCostTree(graph, positionCell.index, 'forward'), toBase: buildCostTree(graph, baseCell.index, 'reverse') };
 }
 
@@ -50,7 +52,7 @@ export function assessReach(input: ReachInput, trees?: ReachTrees): { budget: Re
   const errors = [...validateBudgetInputs(model, limits, elapsedS), ...validateGrid(grid)];
   if (!position || !xyToCell(grid, position)) errors.push('position');
   if (!base || !xyToCell(grid, base)) errors.push('base');
-  const { fromPosition, toBase } = trees ?? buildReachTrees(grid, model, position, base);
+  const { fromPosition, toBase } = trees ?? buildReachTrees(grid, model, position, base, input.noData);
   if (errors.length > 0 || !fromPosition || !toBase) {
     return { budget, reach: invalidReach(cellCount, errors.length > 0 ? errors : ['trees']) };
   }
