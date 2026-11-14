@@ -24,8 +24,35 @@
 `docs/SPEC.md` §5.2 (обмін), §6 (контракти), §7 (обчислення), §7.6 (чесність даних), §7.7 (доступність). Еталонні числа — `src/mocks` (`REFERENCE_*`).
 
 ## План / задачі
-<!-- Власник: T1 — звірити spec із src/contracts; далі тести з AC → код. -->
+
+**Звірка зі `src/contracts` і заглушкою (T0, зроблено).** Усе, що потрібно HUD, у контрактах уже є: `reach.returnInS / status / deficits / swap / warnings`, `plan.status / reason`, `budget`, `limits`, `time`, `targets`, `selectedTargetIds`, `region.status`, дії `setTime` і `replaceTarget`. Нових полів не треба → issue `contract` не потрібен. Заглушка `Hud` показує лише N і `info`; `Shell` — одна колонка / 2 колонки від 1024 px. Еталон — `REFERENCE_RETURN_MIN` у `src/mocks`.
+
+**Стан HUD (чисто з store, без власних обчислень; N рахує лише F5):**
+
+| Стан | Умова | Рівень / іконка | Пояснення → наступна дія |
+|---|---|---|---|
+| empty | `site = null` або цілей не обрано | info ℹ | «Choose Gale» / «Select targets» |
+| no plan | цілі є, `plan = null` | info ℹ | «No route yet» → «Build route» |
+| pending | `plan.status = 'pending'` або план ok, а `reach = null` | info ⏳ | «Calculating…», N = «—» |
+| invalid | `plan.status = 'invalid'` або `reach.status = 'invalid'` | danger ✖ | причина → «Check targets / parameters» |
+| no-path | `plan.status = 'no-path'` | danger ✖ | `reason` → «Remove or replace a target» |
+| deficit | `deficits ≠ []` або `returnInS < 0` | danger ⛔ + `role="alert"` | «Deficit: o2…» → swap або «Remove a target or return to base now» |
+| incomplete | `reach.status = 'incomplete'` | warn ⚠ | «Estimate incomplete: dose — no data» |
+| estimated | `reach.status = 'estimated'` | ok ✔ | «Within model» (ніколи «safe») |
+| MOCK | `region = null` або `region.status = 'mock'` | бейдж MOCK | — |
+| NaN | `returnInS` / budget не скінченні | — | «—», не «NaN min» |
+
+- **T1 · `src/ui` формат і рівні.** Хелпер `formatMinutes(s)` (`null/NaN/∞ → «—»`, інакше `floor(s/60)`); `StatusNote` — окремі іконки для кожного рівня (додати `pending`, `deficit` без ламання пропів); `Gauge` — `NaN → «no data»` (є). Тести: `ui/*.test.tsx`.
+- **T2 · `hudState(store)` — чиста функція стану** (таблиця вище) у `features/hud/hudState.ts` + тести на всі 10 станів (F7-AC4) і еталон 48/33/23/13 хв (F7-AC3). *Red → green.*
+- **T3 · `Hud`**: великий «Return in N min» (найбільший шрифт HUD), `StatusNote` з `role="status"` / `alert` для дефіциту, поле «Elapsed, s» (`<input type=number>` з label → `setTime`), кнопка «Replace ‹A› with ‹B›» → `replaceTarget` + фокус на «Elapsed»; без swap — порада (F7-AC3, AC5). Тести Testing Library.
+- **T4 · Токени й `Shell`**: розміри шрифтів (`--fs-hero` тощо), фокус ≥3 px, touch ≥40 px, reduced motion, сітка 400/768/1024/1440 без горизонтального скролу; HUD липкий зверху на десктопі (F7-AC1, AC2).
+- **T5 · Перевірка в браузері**: Playwright-скрипт (не в репо, у скретчпаді) — `scrollWidth ≤ clientWidth` на 4 ширинах, Tab-обхід, скриншоти 400 px і 1440 px → у PR.
+- **T6 · `npm run check`**, рядок у `docs/AI_LOG.md` (`## F7`), draft PR з таблицею AC → доказ.
+
+Порядок: T1 → T2 → T3 → T4 → T5 → T6. До сб 21:00 — T1–T4 на mocks; після F5 — перевірка на реальному `reach`.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
+| F5 ще заглушка (`reach = null`) — HUD завжди «Calculating…»/порада | Влад | сб 21:00 | Тести на фікстурах `reach`; у UI бейдж MOCK |
+| «Тієї ж N, що й BudgetPanel» — обидва беруть `reach.returnInS`; хелпер `formatMinutes` у `src/ui` може взяти й F5 | Оля / Влад | сб 21:00 | F7 перевіряє тестом лише свій HUD |
