@@ -84,6 +84,13 @@ export const mockModel: ModelParams = {
 
 /** Еталонні ліміти SPEC §7.4 (energy — MOCK, у SPEC не задано). */
 export const mockLimits: Resources = { time: 3600, o2: 720, energy: 600, dose: null };
+/** Джерела mock-лімітів (SPEC §7.6): усі — фікстура, не параметри реальної моделі. */
+export const mockLimitsEvidence: Record<keyof Resources, Source> = {
+  time: mockSrc('SPEC §7.4 еталонний приклад'),
+  o2: mockSrc('SPEC §7.4 еталонний приклад'),
+  energy: mockSrc('MOCK, у SPEC не задано'),
+  dose: mockSrc('невідомо → null → статус incomplete'),
+};
 
 /** Еталонні витрати плану SPEC §7.4: план 900 с, 180 г O₂. */
 export const REFERENCE_PLAN_TOTALS = { time: 900, o2: 180 } as const;

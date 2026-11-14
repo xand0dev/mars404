@@ -69,6 +69,8 @@ export interface Region {
   base: XY;
   model: ModelParams;
   limits: Resources;
+  /** Джерело кожного ліміту (SPEC §7.6, #20). Немає поля чи ключа — на екрані «assumption». */
+  limitsEvidence?: Record<ResourceKey, Source>;
   layers: Layer[];
   sources: Source[];
 }

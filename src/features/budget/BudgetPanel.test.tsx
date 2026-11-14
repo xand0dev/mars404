@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { emptyPlan, planRoute } from '../../core';
-import { mockBase, mockGrid, mockModel, mockTargets } from '../../mocks';
+import type { Region, Source } from '../../contracts';
+import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { BudgetEngine } from './BudgetEngine';
 import { BudgetPanel } from './BudgetPanel';
@@ -145,5 +146,38 @@ describe('BudgetEngine + BudgetPanel', () => {
     renderBudget();
     expect(store().reach).not.toBeNull();
     expect(store().reach?.abort).toBeNull();
+  });
+
+  describe('#20 / SPEC §7.6: джерело ліміту біля шкали', () => {
+    const source = (status: Source['status']): Source => ({ id: `src-${status}`, title: `Source ${status}`, status, note: '' });
+    const region = (limitsEvidence?: Region['limitsEvidence']): Region => ({
+      schemaVersion: 1, id: 'gale', name: 'Test Gale', status: 'verified',
+      grid: { width: mockGrid.width, height: mockGrid.height, metersPerPixel: mockGrid.metersPerPixel, originM: mockGrid.originM, rowOrder: 'north-to-south', boundsLonLat: [137.4, -4.75, 137.422, -4.728], crs: 'test' },
+      files: { elevation: 'e.f32', slope: 's.f32', walkable: 'w.u8', hazard: 'h.f32', texture: 'hirise.jpg', targets: 'targets.geojson' },
+      noData: -9999, base: mockBase, model: mockModel, limits: mockLimits, layers: [], sources: [],
+      ...(limitsEvidence ? { limitsEvidence } : {}),
+    });
+    const evidenceOf = (label: string) => screen.getByTestId(`limit-evidence-${label}`).textContent;
+    const open = (r: Region) => {
+      renderBudget();
+      act(() => store().setRegionData({ region: r, grid: mockGrid, targets: [] }));
+    };
+
+    it('verified — без позначки; assumption / pending — «assumption» з назвою джерела', () => {
+      open(region({ time: source('assumption'), o2: source('verified'), energy: source('pending'), dose: source('assumption') }));
+      expect(screen.queryByTestId('limit-evidence-o2')).not.toBeInTheDocument();
+      expect(evidenceOf('time')).toMatch(/limit: assumption · Source assumption/);
+      expect(evidenceOf('energy')).toMatch(/limit: assumption · Source pending/);
+    });
+
+    it('немає limitsEvidence — «assumption (no source)» біля кожної шкали', () => {
+      open(region());
+      for (const key of ['time', 'o2', 'energy', 'dose']) expect(evidenceOf(key)).toMatch(/limit: assumption \(no source\)/);
+    });
+
+    it('до завантаження району — mock-ліміти позначені «MOCK»', () => {
+      renderBudget();
+      for (const key of ['time', 'o2', 'energy', 'dose']) expect(evidenceOf(key)).toMatch(/limit: MOCK/);
+    });
   });
 });

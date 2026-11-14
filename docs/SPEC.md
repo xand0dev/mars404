@@ -168,6 +168,7 @@ export interface Region {
   };
   noData: number;                                             // сирий sentinel у elevation.f32
   base: XY; model: ModelParams; limits: Resources;
+  limitsEvidence?: Record<keyof Resources, Source>;   // джерело кожного ліміту; немає — «assumption» (§7.6)
   layers: Layer[]; sources: Source[];
 }
 
@@ -357,7 +358,9 @@ export interface MissionState {
 - **Кандидати джерел** перевіряє Влад до сб 21:00:
   - швидкість пішохода в скафандрі й O₂ на виході — NASA BVAD / дані EVA;
   - поріг `maxSlopeDeg` — припущення;
-  - аварійний запас `emergencyO2G` — кандидат: аварійний кисневий блок скафандра EMU (~30 хв); до перевірки — «assumption», mock = 360 г (30 хв × 0.2 г/с).
+  - аварійний запас `emergencyO2G` = 30 хв × `o2GPerS` (мінімум аварійного запасу за EMU SOP; джерела — `docs/SOURCES.md ## F5`).
+- **Рішення 14.11 (#20, #41):** у реальній моделі `region.json` — `o2GPerS` ≈ 0.031 г/с (Apollo, ходьба), `emergencyO2G` = 30 хв × `o2GPerS` ≈ 56 г, `limits.o2` = **200 г** зі статусом «assumption» (залишок кисню на цей вихід для демо). Еталонні числа §7.3–7.4 і §7.8 лишаються **mock-фікстурою для тестів** і не є параметрами реальної моделі.
+- Джерела лімітів — `region.limitsEvidence` (по одному `Source` на `time`, `o2`, `energy`, `dose`); F5 і F7 показують біля шкали «assumption», якщо джерела немає або його статус не `verified`.
 - Доза — кандидат Curiosity RAD (перевіряє Настя). Карти радіації по місцевості немає: точкову дозу на карту не розтягуємо.
 - Mock завжди підписаний «MOCK». Кожне джерело — рядок у `docs/SOURCES.md` (id, URL, product ID, credit, дата доступу, статус).
 
@@ -454,7 +457,7 @@ export interface MissionState {
 | F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/gale/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
 | F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region | `setPlan`, `setWaypoints`, `setSelectedSegment` |
 | F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds | `setBudget`, `setReach`, `setLimits` |
-| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach | `toggleTarget` |
+| F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach, grid | `toggleTarget` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
 | F8 Демо й сабміт | Олександр | xand0dev | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
@@ -523,7 +526,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
 - **F6-AC1. Given** пакет Gale; **When** відкрито список цілей; **Then** видно 5–8 цілей у межах сітки, кожна з бейджем точності: «verified» (координати зупинки MMGIS), «approximate» або «MOCK».
 - **F6-AC2. Given** ціль; **When** відкрито картку (клік або клавіатура); **Then** видно назву, «why go», фото з `alt`, credit (як його дає API / сторінка зображення), sol і посилання на джерело. Фото позначено «view from rover stop», а не точне місце цілі.
-- **F6-AC3. Given** картка; **When** натиснуто «Add to route» / «Remove»; **Then** викликано `toggleTarget(id)`, а ціль поза ореолом має попередження з `reach`.
+- **F6-AC3. Given** картка; **When** натиснуто «Add to route» / «Remove»; **Then** викликано `toggleTarget(id)`, а ціль поза ореолом має попередження з `reach` (клітинка цілі — `xyToCell(grid, target.coordinates)`, перевірка — `reach.mask`).
 - **F6-AC4. Given** фото не завантажилося; **When** відкрито картку; **Then** видно заглушку з `alt`, і картка та кнопка працюють.
 - **F6-AC5. Given** bbox Gale; **When** зібрано `photos/photos.geojson`; **Then** 8–20 знімків Navcam у межах сітки, кожен локально, з `alt`, credit, sol, `sourceUrl`, камерою й `locationAccuracy = 'rover-stop'` (координати зупинки MMGIS за sol), джерела — у `docs/SOURCES.md`.
 

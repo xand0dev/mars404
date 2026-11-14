@@ -10,6 +10,7 @@
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | docs/SPEC.md; каркас F0 з нуля за SPEC: contracts, store, mocks, заглушки фіч, CI, guard, automerge, deploy, CONSTITUTION, AGENTS, specs | усе дерево репо, крім docs/SPEC.md (лише правки §5.3, §9, §10) | npm ci + npm run check у чистому клоні; браузер: без помилок консолі, без горизонтального скролу на 400, 1024 і 1440 px | bootstrap-коміт у main |
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Contract #26: emergencyO2G, AbortPlan, SurfacePhoto, photos у store; evaluateGoNoGo (§7.10), EVA-символіка (§7.11) у SPEC | src/contracts/*, src/store/*, src/mocks/*, src/core/abort.ts, src/core/reachability.ts, тести F2/F7 (поле abort), docs/SPEC.md | npm run check: 361 тест, lint, typecheck, build | contract/abort-photos-gonogo |
+| 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | Contract #20: Region.limitsEvidence; рішення щодо O₂ (200 г, 0.031 г/с, аварійний 30 хв) у SPEC §7.6 | src/contracts/index.ts, src/mocks/*, docs/SPEC.md | npm run check | contract/limits-evidence |
 
 ## F1
 
@@ -19,6 +20,8 @@
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | T7: маркери на глобусі, drag-обертання, масштаб під 400 px, завантаження текстури з fallback MOCK, спільна дія chooseSite | `src/features/globe/**`, `specs/F1/**` | `npm run check` зелений (96/96); Chrome headless 1440/400 px, звірка маркерів з тестовою еквірект. сіткою | #19 (draft) |
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | T6: текстура глобуса — Viking MDIM 2.1 colorized (NASA Ames / USGS) з Mars Trek WMTS, 2048×1024, скрипт pipeline/globe | `pipeline/globe/**`, `public/data/mars/**`, `docs/SOURCES.md` §F1, `specs/F1/**` | `npm run check` зелений (96/96); Chrome headless: маркер Olympus Mons у кальдері, Gale в центрі перед переходом, 400 px | #19 (draft) |
 | 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | Маркери зворотного боку й біля краю диска сховано (facesCamera), клік по схованому ігнорується | `src/features/globe/**`, `specs/F1/**` | `npm run check` зелений (100/100); Chrome headless: з-за краю сфери маркери не стирчать | #19 (draft) |
+| 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | #5: тест доступності Location (Tab по точках, Enter → картка); аналіз скидання цілей після перельоту → пропозиція для F6 | `src/features/globe/SitePanel.test.tsx`, `specs/F1/spec.md` | `npm run check` зелений (374/374); браузер не перевіряв (UI без змін) | #48 (draft) |
+| 2026-11-14 | Іван | Claude Code / Claude Opus 5.5 | #36: `bind_photos.py` — прив'язка знімків Navcam до зупинок MMGIS за RMC (site/drive), команди verify / build | `pipeline/globe/**` | unittest 15/15 (red → green); `verify` на photos.geojson з #21 — 8/8 verified; `build` повністю не запускав; `npm run check` зелений | #48 (draft) |
 
 ## F2
 
@@ -60,11 +63,13 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #29 A1–A3 (F5-AC5, §7.8): `assessAbort` у ядрі — накопичена витрата + дорога назад зі зворотного дерева, аварійний запас O₂, точка неповернення; до мержу #26 — локальний тип і `emergencyO2G` параметром | src/core/abort.ts, src/core/index.ts, specs/F5/** | npm run check (335 тестів); еталон §7.8 (100 г / 500 с → ok, 1400 с → ні), «O₂ −40%» не покращує жоден відрізок; UI ще немає — браузер не перевіряв | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #32: BudgetPanel на компонентах F7 — `Gauge` з резервом, плановою витратою й позначкою дефіциту, `formatMinutes`, рівні `pending` / `deficit`; без обраного місця «Return in — min», у дефіциті «0 min» — як у HUD (#9 п.3) | src/features/budget/** | npm run check (325 тестів); Chromium headless 1440 і 400 px разом з HUD: глобус «—» = «—», план 3 = 3 хв, дефіцит — 1 alert (HUD), 2 шкали з дефіцитом, без горизонтального скролу й помилок | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #29 A4–A5 (F5-AC5): `assessReach` пише `reach.abort` (`assessAbort` на тому ж зворотному дереві, запас з `model.emergencyO2G`); без чинного плану й при invalid — `null` | src/core/reachability.ts, src/core/reachability.test.ts, src/features/budget/BudgetPanel.test.tsx | npm run check (369 тестів); BudgetEngine публікує abort, «O₂ −40%» не покращує; Chromium 1440 і 400 px — сценарій бюджету без змін і помилок (abort на екрані покажуть F2 #38 і F7 #33) | — |
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 (#20, SPEC §7.6): позначка джерела ліміту біля кожної шкали з `region.limitsEvidence` — verified без позначки, mock — «MOCK», інакше «assumption · джерело» або «assumption (no source)» | src/features/budget/** | npm run check (421 тест); Chromium 1440 і 400 px: глобус — «limit: MOCK», Gale (реальний пакет) — «limit: assumption (no source)», без горизонтального скролу й помилок | — |
 
 ## F6
 
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
+| 2026-11-14 | Настя | Codex · GPT-5 | T1–T8: контракти, AC-тести, UI цілей, 8 MMGIS stops, локальні NASA Navcam фото й каталог F6-AC5 (#34) | `specs/F6/spec.md`, `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`, F6 у `docs/SOURCES.md` | red→green: UI 4/4, data 3/3; `npm run check` — 376/376; браузер 400/1440: без horizontal overflow і console errors | #21 (draft) |
 
 ## F7
 
