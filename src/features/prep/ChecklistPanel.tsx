@@ -13,6 +13,7 @@ export function ChecklistPanel() {
   const toggleChecklistItem = useMission((s) => s.toggleChecklistItem);
 
   useEffect(() => {
+    if (plan?.status !== 'ok') return;
     setChecklist(buildChecklist({ plan, targets, selectedTargetIds, photos, previous: useMission.getState().checklist }));
   }, [photos, plan, selectedTargetIds, setChecklist, targets]);
 

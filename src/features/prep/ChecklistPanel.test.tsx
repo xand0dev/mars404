@@ -75,6 +75,19 @@ describe('F6-AC6 · Pre-EVA checklist', () => {
     await waitFor(() => expect(screen.getByRole('checkbox', { name: /tablet battery/i })).toBeChecked());
   });
 
+  it('Given відмічений пункт, When перебудова тимчасово скинула plan, Then done збережено після нового плану', async () => {
+    useMission.setState({ site: 'gale', plan: plan() });
+    const user = userEvent.setup();
+    render(<ChecklistPanel />);
+    await user.click(await screen.findByRole('checkbox', { name: /tablet battery/i }));
+
+    useMission.setState({ plan: null });
+    await screen.findByText(/build a valid route/i);
+    useMission.setState({ plan: { ...plan(20 * 60, 19), requestId: 3 } });
+
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: /tablet battery/i })).toBeChecked());
+  });
+
   it('Given checklist, When усі checkbox відмічено, Then toggleChecklistItem оновлює store і EQP стає GO', async () => {
     useMission.setState({ site: 'gale', plan: plan(20 * 60, 19) });
     const user = userEvent.setup();
