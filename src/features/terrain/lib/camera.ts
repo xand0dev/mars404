@@ -1,9 +1,23 @@
 // Пози камер (локально в terrain, у store не пишемо).
+import type { Camera } from 'three';
 import type { PlanningGrid, XY } from '../../../contracts';
 import { VERTICAL_EXAGGERATION } from '../../../contracts';
 import { toR3F } from '../../../contracts/planning';
 
 export type CameraMode = 'orbit' | 'top' | 'pov';
+
+/** Поза камери глобуса (як у F0): F1 обертає групу, камеру не чіпає. */
+export const GLOBE_CAMERA = { position: [0, 0, 3] as const, near: 0.1, far: 100 };
+
+/** Повертає камеру на позу глобуса. F1 рахує масштаб глобуса з camera.position під час рендеру,
+ * тож це треба зробити ДО монтування глобуса, а не після. */
+export function applyGlobeCamera(camera: Camera & { near?: number; far?: number; updateProjectionMatrix?: () => void }): void {
+  camera.position.set(...GLOBE_CAMERA.position);
+  if ('near' in camera) camera.near = GLOBE_CAMERA.near;
+  if ('far' in camera) camera.far = GLOBE_CAMERA.far;
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix?.();
+}
 export const CAMERA_MODES: { id: CameraMode; label: string }[] = [
   { id: 'orbit', label: 'Orbit' },
   { id: 'top', label: 'Top' },

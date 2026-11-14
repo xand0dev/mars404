@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cellCenter, toR3F } from '../../../contracts/planning';
-import { EYE_HEIGHT_M, cameraPose, gridFrame } from './camera';
+import { PerspectiveCamera } from 'three';
+import { EYE_HEIGHT_M, GLOBE_CAMERA, applyGlobeCamera, cameraPose, gridFrame } from './camera';
 import { displayHeights } from './geometry';
 import { smallGrid } from './fixtures';
 
@@ -48,5 +49,16 @@ describe('камери Orbit / Top / POV', () => {
 
   it('POV без точки → Orbit', () => {
     expect(cameraPose('pov', frame, null)).toEqual(cameraPose('orbit', frame, null));
+  });
+});
+
+describe('applyGlobeCamera — сумісність з F1', () => {
+  it('камера з пози рельєфу повертається на позу глобуса (F1 рахує з неї масштаб)', () => {
+    const cam = new PerspectiveCamera(45, 1, 0.5, 30000);
+    cam.position.set(1344, 762, 320);
+    applyGlobeCamera(cam);
+    expect(cam.position.toArray()).toEqual([...GLOBE_CAMERA.position]);
+    expect(cam.position.length()).toBe(3);
+    expect([cam.near, cam.far]).toEqual([GLOBE_CAMERA.near, GLOBE_CAMERA.far]);
   });
 });

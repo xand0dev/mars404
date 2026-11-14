@@ -9,6 +9,7 @@ import { Panel, StatusNote } from '../../ui';
 import { useCameraMode } from './cameraStore';
 import { FpsProbe, type FpsReport } from './FpsProbe';
 import { fpsEnabled } from './lib/fps';
+import { applyGlobeCamera } from './lib/camera';
 import { classifyCells } from './lib/cells';
 import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
@@ -66,19 +67,18 @@ function Redraw({ dep, frames = 30 }: { dep: unknown; frames?: number }) {
   return null;
 }
 
-/** Камера глобуса (як у F0): повертаємо її після рельєфу. */
-function GlobeCamera() {
+/**
+ * Глобус F1 монтується лише після того, як камеру повернуто з пози рельєфу на позу глобуса:
+ * F1 рахує масштаб глобуса з camera.position під час рендеру. Інакше після «Back to globe»
+ * масштаб брався з камери рельєфу (на 400 px глобус ставав на ~35 % більшим).
+ */
+function GlobeStage({ children }: { children: ReactNode }) {
   const get = useThree((s) => s.get);
-  useEffect(() => {
-    const { camera, invalidate } = get();
-    camera.position.set(0, 0, 3);
-    camera.near = 0.1;
-    camera.far = 100;
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
-    invalidate();
-  }, [get]);
-  return null;
+  // Ініціалізатор стану виконується один раз під час першого рендеру GlobeStage — раніше за рендер дітей.
+  // Скидання камери ідемпотентне, тож подвійний виклик у StrictMode безпечний.
+  useState(() => applyGlobeCamera(get().camera));
+  useEffect(() => get().invalidate(), [get]);
+  return <>{children}</>;
 }
 
 function textureLabel(hasRegion: boolean, status: ReturnType<typeof useOptionalTexture>['status']): string {
@@ -235,10 +235,7 @@ export function MapView({ globe }: MapViewProps) {
             >
               <Redraw dep={redrawKey} />
               {site === null ? (
-                <>
-                  <GlobeCamera />
-                  {globe}
-                </>
+                <GlobeStage>{globe}</GlobeStage>
               ) : (
                 sceneData && (
                   <>
