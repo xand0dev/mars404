@@ -1,6 +1,7 @@
 // F3: читання пакета public/data/gale без React (SPEC §6.0, §7.2). Кожен файл перевіряється окремо:
 // бита висота чи walkable → лишається mock; битий slope/hazard → NaN (клітинки заблоковані) і помилка шару;
 // бита накладка/текстура/траверс → лише помилка шару.
+import { decodeSoil } from './soil';
 import type { PlanningGrid, Region, SurfacePhoto, SurfacePhotosGeoJSON, Target, TargetsGeoJSON, XY } from '../../contracts';
 import { isNoDataValue, lonLatToXY, xyToCell } from '../../contracts/planning';
 
@@ -147,6 +148,17 @@ export async function loadRegion(get: GetFile): Promise<RegionLoad> {
   if (!arrays.slope || !arrays.hazard) warnings.push('Slope or hazard missing: all cells are treated as blocked');
 
   const grid: PlanningGrid = { width, height, metersPerPixel, originM, elevationsM: elevation, slopesDeg, walkable, hazard };
+
+  // Ґрунт (assumption): нічний THEMIS → сповільнення ходьби. Не вдалося — модель без ґрунту, як раніше.
+  const night = region.layers.find((l) => l.id === 'thermal' && /\.png$/i.test(l.url));
+  if (night) {
+    try {
+      const soil = await decodeSoil(await get(night.url), width, height);
+      if (soil) grid.soil = soil;
+    } catch {
+      warnings.push('Ground type (THEMIS) not applied: walking speed ignores sand vs rock');
+    }
+  }
 
   let targets: Target[] = [];
   try {

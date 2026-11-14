@@ -36,7 +36,7 @@ describe('F0 · композиція', () => {
       const region = screen.getByRole('region', { name });
       expect(within(region).getByText('MOCK')).toBeInTheDocument();
     }
-    expect(screen.getByText(/F2 · Олександр/)).toBeInTheDocument();
+    expect(screen.getAllByText(/F2 · Олександр/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Demonstration model, not certified navigation/)).toBeInTheDocument();
   });
 

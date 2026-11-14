@@ -10,7 +10,7 @@ import './notes.css';
 /** Радіус мітки з панелі за замовчуванням, м — assumption (SPEC §7.12). */
 export const DEFAULT_RADIUS_M = 20;
 
-const KIND_LABEL: Record<AnnotationKind, string> = { impassable: 'Impassable', hazard: 'Hazard', note: 'Note', plan: 'Plan' };
+const KIND_LABEL: Record<AnnotationKind, string> = { impassable: 'Blocked', hazard: 'Hazard', note: 'Note', plan: 'Plan' };
 const KIND_ICON: Record<AnnotationKind, string> = { impassable: '⛔', hazard: '⚠', note: '⚑', plan: '☐' };
 const ORIGIN_LABEL: Record<Annotation['origin'], string> = { 'this-eva': 'this EVA', imported: 'imported' };
 
@@ -111,7 +111,7 @@ function NotesBody() {
         </button>
       </form>
       <p className="notes__hint">
-        Placed at the crew position, {DEFAULT_RADIUS_M} m radius — assumption. Marks are crew observations, not NASA data. Impassable and hazard marks rebuild the route.
+        Placed at the crew position, {DEFAULT_RADIUS_M} m radius — assumption. Marks are crew observations, not NASA data. Blocked and hazard marks rebuild the route.
       </p>
 
       {annotations.length === 0 ? (

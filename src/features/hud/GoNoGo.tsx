@@ -1,6 +1,6 @@
 // F7-AC7: GO / NO-GO у HUD (SPEC §7.10). Лише показує evaluateGoNoGo; нічого не рахує.
 import { useEffect, useRef, useState } from 'react';
-import type { Call, Fix, StationCall } from '../../contracts/gonogo';
+import type { Call, Fix, StationCall, StationId } from '../../contracts/gonogo';
 import { useMission } from '../../store/useMission';
 import { STATUS_ICON, type StatusLevel } from '../../ui';
 import { useGlove } from './glove';
@@ -10,6 +10,32 @@ import { useGoNoGo } from './useGoNoGo';
 export const HOLD_MS = 1500;
 
 const CALL_WORD: Record<Call, string> = { go: 'GO', caution: 'CAUTION', nogo: 'NO-GO', hold: 'HOLD' };
+
+/** Станції людською мовою: коди (RTE, LSS…) лишаються лише в даних і доступній назві. */
+export const STATION_NAME: Record<StationId, string> = {
+  RTE: 'Route',
+  LSS: 'Life support',
+  RTN: 'Return time',
+  SCI: 'Targets',
+  ABT: 'Abort path',
+  DAT: 'Map data',
+  RAD: 'Radiation',
+  MDL: 'Walk model',
+  EQP: 'Equipment',
+};
+
+/** Що перевіряє кожна станція — для пояснення під табло. */
+export const STATION_MEANING: Record<StationId, string> = {
+  RTE: 'The route avoids blocked and unknown ground.',
+  LSS: 'O₂, time and energy fit, with the reserve kept.',
+  RTN: 'Enough minutes left to walk back to base.',
+  SCI: 'Every chosen target is inside the reachable area.',
+  ABT: 'From any point of the route you can still turn back.',
+  DAT: 'The terrain is real data, not a placeholder.',
+  RAD: 'Radiation dose is known and within the limit.',
+  MDL: 'Walking speed and O₂ use have sources, not guesses.',
+  EQP: 'The pre-EVA checklist is done.',
+};
 const CALL_LEVEL: Record<Call, StatusLevel> = { go: 'ok', caution: 'warn', nogo: 'danger', hold: 'pending' };
 const VERDICT_TEXT: Record<Call, string> = { go: 'GO · within model', caution: 'GO · CAUTION', nogo: 'NO-GO', hold: 'HOLD' };
 
@@ -37,7 +63,7 @@ export function GoNoGoPanel({ onStart, onFix }: GoNoGoPanelProps) {
     setRecord({
       at: new Date().toLocaleTimeString('en-GB', { hour12: false }),
       verdict: g.verdict,
-      cautions: g.stations.filter((s) => s.call === 'caution').map((s) => s.id),
+      cautions: g.stations.filter((s) => s.call === 'caution').map((s) => STATION_NAME[s.id]),
     });
     onStart?.();
   };
@@ -137,15 +163,17 @@ function Station({ s, name, onFix }: { s: StationCall; name: (id: string) => str
     <li
       className={`gonogo__station gonogo__station--${s.call}${open ? ' is-open' : ''}`}
       data-station={s.id}
-      aria-label={`${s.id}: ${word} — ${s.reason}`}
+      aria-label={`${STATION_NAME[s.id]} (${s.id}): ${word} — ${s.reason}`}
+      title={STATION_MEANING[s.id]}
     >
       <button type="button" className="gonogo__chip" aria-expanded={open} aria-controls={detailId} onClick={() => setManual({ key, open: !open })}>
-        <span className="gonogo__id">{s.id}</span>{' '}
+        <span className="gonogo__id">{STATION_NAME[s.id]}</span>{' '}
         <span className="gonogo__call">
           <span aria-hidden="true">{STATUS_ICON[CALL_LEVEL[s.call]]}</span> {word}
         </span>
       </button>
       <span className="gonogo__detail" id={detailId}>
+      <span className="gonogo__meaning">{STATION_MEANING[s.id]}</span>
       <span className="gonogo__reason">{s.reason}</span>
       {text && <span className="gonogo__fix">{text}</span>}
       {s.fix?.kind === 'replace-target' && (

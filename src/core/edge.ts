@@ -49,7 +49,9 @@ export function edgeBetween(grid: PlanningGrid, model: ModelCoefficients, from: 
 
   const tan = dz / horiz;
   const dist = Math.hypot(horiz, dz);
-  const time = (dist / model.speedMps) * (1 + model.uphillFactor * Math.max(0, tan) + model.downhillFactor * Math.max(0, -tan));
+  // Ґрунт: пісок повільніше за скелю (grid.soil, assumption); без шару — 1.
+  const soil = grid.soil ? ((grid.soil[from] ?? 1) + (grid.soil[to] ?? 1)) / 2 : 1;
+  const time = (dist / model.speedMps) * (1 + model.uphillFactor * Math.max(0, tan) + model.downhillFactor * Math.max(0, -tan)) * (Number.isFinite(soil) && soil >= 1 ? soil : 1);
   const meanHazard = ((grid.hazard[from] ?? 0) + (grid.hazard[to] ?? 0)) / 2;
   return { dist, slopeDeg, time, cost: time * (1 + model.hazardWeight * meanHazard) };
 }

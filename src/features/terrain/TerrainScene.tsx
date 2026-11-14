@@ -73,6 +73,8 @@ export interface SceneProps {
   inReach?: (xy: XY) => boolean;
   /** Точка неповернення (SPEC §7.8): де стоїть і підпис «хвилини від старту»; у 2D — той самий знак */
   ponr?: { xy: XY; label: string } | null;
+  /** Навігація без GPS: маяки, відрізки на інерціалці, контрольні точки (lib/nav) */
+  nav?: { beacons: { xy: XY; label: string }[]; drift: XY[][]; checkpoints: XY[] } | null;
 }
 
 function useDataTexture(rgba: Uint8Array, width: number, height: number): DataTexture {
@@ -253,7 +255,7 @@ function ZoneOverlay({ rgba, grid, geometry }: { rgba: Uint8Array; grid: Plannin
   return <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay} material={material} />;
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null, nav = null }: SceneProps) {
   const { grid, heights, noData } = data;
   const render = data.render ?? null;
   const geometry = useMemo(() => {
@@ -312,6 +314,17 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         )
         .filter((l) => l.length >= 2),
     [noReturn, grid, heights, noData, render],
+  );
+
+  const driftPts = useMemo(
+    () =>
+      (nav?.drift ?? [])
+        .map((l) => l.flatMap((p) => {
+          const s = surfacePoint(grid, heights, noData, p, LIFT_M * 1.3);
+          return s ? [s.position] : [];
+        }))
+        .filter((l) => l.length >= 2),
+    [nav, grid, heights, noData],
   );
 
   const segPts = useMemo(() => {
@@ -491,6 +504,36 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       {noReturnPts.map((l, k) => (
         <Line key={k} points={l} color={CSS.noReturn} lineWidth={5} transparent renderOrder={RENDER_ORDER.noReturn} />
       ))}
+      {driftPts.map((l, k) => (
+        <Line key={`drift-${k}`} points={l} color={CSS.drift} lineWidth={5} dashed dashSize={grid.metersPerPixel} gapSize={grid.metersPerPixel * 0.7} transparent renderOrder={RENDER_ORDER.noReturn} />
+      ))}
+      {nav?.beacons.map((b) => {
+        const p = at(b.xy);
+        if (!p) return null;
+        return (
+          <group key={`beacon-${b.label}`} position={p.position}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={RENDER_ORDER.ring}>
+              <ringGeometry args={[markerR * 1.8, markerR * 2.3, 40]} />
+              <meshBasicMaterial color={CSS.beacon} depthTest={false} transparent opacity={0.85} />
+            </mesh>
+            <mesh position={[0, markerR * 2.5, 0]} renderOrder={RENDER_ORDER.markers}>
+              <coneGeometry args={[markerR * 0.8, markerR * 5, 4]} />
+              <meshBasicMaterial color={CSS.beacon} />
+            </mesh>
+            <Label3D position={[0, markerR * 6, 0]} color={CSS.beacon} text={`▲ ${b.label}`} />
+          </group>
+        );
+      })}
+      {nav?.checkpoints.map((c, k) => {
+        const p = at(c);
+        if (!p) return null;
+        return (
+          <mesh key={`cp-${k}`} position={p.position} rotation={[-Math.PI / 2, 0, Math.PI / 4]} renderOrder={RENDER_ORDER.ring}>
+            <ringGeometry args={[markerR * 1.1, markerR * 1.6, 4]} />
+            <meshBasicMaterial color={CSS.checkpoint} depthTest={false} transparent />
+          </mesh>
+        );
+      })}
       {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} transparent renderOrder={RENDER_ORDER.segment} />}
 
       {segMark && (
