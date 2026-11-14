@@ -105,3 +105,12 @@ body:has(.shell--glove):has(.eva-dock--route) .route-build { display: none; }
   html[data-eva-dock='expanded'] .eva-dock--route { height: calc(var(--eva-sheet-h) * 0.6); bottom: calc(var(--eva-sheet-h) * 0.4); }
   html[data-eva-dock='expanded'] .eva-dock--life { height: calc(var(--eva-sheet-h) * 0.4); }
 }
+
+/* Наступна дія (F7, #102): на кроці Route підсвічена «Build route» — у пульті та сама, що в панелі (кнопку панелі тут сховано). */
+body:has(.shell--step-route) .eva-dock__build:not(:disabled) {
+  border-color: var(--accent); animation: next-action 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(255 42 42 / 0.9), 0 0 18px 2px rgb(224 16 26 / 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(.shell--step-route) .eva-dock__build:not(:disabled) { animation: none; }
+}
