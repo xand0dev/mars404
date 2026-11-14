@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "id": "gale",
+  "name": "Gale · Mount Sharp (Curiosity area)",
+  "status": "verified",
+  "grid": {
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 10,
+    "originM": [
+      0,
+      2560
+    ],
+    "rowOrder": "north-to-south",
+    "boundsLonLat": [
+      137.367215,
+      -4.847618,
+      137.410557,
+      -4.804429
+    ],
+    "crs": "Mars 2000 geographic (Trek bboxSR 104905)"
+  },
+  "files": {
+    "elevation": "elevation.f32",
+    "slope": "slope.f32",
+    "walkable": "walkable.u8",
+    "hazard": "hazard.f32",
+    "texture": "hirise.jpg",
+    "targets": "targets.geojson",
+    "traverse": "traverse.geojson"
+  },
+  "noData": -9999.0,
+  "base": [
+    1275.0,
+    1285.0
+  ],
+  "model": {
+    "speedMps": 1,
+    "uphillFactor": 2,
+    "downhillFactor": 0.5,
+    "o2GPerS": 0.2,
+    "energyWhPerM": 0.05,
+    "doseUSvPerS": null,
+    "maxSlopeDeg": 25,
+    "hazardWeight": 0.5,
+    "reserveFraction": 0.2,
+    "evidence": {
+      "speedMps": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "uphillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "downhillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "o2GPerS": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "energyWhPerM": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "doseUSvPerS": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "maxSlopeDeg": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "hazardWeight": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "reserveFraction": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      }
+    }
+  },
+  "limits": {
+    "time": 3600,
+    "o2": 720,
+    "energy": 600,
+    "dose": null
+  },
+  "layers": [
+    {
+      "id": "terrain",
+      "name": "Terrain (DEM)",
+      "kind": "terrain",
+      "url": "elevation.f32",
+      "sourceIds": [
+        "trek-gale-dem-1m"
+      ],
+      "status": "verified",
+      "units": "m",
+      "nativeResolutionM": 1,
+      "gridResolutionM": 10,
+      "method": "mean of valid 1 m pixels per cell",
+      "legend": [
+        {
+          "value": -3653,
+          "label": "-3653 m (lowest)",
+          "color": "#3b2a20"
+        },
+        {
+          "value": -3188,
+          "label": "-3188 m (highest)",
+          "color": "#e8dcc8"
+        }
+      ]
+    },
+    {
+      "id": "optical",
+      "name": "Optical (HiRISE)",
+      "kind": "optical",
+      "url": "hirise.jpg",
+      "sourceIds": [
+        "trek-hirise-mosaic"
+      ],
+      "status": "verified",
+      "units": "grayscale",
+      "nativeResolutionM": 0.25,
+      "gridResolutionM": 10,
+      "method": "exportImage resample to 2048²",
+      "legend": [
+        {
+          "value": 0,
+          "label": "dark",
+          "color": "#000000"
+        },
+        {
+          "value": 255,
+          "label": "bright",
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "slope",
+      "name": "Slope (derived)",
+      "kind": "slope",
+      "url": "slope.f32",
+      "sourceIds": [
+        "trek-gale-dem-1m",
+        "hazard-from-slope"
+      ],
+      "status": "assumption",
+      "units": "°",
+      "nativeResolutionM": 1,
+      "gridResolutionM": 10,
+      "method": "Horn 3x3 at 1 m, max per cell",
+      "legend": [
+        {
+          "value": 0,
+          "label": "0° flat",
+          "color": "#2f6f4f"
+        },
+        {
+          "value": 15,
+          "label": "15° moderate",
+          "color": "#c9a227"
+        },
+        {
+          "value": 25,
+          "label": "25° model limit",
+          "color": "#c0392b"
+        }
+      ]
+    },
+    {
+      "id": "traverse",
+      "name": "Curiosity traverse",
+      "kind": "mission",
+      "url": "traverse.geojson",
+      "sourceIds": [
+        "mmgis-msl-traverse"
+      ],
+      "status": "verified",
+      "units": "path",
+      "nativeResolutionM": null,
+      "gridResolutionM": 10,
+      "method": "clip to bbox",
+      "legend": [
+        {
+          "value": 1,
+          "label": "rover path",
+          "color": "#4fc3f7"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "trek-gale-dem-1m",
+      "title": "Gale DEM 1 m (HiRISE stereo)",
+      "status": "verified",
+      "note": "Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
+      "productId": "Gale_DEM_SMG_1m",
+      "credit": "NASA/JPL-Caltech, Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-hirise-mosaic",
+      "title": "HiRISE mosaic, Curiosity area",
+      "status": "verified",
+      "note": "Grayscale JPEG 2048², same bbox; display only.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.367215%2C-4.847618%2C137.410557%2C-4.804429&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
+      "productId": "curiosity_hirise_mosaic",
+      "credit": "NASA/JPL-Caltech, Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "mmgis-msl-traverse",
+      "title": "Curiosity traverse (MMGIS)",
+      "status": "verified",
+      "note": "MSL_traverse.json clipped to bbox; line leaves bbox → split.",
+      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json",
+      "productId": "MSL_traverse",
+      "credit": "NASA/JPL-Caltech, MSL MMGIS",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "mmgis-msl-current",
+      "title": "Curiosity current position (MMGIS)",
+      "status": "verified",
+      "note": "sol 5073, lon 137.388886, lat -4.82602331: bbox centre.",
+      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_waypoints_current.json",
+      "productId": "MSL_waypoints_current",
+      "credit": "NASA/JPL-Caltech, MSL MMGIS",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "hazard-from-slope",
+      "title": "Hazard derived from slope",
+      "status": "assumption",
+      "note": "hazard = min(1, slopeDeg / 25) x 0.5; NoData = 1. Test coefficients, not measured hazard."
+    },
+    {
+      "id": "base-assumption",
+      "title": "Habitat base",
+      "status": "assumption",
+      "note": "Walkable cell nearest to Curiosity's current position; not a real habitat site."
+    },
+    {
+      "id": "model-assumption",
+      "title": "Walk model and limits",
+      "status": "assumption",
+      "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+    }
+  ],
+  "hazardFromSlope": {
+    "kind": "slope-linear",
+    "slopeDegAtMax": 25,
+    "maxHazard": 0.5
+  }
+}
