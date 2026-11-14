@@ -24,8 +24,27 @@
 `docs/SPEC.md` §5.2 (обмін), §6 (контракти), §7 (обчислення), §7.6 (чесність даних), §7.7 (доступність). Еталонні числа — `src/mocks` (`REFERENCE_*`).
 
 ## План / задачі
-<!-- Власник: T1 — звірити spec із src/contracts; далі тести з AC → код. -->
+Звірка (T1): spec ↔ SPEC §7.3 ↔ `src/contracts` узгоджені; `RoutePlan`, `Segment`, `RouteFailure` (pointIndex 0 = position, 1…n = цілі, n+1 = база) покривають усі AC без змін контракту. Заглушка `RoutePanel` лише показує кількість точок.
+
+Ядро в `src/core` спільне з F5, тому F4 мерджиться першим — F5 бере з нього ребра й дерева.
+
+| # | Задача | Файли | AC |
+|---|---|---|---|
+| T1 | Звірка spec ↔ contracts ↔ заглушка, план | `specs/F4/spec.md` | — |
+| T2 | Ребро: 8 сусідів у фіксованому порядку, без зрізання кутів, `dist/slope/time/cost`, заборона `|slope| > maxSlopeDeg`; `validateModel` (спільний з F5) | `src/core/edge.ts`, `model.ts` | AC1, `REFERENCE_EDGE` |
+| T3 | A*: бінарна купа, евристика `horiz/speed`, tie-break `g` → індекс, без random | `src/core/astar.ts` | AC1, AC2 |
+| T4 | Дерева найменшої вартості (Dijkstra) прямі/зворотні з накопиченням time/o2/energy/dose — для ореолу F5 | `src/core/cost-tree.ts` | основа F5-AC2 |
+| T5 | `planRoute`: position → цілі за `waypoints` → base; сегменти, `legs`, `totals`, dose `null` → сума `null`; коди збою з номером точки/ноги | `src/core/plan-route.ts` | AC1, AC3 |
+| T6 | Worker + хук: новий `requestId`, `status: 'pending'`, застарілі відповіді відкидаються; без Worker (jsdom) — синхронний fallback; замір 256×256 ≤2 с у тесті | `src/features/route/route.worker.ts`, `useRoutePlanner.ts` | AC5 |
+| T7 | `RoutePanel`: «Build route», порядок цілей (↑/↓ → `setWaypoints`), автоперебудова після першого Build, текст збою з кодом, профіль висоти (SVG), таблиця відрізків з одиницями, вибір → `setSelectedSegment` | `src/features/route/*` | AC3, AC4 |
+| T8 | `npm run check`, браузер 400 px + десктоп, draft PR (AC → доказ), рядок AI_LOG | — | усі |
+
+**Статус (сб):** T1–T7 зроблено, T8 — draft PR. `no-path-leg` на практиці не виникає: дозволені ребра симетричні, тож ізольовану точку ловить `disconnected`; код лишено як запобіжник. Замір 256×256: ~45 мс у тесті, ~100 мс у браузері через Worker.
+
+Тестові сітки для AC1/AC2 (стіна, крутий підйом vs пологий обхід, ізольована область) будуються в тестах, `src/mocks` не змінюється.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
+| Ручний порядок (`setWaypoints`) губиться при наступному `toggleTarget`: store перераховує `waypoints` з `selectedTargetIds` | Влад → @xand0dev | сб 21:00 | Порядок у UI змінюється лише стрілками; у README фічі — відоме обмеження |
+| Джерела `speedMps`, `o2GPerS` (NASA BVAD / EVA), `maxSlopeDeg` — assumption (SPEC §7.6) | Влад | сб 21:00 | Позначка «assumption» на екрані |
