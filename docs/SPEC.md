@@ -34,8 +34,8 @@
 |---|---|---|
 | 0–6 с | Глобус Марса → Gale → 3D-рельєф | Планетарний контекст, один детальний район |
 | 6–13 с | Шари: рельєф / HiRISE / THEMIS / схил; картка цілі з фото Curiosity | ≥3 типи даних, наукова мета |
-| 13–21 с | Обрати 2 цілі → «Build route» → замкнений маршрут база → цілі → база, профіль висоти | A* за модельним часом, обхід blocked/NoData |
-| 21–30 с | Сценарій «O₂ −40%» → ореол звужується → «Return in N min» → «Replace target» на ближчу; плашка «model, not certified» | Модель враховує повернення; чесність |
+| 13–21 с | Обрати 2 цілі → «Build route» → замкнений маршрут база → цілі → база, профіль висоти → клік по відрізку → справжній знімок Navcam з цього місця | A* за модельним часом, обхід blocked/NoData; вигляд з поверхні (§7.9) |
+| 21–30 с | Сценарій «O₂ −40%» → ореол звужується → відрізки без повернення червоніють, «Point of no return in N min» → «Replace target» на ближчу; плашка «model, not certified» | Модель враховує аварійне повернення (§7.8); чесність |
 
 Запасний варіант — ≤7 слайдів англійською. Резервне відео лежить у пакеті сабміту і відтворюється без мережі.
 
@@ -47,11 +47,13 @@
 | 5–8 наукових цілей з фото Curiosity Navcam і посиланнями NASA/JPL | Автоматичний порядок цілей (TSP), оптимізація наукової цінності |
 | A* у Web Worker, порядок цілей користувача, повернення на базу, профіль висоти | Згладжування шляху, ровер-транспорт |
 | O₂, енергія, час, доза (якщо відома), резерв, ореол, сценарій «O₂ −40%» | Пилова буря як модель погоди, реальна телеметрія |
+| Abort map: відрізки без повернення з аварійним запасом O₂, «Point of no return in N min» (§7.8) | Камені з HiRISE — офлайн-шар «model-derived» (рішення о сб 21:00) |
+| «View from here»: найближчий справжній знімок Navcam до обраного відрізка (§7.9) | — |
 | Планшетний HUD, клавіатура, 400 px, reduced motion, 2D-план Б | VR, мультиплеєр, складні ефекти |
 | Статичний сайт, локальні дані, provenance кожного шару | Backend, облікові записи, LLM, ключі в браузері |
 | — | Текстовий брифінг з RoutePlan, AI-зведення сектора, шторка порівняння шарів |
 
-**Порядок скорочення**, якщо не встигаємо: анімація переходу → POV-камера → «Back to globe» → термальний шар (лишити в SOURCES, прибрати з UI). **Не скорочуємо:** маршрут, цілі з фото, бюджет і повернення, походження даних, 2D-план Б.
+**Порядок скорочення**, якщо не встигаємо: камені з HiRISE → знімки на відрізках (лишити фото цілей) → червоні відрізки на карті → анімація переходу → POV-камера → «Back to globe» → термальний шар (лишити в SOURCES, прибрати з UI). **Не скорочуємо:** маршрут, цілі з фото, бюджет і повернення, Abort у HUD, походження даних, 2D-план Б.
 
 ## 5. Архітектура
 
@@ -160,6 +162,7 @@ export interface Region {
   files: {                                                    // відносно папки регіону, через BASE_URL
     elevation: string; slope: string; walkable: string; hazard: string; // .f32 / .u8, row-major, LE
     texture: string; targets: string; traverse?: string;
+    photos?: string;                                          // photos.geojson (F6), §6.0
   };
   noData: number;                                             // сирий sentinel у elevation.f32
   base: XY; model: ModelParams; limits: Resources;
@@ -173,6 +176,14 @@ export interface Target {
   photo: { url: string; alt: string; sourceUrl?: string; credit: string; sol?: number; status: Evidence } | null;
 }
 
+export interface SurfacePhoto {                                // знімок з поверхні для «View from here» (§7.9)
+  id: string; coordinates: XY; lonLat: readonly [lon: number, lat: number];
+  url: string; alt: string; sourceUrl: string; credit: string; sol: number;
+  camera: string;                                             // 'NAV_LEFT_B' тощо, як дає raw images API
+  locationAccuracy: 'rover-stop' | 'approximate';             // координати зупинки ровера за sol, не місце кадру
+  status: Evidence;
+}
+
 export interface Resources {                                  // залишки (або ліміти)
   time: number; o2: number; energy: number;
   dose: number | null;                                        // null = невідомо
@@ -182,6 +193,7 @@ export interface ModelParams {
   speedMps: number; uphillFactor: number; downhillFactor: number;
   o2GPerS: number; energyWhPerM: number; doseUSvPerS: number | null;
   maxSlopeDeg: number; hazardWeight: number; reserveFraction: number; // [0,1)
+  emergencyO2G: number;                                       // аварійний запас O₂, г; на план не витрачається (§7.8)
   evidence: Record<keyof Omit<ModelParams, 'evidence'>, Source>;
 }
 
@@ -213,12 +225,20 @@ export interface ReachabilityResult {
   returnInS: number | null;                                   // §7.4; null — не оцінено
   deficits: (keyof Resources)[];                              // ресурси, яких бракує на план
   swap: { dropId: string; addId: string } | null;             // кандидат заміни цілі
+  abort: AbortPlan | null;                                    // §7.8; null — немає чинного плану
   warnings: string[];
+}
+
+export interface AbortPlan {
+  segments: { returnS: number | null; ok: boolean }[];        // по одному на plan.segments[i]; returnS — час до бази з кінця відрізка
+  pointOfNoReturnS: number | null;                            // с від початку плану до першого відрізка з ok = false; null — повернення звідусіль
+  emergencyO2G: number;                                       // який запас враховано (з model, для підпису й «assumption»)
 }
 
 export interface MissionState {
   site: 'gale' | null; layers: Record<string, boolean>;
   targets: Target[]; selectedTargetIds: string[]; selectedSegment: number | null;
+  photos: SurfacePhoto[];                                     // до завантаження — []
   region: Region | null; grid: PlanningGrid;                  // до завантаження — mockGrid
   model: ModelParams; limits: Resources;                      // з region.json, до того — mocks
   waypoints: XY[]; plan: RoutePlan | null;
@@ -227,7 +247,7 @@ export interface MissionState {
 
   setSite(site: 'gale' | null): void;
   toggleLayer(id: string): void;
-  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[] }): void;
+  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[]; photos?: SurfacePhoto[] }): void;
   toggleTarget(id: string): void;
   replaceTarget(dropId: string, addId: string): void;
   setWaypoints(points: XY[]): void;
@@ -244,6 +264,7 @@ export interface MissionState {
 
 - **`targets.geojson`** (пише F6): `FeatureCollection` точок, `geometry.coordinates = [lon, lat]` у градусах, `properties` = `Target` без `coordinates` і `lonLat`. `DataLoader` (F3) перетворює `[lon, lat]` через `lonLatToXY` і заповнює `Target.coordinates` та `lonLat`; ціль поза сіткою відкидається з попередженням.
 - **`traverse.geojson`** (пише F3): `LineString` `[lon, lat, elev]`. F2 читає його за `region.files.traverse` і перетворює через `lonLatToXY`.
+- **`photos/photos.geojson`** (пише F6, прив'язку до зупинок робить Іван): `FeatureCollection` точок `[lon, lat]` — координати зупинки ровера в sol знімка (MMGIS); `properties` = `SurfacePhoto` без `coordinates` і `lonLat`. Файли зображень — локально в `photos/`. `DataLoader` (F3) читає його за `region.files.photos`, заповнює `coordinates` / `lonLat` і передає в `setRegionData({ …, photos })`; знімок поза сіткою відкидається з попередженням. Немає файла — `photos = []`, працює запасний варіант §7.9.
 
 ### 6.1 Правила store (реалізує F0, тестує F0)
 
@@ -252,7 +273,7 @@ export interface MissionState {
 | `setSite(x)` | Скидає `waypoints`, `plan`, `reach`, `selectedTargetIds`, `selectedSegment` і `time`. `position = base`. `null` повертає до глобуса. |
 | `toggleTarget` / `replaceTarget` | Перераховує `waypoints` = координати обраних цілей у порядку вибору. Ставить `plan = null`, `reach = null`, `selectedSegment = null`. `replaceTarget` ставить нову ціль на місце старої в порядку. Після першого «Build route» F4 сам перебудовує план на кожну зміну `waypoints`. |
 | `setWaypoints` | Задає порядок вручну (F4). Інвалідує `plan` і `reach`. |
-| `setRegionData` | Записує `region`, `grid`, `targets`, `model`, `limits`, `base`. Скидає як `setSite`. |
+| `setRegionData` | Записує `region`, `grid`, `targets`, `photos` (без поля — `[]`), `model`, `limits`, `base`. Скидає як `setSite`. |
 | `setLimits` | Сценарій (F5). `reach = null`, `plan` лишається. |
 
 Хто що читає й пише — таблиця фіч у §8.
@@ -331,7 +352,8 @@ export interface MissionState {
 - Кожна константа `ModelParams` і `limits` має `Source`. Без джерела — `status: 'assumption'`, і на екрані видно «assumption».
 - **Кандидати джерел** перевіряє Влад до сб 21:00:
   - швидкість пішохода в скафандрі й O₂ на виході — NASA BVAD / дані EVA;
-  - поріг `maxSlopeDeg` — припущення.
+  - поріг `maxSlopeDeg` — припущення;
+  - аварійний запас `emergencyO2G` — кандидат: аварійний кисневий блок скафандра EMU (~30 хв); до перевірки — «assumption», mock = 360 г (30 хв × 0.2 г/с).
 - Доза — кандидат Curiosity RAD (перевіряє Настя). Карти радіації по місцевості немає: точкову дозу на карту не розтягуємо.
 - Mock завжди підписаний «MOCK». Кожне джерело — рядок у `docs/SOURCES.md` (id, URL, product ID, credit, дата доступу, статус).
 
@@ -343,6 +365,26 @@ export interface MissionState {
 - Live region: `role="status"`, для дефіциту — `role="alert"`.
 - `prefers-reduced-motion` прибирає переходи.
 - Мова інтерфейсу — англійська (для суддів і відео).
+
+### 7.8 Abort map і точка неповернення (F5)
+Правило Apollo: з будь-якої точки маршруту екіпаж має змогу повернутися на базу пішки. Abort map показує, з яких відрізків плану це можливо з аварійним запасом O₂.
+- Рахується лише для чинного плану (`plan.status = 'ok'`); інакше `reach.abort = null`.
+- Для відрізка `i` (кінець — `segments[i].to`):
+  - **витрачено до кінця відрізка** `used_k(i) = Σ_{j ≤ i} segments[j].k` для time, o2, energy, dose;
+  - **дорога назад** — зворотне дерево до бази (§7.4, ті самі зворотні ребра): `back.time`, `back.dist` з клітинки кінця; `back.o2 = back.time × o2GPerS`, `back.energy = back.dist × energyWhPerM`, `back.dose = back.time × doseUSvPerS` (якщо відомий);
+  - **запас безпеки** `safety_o2 = emergencyO2G`; для time, energy і dose — резерв §7.4 (`reserveFraction × limits_k`);
+  - відрізок **повертабельний** (`ok = true`), якщо для кожного відомого ресурсу `back_k(i) ≤ budget_k − used_k(i) − safety_k`. Рівність допустима (той самий допуск float, що й у §7.4). Немає шляху назад — `ok = false`, `returnS = null`.
+- `returnS = back.time` (с).
+- **Точка неповернення** — початок першого відрізка з `ok = false`: `pointOfNoReturnS = Σ_{j < i*} segments[j].time`. Якщо всі `ok`, то `null`. Відлік — від старту плану (позиція до виходу = база).
+- Пізніші відрізки біля бази можуть знову бути `ok`: кожен відрізок фарбується окремо, а точка неповернення — лише перша.
+- `emergencyO2G` має `Source` у `model.evidence`; без джерела на екрані видно «assumption».
+- **Еталон для тестів** (mock-модель, `emergencyO2G = 360 г`, `limits` з §7.4, `t = 0`): відрізок з `used.o2 = 100 г`, `back.time = 500 с` → `back.o2 = 100 г ≤ 720 − 100 − 360 = 260` → `ok`; той самий з `back.time = 1400 с` → `280 > 260` → не `ok`.
+
+### 7.9 «View from here» — знімок з маршруту (F4)
+- Для обраного відрізка (`selectedSegment`) береться його середина; кандидати — `photos` (§6.0), а якщо їх немає — фото цілей (`targets[].photo` з `targets[].coordinates`).
+- Показується найближчий знімок за горизонтальною відстанню в метрах, якщо він ближче за **300 м** (поріг — «assumption»); інакше текст «No surface photo within 300 m».
+- Підпис чесний: «Navcam, sol N, taken ~D m from this segment (rover stop)», credit як дає джерело, `alt`, посилання на `sourceUrl`. Знімок — вид із зупинки ровера, а не з точки маршруту.
+- Немає файла знімка або не завантажився — заглушка з `alt`, а не порожня рамка.
 
 ## 8. Дані NASA
 
@@ -373,8 +415,8 @@ export interface MissionState {
 | F0 Каркас, contracts, store, CI, інтеграція | Олександр | xand0dev | `feat/F0` | спільні файли §5.3, `src/features/*/index.ts` (заглушки) | — | — |
 | F1 Глобус і вибір місця | Іван | gonivanko | `feat/F1` | `src/features/globe/**`, `public/data/mars/**`, `pipeline/globe/**` | site | `setSite` |
 | F2 3D-рельєф і 2D-план | Олександр | xand0dev | `feat/F2` | `src/features/terrain/**` | site, grid, region, layers, targets, selectedTargetIds, plan, selectedSegment, reach, base, position | — |
-| F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/gale/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData`, `toggleLayer` |
-| F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan | `setPlan`, `setWaypoints`, `setSelectedSegment` |
+| F3 Дані й шари | Максим | kingsneverdie17 | `feat/F3` | `pipeline/**` (крім `pipeline/globe`), `public/data/gale/**` (крім `targets*`, `photos/`), `src/features/data/**` | site, layers, region | `setRegionData` (з `photos`), `toggleLayer` |
+| F4 Маршрут A* | Влад | froozy3 | `feat/F4` | `src/features/route/**`, `src/core/**` | grid, model, limits, waypoints, base, position, plan, selectedSegment, reach, targets, photos, region | `setPlan`, `setWaypoints`, `setSelectedSegment` |
 | F5 Бюджет і повернення | Влад | froozy3 | `feat/F5` | `src/features/budget/**`, `src/core/**` | grid, model, limits, plan, time, base, position, targets, selectedTargetIds | `setBudget`, `setReach`, `setLimits` |
 | F6 Наукові цілі й фото | Настя | Bulka0801 | `feat/F6` | `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**` | site, targets, selectedTargetIds, reach | `toggleTarget` |
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
@@ -385,6 +427,8 @@ export interface MissionState {
 Додатково:
 - **Настя:** QA на `main` (Pages) у вікна інтеграції, `docs/SOURCES.md`, рев'ю F2/F7 у браузері.
 - **Оля:** презентація й пітч.
+- **Іван:** доступність (#5), скрипт прив'язки знімків Navcam до зупинок MMGIS за sol для `photos.geojson` (у шляхах F6, разом з Настею), прогін демо.
+- **Abort map і «View from here»** (§7.8–7.9): F5 рахує `reach.abort`, F4 показує знімок і позначає відрізки без повернення в таблиці, F2 фарбує їх на карті, F7 — «Point of no return» у HUD, F6 + Іван — знімки, F3 — `photos` у `DataLoader` і `emergencyO2G` у `region.json`.
 - F4 і F5 ділять `src/core/` (одна людина, конфлікту немає).
 - `docs/AI_LOG.md` і `docs/SOURCES.md` кожен змінює лише у своєму розділі.
 
@@ -411,6 +455,7 @@ Vite-проєкт, contracts, store з правилами §6.1, mocks (128×128
 - **F2-AC3. Given** є маршрут і `selectedSegment = i`; **When** перемальовано; **Then** відрізок `i` підсвічено окремо на висоті поверхні, а при `null` підсвітки немає. F2 нічого не пише в store.
 - **F2-AC4. Given** WebGL недоступний, контекст втрачено або сітка невалідна; **When** відкрито Gale; **Then** видно причину і 2D-план з blocked, цілями й маршрутом.
 - **F2-AC5. Given** 3D з увімкненими шарами на ноутбуці демо; **When** зроблено 60-секундний замір; **Then** у PR записано пристрій, браузер, роздільність і медіанний FPS ≥30 (або чесно «не пройдено»).
+- **F2-AC6. Given** `reach.abort` з відрізками `ok = false`; **When** відмальовано 3D або 2D; **Then** ці відрізки маршруту червоні з легендою іконкою й текстом «No return with emergency O₂», а при `abort = null` маршрут звичайний.
 
 ### F3 — Дані й шари (Максим)
 Pipeline у Docker вивантажує bbox (§8), рахує схил, walkable і hazard, валідує й пише `public/data/gale/`. `DataLoader` вантажить пакет і викликає `setRegionData`. `LayersPanel` перемикає шари й показує легенду та походження.
@@ -418,6 +463,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F3-AC2. Given** пакет Gale; **When** відкрито район; **Then** `grid` у store — реальна сітка (не mock), статус «verified», а висоти лежать у діапазоні, який повертає `exportImage` для bbox.
 - **F3-AC3. Given** панель шарів; **When** перемикаються terrain, optical, thermal, slope, traverse (мишею чи клавіатурою); **Then** кожен шар має легенду з текстом, одиниці й рядок походження (product ID/URL, нативна й цільова роздільність, метод, credit).
 - **F3-AC4. Given** файл шару відсутній або має інший розмір сітки; **When** вантажиться район; **Then** видно помилку саме цього шару, решта UI працює, а битий шар не потрапляє в `grid`. Якщо бита сама сітка — лишається mock з бейджем.
+- **F3-AC5. Given** `region.files.photos` і `photos.geojson`; **When** вантажиться район; **Then** `photos` у store мають `coordinates` з `lonLatToXY`, знімки поза сіткою відкинуто з попередженням; без файла — `photos = []`. `region.json` має `model.emergencyO2G` з `evidence` (без джерела — `assumption`).
 
 ### F4 — Маршрут A* (Влад)
 Ядро `src/core` (ребра, вартість, A*, дерева) за §7.3; Worker; `RoutePanel` з кнопкою «Build route», порядком цілей, профілем висоти й таблицею відрізків.
@@ -426,6 +472,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F4-AC3. Given** ціль поза сіткою, на blocked, в ізольованій області або нога без шляху; **When** «Build route»; **Then** видно код причини з номером точки або ноги, `plan.status ≠ 'ok'`, і старий маршрут не показано як чинний.
 - **F4-AC4. Given** маршрут; **When** обрано відрізок у профілі або таблиці; **Then** `setSelectedSegment(i)`, і видно dist, slope, time, O₂, energy та dose з одиницями (dose `null` → «no data»).
 - **F4-AC5. Given** сітка 256×256 і 2 цілі; **When** «Build route»; **Then** результат є за ≤2 с, UI не блокується (статус «pending»), а застарілі відповіді Worker відкинуто.
+- **F4-AC6. Given** маршрут і обраний відрізок; **When** є знімок ближче 300 м (§7.9); **Then** видно «View from here»: знімок з `alt`, sol, credit, відстань і посилання на джерело; інакше «No surface photo within 300 m». Відрізки з `reach.abort.segments[i].ok = false` позначені в таблиці іконкою й текстом «no return».
 
 ### F5 — Бюджет і повернення (Влад)
 `BudgetEngine` (headless) за §7.4 рахує `budget` і `reach` (маска, `returnInS`, `deficits`, `swap`). `BudgetPanel` показує шкали O₂, енергії, часу й дози, сценарій «O₂ −40%» (`setLimits`) і «Reset».
@@ -433,6 +480,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F5-AC2. Given** позиція, база й бюджет; **When** порахувано ореол; **Then** до маски входять лише клітинки з реальним шляхом туди й назад (зворотні ребра окремо) у межах бюджету з резервом, рівність приймається, перевищення ні.
 - **F5-AC3. Given** ціль усередині ореолу; **When** увімкнено «O₂ −40%» або зростає elapsed; **Then** маска не розширюється, а ціль поза ореолом отримує текстове попередження і `reach.swap` (за модельною вартістю).
 - **F5-AC4. Given** невалідний параметр (`speed ≤ 0`, `NaN`, `reserveFraction ≥ 1`); **When** порахувано; **Then** статус `invalid`, маска порожня, `returnInS = null`, на екрані помилка і жодного статусу «у межах моделі».
+- **F5-AC5. Given** чинний план і еталон §7.8; **When** порахувано; **Then** `reach.abort.segments` має стільки ж елементів, скільки `plan.segments`, `ok` за правилом §7.8 (рівність приймається), `pointOfNoReturnS` = сума часу до першого не-`ok` відрізка або `null`; без чинного плану `abort = null`; «O₂ −40%» не робить жоден відрізок «повертабельнішим».
 
 ### F6 — Наукові цілі й фото (Настя)
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
@@ -440,6 +488,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F6-AC2. Given** ціль; **When** відкрито картку (клік або клавіатура); **Then** видно назву, «why go», фото з `alt`, credit (як його дає API / сторінка зображення), sol і посилання на джерело. Фото позначено «view from rover stop», а не точне місце цілі.
 - **F6-AC3. Given** картка; **When** натиснуто «Add to route» / «Remove»; **Then** викликано `toggleTarget(id)`, а ціль поза ореолом має попередження з `reach`.
 - **F6-AC4. Given** фото не завантажилося; **When** відкрито картку; **Then** видно заглушку з `alt`, і картка та кнопка працюють.
+- **F6-AC5. Given** bbox Gale; **When** зібрано `photos/photos.geojson`; **Then** 8–20 знімків Navcam у межах сітки, кожен локально, з `alt`, credit, sol, `sourceUrl`, камерою й `locationAccuracy = 'rover-stop'` (координати зупинки MMGIS за sol), джерела — у `docs/SOURCES.md`.
 
 ### F7 — UI, HUD, дизайн-токени (Оля)
 Токени (`src/ui/tokens.css`: темний фон, акцент), Panel / Gauge / StatusNote / OwnerBadge, адаптивний `Shell`, `Hud`: великий «Return in N min», статус, поле «Elapsed, s», кнопка заміни цілі.
@@ -448,10 +497,11 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 - **F7-AC3. Given** store з `reach` (еталон §7.4, план 900 с); **When** відкрито HUD; **Then** HUD показує те саме N, що й `BudgetPanel` (33 хв), і ризик іконкою + словами: «Estimate incomplete: dose — no data». Різні рівні мають різні іконки.
 - **F7-AC4. Given** стани empty, «цілі обрано, плану немає», pending, invalid, no-path, deficit, incomplete, estimated, MOCK і `NaN` у budget; **When** відкрито HUD; **Then** для кожного видно пояснення й наступну дію, `NaN` показано як «—», а не «NaN min». Найкращий статус — «within model».
 - **F7-AC5. Given** `reach.swap = {dropId, addId}`; **When** натиснуто «Replace ‹A› with ‹B›»; **Then** викликано `replaceTarget(dropId, addId)` і фокус перейшов на «Elapsed». При `swap = null` кнопки немає, є порада «Remove a target or return to base now». Reduced motion прибирає переходи.
+- **F7-AC6. Given** `reach.abort`; **When** відкрито HUD; **Then** видно «Point of no return in N min» (`N = floor(pointOfNoReturnS / 60)`) або «Return possible along the whole route», з іконкою й текстом; при `abort = null` рядка немає, а «assumption» біля аварійного запасу видно, якщо `emergencyO2G` без джерела.
 
 ### F8 — Демо й сабміт (Олександр)
 Сценарій і відео ≤30 с з англійськими субтитрами, ≤7 слайдів (з Олею), сторінка сабміту, AI_LOG, SOURCES, релізний URL.
-- **F8-AC1. Given** релізний build; **When** відтворено сценарій §3; **Then** відео ≤30 с з англійськими субтитрами показує Gale, ≥3 типи даних, ціль з фото, маршрут, «O₂ −40%», ореол, «Return in N min», заміну цілі й плашку обмежень.
+- **F8-AC1. Given** релізний build; **When** відтворено сценарій §3; **Then** відео ≤30 с з англійськими субтитрами показує Gale, ≥3 типи даних, ціль з фото, маршрут, знімок «View from here», «O₂ −40%», ореол, червоні відрізки й «Point of no return», «Return in N min», заміну цілі й плашку обмежень.
 - **F8-AC2. Given** мережу вимкнено після локального запуску (`npm run preview`); **When** пройдено сценарій; **Then** усі дані локальні, а резервне відео відтворюється офлайн.
 - **F8-AC3. Given** пакет сабміту; **When** пройдено чекліст; **Then** є 6 учасників, репо з ліцензією Apache-2.0, опис використання AI (з `docs/AI_LOG.md`), усі джерела NASA з credit (`docs/SOURCES.md`) і опис меж моделі.
 - **F8-AC4. Given** релізний URL і відео; **When** відкрито в приватному вікні; **Then** усе доступне без входу, сабміт на сторінці команди підтверджено до 23:59, час записано.
@@ -477,8 +527,10 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 | **Сб, старт** | Репо з SPEC.md → каркас F0, CI, automerge, Pages; issues F1–F8; specs фіч | Олександр |
 | Сб, старт + каркас | Усі починають на mocks: spec → тести → код у `feat/F<N>` | усі |
 | **Сб 14:00** | Bbox і пакет даних Gale у `main` (F3); список 5–8 цілей і фото (F6); джерела в SOURCES | Максим, Настя |
+| **Сб 15:00** | Погодження Abort map і «View from here» (§7.8–7.9) | усі |
+| **Сб 16:00** | Contract-PR у `main`: `reach.abort`, `emergencyO2G`, `SurfacePhoto`, `photos` у store і mocks | Олександр |
 | Сб 14:00–21:00 | F2 на реальній сітці; F4/F5 на реальній сітці й замір ≤2 с; F1 текстура; F7 HUD на store | Олександр, Влад, Іван, Оля |
-| **Сб 21:00** | Перша інтеграція: повний ланцюг демо на Pages на реальних даних; список багів | усі, QA — Настя |
+| **Сб 21:00** | Перша інтеграція: повний ланцюг демо на Pages на реальних даних (з Abort і знімками); список багів; рішення щодо каменів з HiRISE | усі, QA — Настя |
 | Нд до 12:00 | Добудова AC, баги, доступність 400 px, FPS-замір | усі |
 | **Нд 12:00** | **Freeze**: нових фіч немає, лише виправлення | — |
 | Нд 12:00–18:00 | QA за AC, запис відео, слайди, AI_LOG, SOURCES, опис обмежень | Олександр, Оля, Настя |
@@ -496,5 +548,7 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 | A* або ореол повільні на 256×256 | Сітка 128×128 по 20 м; Worker; замір у PR |
 | Низький FPS | Менша сітка або текстура; 2D-план |
 | Немає джерела для коефіцієнта | Позначка «assumption» на екрані; доза `null` → `incomplete` |
+| Мало знімків біля маршруту | Запасний варіант §7.9 — фото цілей; поріг 300 м і чесний текст «No surface photo within 300 m» |
+| Демо-цілі поза ореолом (на реальній сітці ореол ≈19.5 % карти) | Обрати демо-цілі всередині ореолу і одну ближню для заміни; перевіряє Максим на реальній сітці |
 | PR конфліктують | Папки по фічах, слоти в `src/app` від F0, розділи AI_LOG/SOURCES; спільне — малий PR з міткою `contract` |
 | Фіча не встигає до freeze | Лишається mock з бейджем MOCK, демо не ламається; порядок скорочення §4 |

@@ -14,13 +14,19 @@
   --radius: 10px;
   --gap: 12px;
   --touch: 40px;
+  --fs-hero: clamp(2rem, 7vw, 3rem);
+  --fs-title: 1.2rem;
+  --fs-body: 1rem;
+  --fs-small: 0.85rem;
+  --deficit-bg: #4a1414;
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
-body { overflow-x: hidden; }
-button, input, select { font: inherit; min-height: var(--touch); }
+body { overflow-x: hidden; overflow-wrap: anywhere; }
+button, input, select { font: inherit; min-height: var(--touch); min-width: var(--touch); }
+input { background: var(--surface-2); color: var(--text); border: 1px solid #4a3d36; border-radius: 8px; padding: 0 10px; }
 button { background: var(--surface-2); color: var(--text); border: 1px solid #4a3d36; border-radius: 8px; padding: 0 12px; cursor: pointer; }
 button[aria-pressed='true'] { border-color: var(--accent); }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
@@ -33,7 +39,15 @@ button[aria-pressed='true'] { border-color: var(--accent); }
 .ui-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; }
 .ui-badge--mock { background: #5a3a12; color: #ffd38a; font-weight: 700; }
 .ui-note { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; }
-.ui-note--ok { color: var(--ok); } .ui-note--warn { color: var(--warn); } .ui-note--danger { color: var(--danger); } .ui-note--info { color: var(--info); }
+.ui-note--ok { color: var(--ok); } .ui-note--warn { color: var(--warn); } .ui-note--danger { color: var(--danger); } .ui-note--info { color: var(--info); } .ui-note--pending { color: var(--info); }
+.ui-note--deficit { color: var(--danger); background: var(--deficit-bg); border-radius: 8px; padding: 6px 8px; }
+.ui-note > span:first-child { flex: none; }
 .ui-gauge { display: grid; gap: 4px; margin: 6px 0; }
-.ui-gauge meter { width: 100%; height: 12px; }
+.ui-gauge meter { width: 100%; height: 12px; display: block; }
+.ui-gauge__track { position: relative; }
+.ui-gauge__reserve { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--warn); transform: translateX(-1px); }
+.ui-gauge__extra { color: var(--text-muted); font-size: var(--fs-small); }
+.ui-gauge--unknown { color: var(--warn); }
+.ui-gauge--deficit meter::-webkit-meter-optimum-value, .ui-gauge--deficit meter::-webkit-meter-suboptimum-value { background: var(--danger); }
+.ui-gauge--deficit meter::-moz-meter-bar { background: var(--danger); }
 .ui-stub { color: var(--text-muted); font-size: 0.9rem; margin: 0; }

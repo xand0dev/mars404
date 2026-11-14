@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type StatusLevel = 'info' | 'ok' | 'warn' | 'danger';
-
-const ICON: Record<StatusLevel, string> = { info: 'ℹ', ok: '✔', warn: '⚠', danger: '✖' };
+import { STATUS_ICON, type StatusLevel } from './statusLevel';
 
 export interface StatusNoteProps {
   level: StatusLevel;
@@ -15,7 +13,7 @@ export interface StatusNoteProps {
 export function StatusNote({ level, children, live }: StatusNoteProps) {
   return (
     <p className={`ui-note ui-note--${level}`} role={live}>
-      <span aria-hidden="true">{ICON[level]}</span>
+      <span aria-hidden="true">{STATUS_ICON[level]}</span>
       <span>{children}</span>
     </p>
   );
