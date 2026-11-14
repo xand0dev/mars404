@@ -1,44 +1,70 @@
-.shell { display: grid; gap: var(--gap); padding: var(--gap); grid-template-columns: minmax(0, 1fr); align-items: start; max-width: 3200px; margin: 0 auto; }
-.shell__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--gap); }
-.shell__title { font-size: var(--fs-title); margin: 0; }
-.shell__disclaimer { margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem; }
+/* F7 · пульт місії (T25). Одна сітка: верхня смуга (бренд + HUD) → карта (головна площа) → панелі праворуч → Route | Resources під картою.
+   < 768 px: одна колонка HUD → карта → панелі. Без горизонтального скролу на 400 px (F7-AC1). */
+.shell {
+  display: grid; gap: var(--space-3); padding: var(--space-3); max-width: 3200px; margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'top' 'map' 'side' 'bottom';
+  align-items: start;
+  --side-top: var(--space-3);
+}
 .shell > * { min-width: 0; }
-.shell__side, .shell__bottom { display: grid; gap: var(--gap); min-width: 0; }
+.shell__top { grid-area: top; display: grid; gap: var(--space-2); }
+.shell__map { grid-area: map; }
+.shell__side { grid-area: side; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
+.shell__bottom { grid-area: bottom; display: grid; gap: var(--space-3); min-width: 0; align-items: start; }
+
+/* Бренд — тонкий рядок: головне на екрані — HUD і карта. */
+.shell__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+.shell__brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-3); min-width: 0; }
+.shell__title { font-size: 1rem; letter-spacing: 0.04em; margin: 0; }
+.shell__disclaimer { margin: 0; color: var(--text-muted); font-size: var(--fs-small); }
+.shell__glove { flex: none; }
+
 @media (min-width: 768px) {
+  .shell__side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .shell__bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ≥ 1024: карта — головна площа, праворуч колонка панелей зі своєю прокруткою, Route | Resources під картою. */
 @media (min-width: 1024px) {
-  .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
-  .shell__top, .shell__hud, .shell__bottom { grid-column: 1 / -1; }
+  .shell {
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    grid-template-areas: 'top top' 'map side' 'bottom side';
+  }
+  .shell__side {
+    grid-template-columns: minmax(0, 1fr);
+    position: sticky; top: var(--side-top);
+    max-height: calc(100dvh - var(--side-top) - var(--space-3));
+    overflow-y: auto; overscroll-behavior: contain;
+    padding-right: 2px; /* фокус-рамка не обрізається прокруткою */
+  }
+  .shell__bottom > * { max-height: min(70vh, 640px); overflow-y: auto; overscroll-behavior: contain; }
 }
-/* Широкий екран або зменшений масштаб браузера: панелі перерозкладаються в 3 колонки, а не стоять вузькою смугою. */
-@media (min-width: 1600px) {
-  .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr) minmax(320px, 1fr); }
-  .shell__top, .shell__hud { grid-column: 1 / -1; }
-  .shell__map { grid-column: 1; grid-row: 3; }
-  .shell__side { grid-column: 2; grid-row: 3; }
-  .shell__bottom { grid-column: 3; grid-row: 3; grid-template-columns: minmax(0, 1fr); }
-}
-@media (min-width: 2400px) {
-  .shell { grid-template-columns: minmax(0, 3fr) minmax(360px, 1fr) minmax(360px, 1fr); }
+/* Липка смуга HUD — лише там, де під нею лишається місце для карти. */
+@media (min-width: 1024px) and (min-height: 700px) {
+  .shell { --side-top: calc(var(--topbar-h) + var(--space-3)); }
+  .shell__top {
+    position: sticky; top: 0; z-index: 20;
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) 0; padding: var(--space-3) var(--space-3) var(--space-2);
+    background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: 0 6px 12px -8px #000000aa;
+  }
 }
 
-/* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px, головне зверху, другорядне згорнуто. */
-.shell__glove { flex: none; }
-.shell__more > summary { list-style: none; display: flex; align-items: center; padding: 0 16px; border-radius: var(--radius); background: var(--surface); cursor: pointer; font-weight: 700; }
+/* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px; лише HUD і карта, решта — у «More panels». */
+.shell--glove { --touch: 64px; font-size: 1.1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'map' 'more'; }
+.shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
+.shell--glove input[type='number'] { width: 12rem; }
+.shell__more { grid-area: more; }
+.shell__more > summary { list-style: none; display: flex; align-items: center; padding: 0 var(--space-4); border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); cursor: pointer; font-weight: 700; }
 .shell__more > summary::-webkit-details-marker { display: none; }
 .shell__more > summary::before { content: '▸'; margin-right: 10px; }
 .shell__more[open] > summary::before { content: '▾'; }
-.shell__more-body { display: grid; gap: var(--gap); margin-top: var(--gap); }
-.shell--glove { --touch: 64px; font-size: 1.1rem; }
-.shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
-.shell--glove input[type='number'] { width: 12rem; }
+.shell__more-body { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+.shell__more-body > * { grid-area: auto; }
+.shell--glove .shell__side { position: static; max-height: none; overflow: visible; }
 @media (min-width: 1024px) {
-  .shell__more, .shell--glove .shell__map { grid-column: 1 / -1; }
-}
-@media (min-width: 1600px) {
-  .shell--glove .shell__map { grid-row: auto; }
-  .shell__more { grid-row: auto; }
+  .shell--glove { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'map' 'more'; }
   .shell--glove .shell__more-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .shell--glove .shell__more-body .shell__bottom { grid-column: auto; grid-row: auto; }
+  .shell--glove .shell__side { grid-template-columns: minmax(0, 1fr); }
+  .shell--glove .shell__bottom { grid-template-columns: minmax(0, 1fr); }
 }

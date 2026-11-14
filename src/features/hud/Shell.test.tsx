@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetMission } from '../../store/useMission';
+import { act } from 'react';
+import { resetMission, useMission } from '../../store/useMission';
+import { Panel } from '../../ui';
 import { GLOVE_KEY } from './glove';
 import { Hud } from './Hud';
 import { Shell } from './Shell';
@@ -97,5 +99,42 @@ describe('F7-AC9 · у режимі другорядне згорнуто, го�
     const more = screen.getByText('More panels');
     expect(hero.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(verdict.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+// T23–T24: права колонка — панелі, що згортаються; відкрита та, що потрібна для наступного кроку.
+describe('права колонка: панелі згортаються, відкрита панель кроку', () => {
+  const panels = () =>
+    render(
+      <Shell
+        hud={<p>hud</p>}
+        map={<p>map</p>}
+        side={
+          <>
+            <Panel title="Location" featureId="F1" owner="Іван">loc</Panel>
+            <Panel title="Layers" featureId="F3" owner="Максим">layers</Panel>
+            <Panel title="Science targets" featureId="F6" owner="Настя">targets</Panel>
+          </>
+        }
+        bottom={<Panel title="Route" featureId="F4" owner="Влад">route</Panel>}
+      />,
+    );
+  const expanded = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-expanded');
+
+  it('без сайту відкрита Location, решта згорнута; Route під картою не згортається', () => {
+    panels();
+    expect(expanded('Location')).toBe('true');
+    expect(expanded('Layers')).toBe('false');
+    expect(expanded('Science targets')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Route' })).toBeNull();
+  });
+
+  it('обрали сайт → відкрита Science targets; клік по заголовку перемикає панель', () => {
+    panels();
+    act(() => useMission.setState({ site: 'gale' }));
+    expect(expanded('Location')).toBe('false');
+    expect(expanded('Science targets')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Layers' }));
+    expect(expanded('Layers')).toBe('true');
   });
 });
