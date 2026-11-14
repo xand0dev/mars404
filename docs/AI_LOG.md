@@ -79,6 +79,7 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | SPEC §7.6 (#20): `limits.o2` 200 → 140 г за розрахунком на реальній сітці Gale (112 / 200 / 140 г, abort §7.8 з `emergencyO2G`) | docs/SPEC.md | розрахунок `assessReach` на пакеті Gale: 140 г → «O₂ −40%» 11 хв, 44/110 «no return», точка неповернення 836 с | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #59 (F5-AC6): ореол і Abort map на `applyAnnotations(grid, annotations)` — impassable випадає з ореолу, hazard лишається | src/features/budget/**, specs/F5/** | npm run check (491 тест); тести BudgetEngine: abort дорівнює розрахунку на сітці з мітками | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | SOURCES ## F5: `jones-apollo-walk` verified → assumption (Місяць → Марс), як у `region.json` після рев'ю #63 / #70 | docs/SOURCES.md | звірено з рядком F3 і `region.json` | — |
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | SOURCES ## F5 (#79 п.1): `assumption-limits` — `limits.o2` 720 → 140 г з посиланням на #20 | docs/SOURCES.md | звірено з `region.json` у `main` | — |
 
 ## F6
 

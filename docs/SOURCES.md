@@ -68,7 +68,7 @@
 | assumption-hazard | `hazardWeight = 0.5`, hazard = `min(1, slope/25) × 0.5` (F3) | — | — | — | assumption | Впливає лише на вибір маршруту, не на час і O₂ (#8) |
 | assumption-reserve | `reserveFraction = 0.2` | — | — | — | assumption | SPEC §7.4 |
 | assumption-energy | `energyWhPerM = 0.05`, `limits.energy = 600 Wh` | — | — | — | assumption | У SPEC не задано |
-| assumption-limits | `limits.time = 3600 с`, `limits.o2 = 720 г` | — | — | — | assumption | Ліміти демо SPEC §7.4. Довідково: EMU — до 7 год виходу (emu-sop-30min) |
+| assumption-limits | `limits.time = 3600 с`, `limits.o2 = 140 г` (`region.json`) | — | — | — | assumption | Рішення #20, SPEC §7.6: 140 г = година ходьби з витратою Apollo після резерву 20 % (0.031 × 3600 / 0.8). 720 г — лише mock-фікстура тестів SPEC §7.4. Довідково: EMU — до 7 год виходу (emu-sop-30min) |
 
 ## F6
 
