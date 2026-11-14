@@ -1,5 +1,5 @@
 // Чисте ядро координат (SPEC §7.1–7.2). Без React і стану.
-import type { PlanningGrid, Region, XY } from './index';
+import type { Annotation, PlanningGrid, Region, XY } from './index';
 import { METERS_PER_DEG, VERTICAL_EXAGGERATION } from './index';
 
 type GridShape = Pick<PlanningGrid, 'width' | 'height' | 'metersPerPixel' | 'originM'>;
@@ -83,4 +83,38 @@ export function validateGrid(grid: PlanningGrid): string[] {
 export function dataUrl(path: string): string {
   const base = import.meta.env.BASE_URL ?? './';
   return `${base.endsWith('/') ? base : `${base}/`}data/${path.replace(/^\/+/, '')}`;
+}
+
+/**
+ * Сітка з урахуванням міток екіпажу (SPEC §7.12): клітинки, чий центр у радіусі мітки
+ * «impassable», стають непрохідними; «hazard» — hazard = 1. Note / plan не впливають.
+ * Без впливових міток повертає ту саму сітку (без копій).
+ */
+export function applyAnnotations(grid: PlanningGrid, annotations: readonly Annotation[]): PlanningGrid {
+  const active = annotations.filter((a) => (a.kind === 'impassable' || a.kind === 'hazard') && a.radiusM > 0 && a.coordinates.every(Number.isFinite));
+  if (active.length === 0) return grid;
+  const walkable = grid.walkable.slice();
+  const hazard = grid.hazard.slice();
+  const m = grid.metersPerPixel;
+  for (const a of active) {
+    const [ax, ay] = a.coordinates;
+    const c = xyToCellUnbounded(grid, a.coordinates);
+    const span = Math.ceil(a.radiusM / m) + 1;
+    for (let row = c.row - span; row <= c.row + span; row++) {
+      for (let col = c.col - span; col <= c.col + span; col++) {
+        if (!inGrid(grid, row, col)) continue;
+        const [x, y] = cellCenter(grid, row, col);
+        if (Math.hypot(x - ax, y - ay) > a.radiusM) continue;
+        const i = cellIndex(grid, row, col);
+        if (a.kind === 'impassable') walkable[i] = 0;
+        else hazard[i] = 1;
+      }
+    }
+  }
+  return { ...grid, walkable, hazard };
+}
+
+function xyToCellUnbounded(grid: Pick<PlanningGrid, 'metersPerPixel' | 'originM'>, [x, y]: XY): { row: number; col: number } {
+  const [ox, oy] = grid.originM;
+  return { col: Math.floor((x - ox) / grid.metersPerPixel), row: Math.floor((oy - y) / grid.metersPerPixel) };
 }
