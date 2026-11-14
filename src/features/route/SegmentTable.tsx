@@ -1,12 +1,13 @@
 import type { KeyboardEvent } from 'react';
-import type { AbortPlan, RoutePlan } from '../../contracts';
+import type { RoutePlan } from '../../contracts';
 import { STATUS_ICON } from '../../ui';
+import { formatRisks, NO_RETURN_RISK } from './segment-risk';
 import { formatDistance, formatDose, formatEnergy, formatO2, formatSeconds, formatSlope } from './format';
 
 export interface SegmentTableProps {
   plan: RoutePlan;
-  /** reach.abort (F5, SPEC §7.8); null — оцінки немає, позначок теж. */
-  abort: AbortPlan | null;
+  /** Причини ризику по відрізках (SPEC §7.14); порожній список — «nominal». */
+  risks: string[][];
   selectedSegment: number | null;
   onSelect: (segment: number) => void;
 }
@@ -22,12 +23,12 @@ const STEP_KEYS: Record<string, (current: number, last: number) => number> = {
   End: (_i, last) => last,
 };
 
-export function SegmentTable({ plan, abort, selectedSegment, onSelect }: SegmentTableProps) {
+export function SegmentTable({ plan, risks, selectedSegment, onSelect }: SegmentTableProps) {
   const selected = selectedSegment === null ? undefined : plan.segments[selectedSegment];
   const tabStop = selectedSegment ?? 0;
   const last = plan.segments.length - 1;
-  // Довжина не збігається — abort від іншого плану, позначок не ставимо.
-  const noReturn = (k: number) => abort?.segments.length === plan.segments.length && abort.segments[k]?.ok === false;
+  const riskOf = (k: number) => risks[k] ?? [];
+  const noReturn = (k: number) => riskOf(k).includes(NO_RETURN_RISK);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, k: number) => {
     const step = STEP_KEYS[event.key];
@@ -44,7 +45,7 @@ export function SegmentTable({ plan, abort, selectedSegment, onSelect }: Segment
         <p className="route-details" data-testid="segment-details" role="status">
           Segment {selectedSegment! + 1} (leg {legOf(plan.legs, selectedSegment!) + 1}): {formatDistance(selected.dist)} · slope {formatSlope(selected.slope)} ·{' '}
           {formatSeconds(selected.time)} · {formatO2(selected.o2)} · {formatEnergy(selected.energy)} · dose {formatDose(selected.dose)}
-          {noReturn(selectedSegment!) && ' · no return with emergency O₂ (model)'}
+          {' · risk: '}{formatRisks(riskOf(selectedSegment!))}
         </p>
       )}
       <div className="route-table">
@@ -59,6 +60,7 @@ export function SegmentTable({ plan, abort, selectedSegment, onSelect }: Segment
               <th scope="col">O₂, g</th>
               <th scope="col">Energy, Wh</th>
               <th scope="col">Dose, µSv</th>
+              <th scope="col">Risk</th>
             </tr>
           </thead>
           <tbody>
@@ -72,11 +74,6 @@ export function SegmentTable({ plan, abort, selectedSegment, onSelect }: Segment
                   >
                     {k + 1}
                   </button>
-                  {noReturn(k) && (
-                    <span className="route-no-return">
-                      <span aria-hidden="true">{STATUS_ICON.deficit}</span> no return
-                    </span>
-                  )}
                 </td>
                 <td>{s.dist.toFixed(1)}</td>
                 <td>{formatSlope(s.slope)}</td>
@@ -84,6 +81,10 @@ export function SegmentTable({ plan, abort, selectedSegment, onSelect }: Segment
                 <td>{s.o2.toFixed(2)}</td>
                 <td>{s.energy.toFixed(2)}</td>
                 <td>{s.dose === null ? 'no data' : s.dose.toFixed(2)}</td>
+                <td className={riskOf(k).length > 0 ? 'route-risk' : undefined}>
+                  {riskOf(k).length > 0 && <span aria-hidden="true">{noReturn(k) ? STATUS_ICON.deficit : STATUS_ICON.warn} </span>}
+                  {formatRisks(riskOf(k))}
+                </td>
               </tr>
             ))}
           </tbody>

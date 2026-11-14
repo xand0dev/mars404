@@ -13,7 +13,8 @@
    - схил — Horn 3×3 на 1 м → max по клітинці; hazard = `min(1, slope/25) × 0.5` (assumption);
    - `walkable = 0` для NoData; поріг схилу застосовує F4 (`maxSlopeDeg`);
    - `layers/themis-{night,day}.png` — 256², nearest на клітинку, лінійний stretch p2–p98 у кольорову шкалу; лише відображення (SPEC §8);
-   - `model.emergencyO2G` = 30 хв SOP EMU (NTRS 20140009556) × `o2GPerS` → 360 г, assumption;
+   - модель за рішенням #20: `o2GPerS = 0.031` г/с і `speedMps = 1.0` (`jones-apollo-walk`, assumption: Apollo, Місяць → Марс), `emergencyO2G` = 30 хв SOP EMU × `o2GPerS` ≈ 56 г (`emu-sop-30min`, verified);
+   - `limits` = 3600 с / 140 г (112 / 0.8, #64) / 600 Wh / null і `limitsEvidence` на кожен ліміт (усі assumption, SPEC §7.6);
    - `region.json`, `source.json` (входи + статистика), `traverse.geojson`, `SHA256SUMS`.
 
 Район — `region_config.py` (bbox B з #7: квадрат 2.56 км з центром у центроїді цілей F6). Вибір перевіряв `probe.py` (критерії SPEC §8).

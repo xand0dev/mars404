@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { cellCenter } from '../../contracts/planning';
+import type { Annotation, XY } from '../../contracts';
+import { cellCenter, xyToCell } from '../../contracts/planning';
 import { mockGrid, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { RoutePanel } from './RoutePanel';
@@ -11,6 +12,45 @@ const store = () => useMission.getState();
 beforeEach(() => resetMission());
 
 describe('RoutePanel', () => {
+  const impassable = (coordinates: XY, radiusM = 12): Annotation => ({
+    id: 'mark-1', kind: 'impassable', coordinates, radiusM, text: 'loose sand', createdAt: '2026-11-14T12:00:00Z', origin: 'this-eva',
+  });
+  const buildTo = async (targetId: string) => {
+    store().toggleTarget(targetId);
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+  };
+
+  it('F4-AC7: мітка impassable на шляху → маршрут перебудовано сам в обхід мітки', async () => {
+    await buildTo('mock-a');
+    const before = store().plan!;
+    const onPath = before.path[Math.floor(before.path.length / 4)]!;
+    act(() => store().addAnnotation(impassable(onPath)));
+
+    await screen.findByText(/route found/i);
+    const after = store().plan!;
+    expect(after.status).toBe('ok');
+    expect(after).not.toBe(before);
+    const markedCell = xyToCell(mockGrid, onPath)!.index;
+    expect(after.path.some((p) => xyToCell(mockGrid, p)!.index === markedCell)).toBe(false);
+  });
+
+  it('F4-AC7: мітка impassable на цілі → чесне «no path» з кодом і поясненням про мітки', async () => {
+    await buildTo('mock-a');
+    act(() => store().addAnnotation(impassable(mockTargets.find((t) => t.id === 'mock-a')!.coordinates)));
+
+    expect(await screen.findByText(/blocked-point/)).toBeInTheDocument();
+    expect(store().plan?.status).toBe('no-path');
+    expect(screen.getByText(/crew marks applied: 1 impassable/i)).toBeInTheDocument();
+  });
+
+  it('F4-AC7: у таблиці колонка «Risk», без причин — «nominal»', async () => {
+    await buildTo('mock-a');
+    expect(screen.getByRole('columnheader', { name: 'Risk' })).toBeInTheDocument();
+    expect(screen.getAllByText('nominal').length).toBeGreaterThan(0);
+  });
+
   it('F4-AC6: відрізки з abort.ok = false — іконка й текст «no return» у таблиці', async () => {
     store().toggleTarget('mock-a');
     render(<RoutePanel />);
@@ -24,7 +64,7 @@ describe('RoutePanel', () => {
 
     expect(screen.getByRole('button', { name: /^Segment 2:.*no return/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Segment 1:/ }).getAttribute('aria-label')).not.toMatch(/no return/);
-    expect(screen.getAllByText('no return')).toHaveLength(1);
+    expect(screen.getAllByText('no return with emergency O₂')).toHaveLength(1);
   });
 
   it('F4-AC6: вибір відрізка показує «View from here»', async () => {
