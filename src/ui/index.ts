@@ -10,3 +10,7 @@ export type { StatusLevel } from './statusLevel';
 export { Gauge } from './Gauge';
 export type { GaugeProps } from './Gauge';
 export { formatMinutes, formatAmount, DASH } from './format';
+export { EvaSign, EvaSignShape, EvaLegend } from './EvaSign';
+export type { EvaSignProps, EvaSignShapeProps, EvaLegendProps } from './EvaSign';
+export { EVA_SIGN_KINDS, EVA_LEGEND_ITEMS, evaSignLabel } from './evaSignLabels';
+export type { EvaSignKind, EvaTargetState, EvaHazardLevel } from './evaSignLabels';
