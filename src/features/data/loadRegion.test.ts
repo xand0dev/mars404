@@ -176,9 +176,27 @@ describe('F3-AC5: photos і emergencyO2G', () => {
     expect(r.photos).toEqual([]);
   });
 
-  it('Then region.json має model.emergencyO2G з evidence', async () => {
+  it('Then region.json має model.emergencyO2G = 30 хв × o2GPerS з evidence (рішення #20)', async () => {
     const reg = await realRegion();
-    expect(reg.model.emergencyO2G).toBe(360);
-    expect(reg.model.evidence.emergencyO2G).toMatchObject({ status: 'assumption', url: expect.stringContaining('ntrs.nasa.gov') });
+    expect(reg.model.o2GPerS).toBe(0.031);
+    expect(reg.model.emergencyO2G).toBeCloseTo(1800 * reg.model.o2GPerS, 6);
+    expect(reg.model.evidence.emergencyO2G).toMatchObject({ id: 'emu-sop-30min', status: 'verified', url: expect.stringContaining('ntrs.nasa.gov') });
+    expect(reg.model.evidence.o2GPerS).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
+    expect(reg.model.evidence.speedMps).toMatchObject({ id: 'jones-apollo-walk', status: 'verified' });
+  });
+
+  it('Then limits.o2 = 112 г (assumption) і limitsEvidence має джерело на кожен ліміт (§7.6)', async () => {
+    const reg = await realRegion();
+    expect(reg.limits).toEqual({ time: 3600, o2: 112, energy: 600, dose: null });
+    for (const k of ['time', 'o2', 'energy', 'dose'] as const) {
+      expect(reg.limitsEvidence?.[k]).toMatchObject({ status: 'assumption' });
+      expect(reg.sources.some((s) => s.id === reg.limitsEvidence?.[k].id)).toBe(true);
+    }
+  });
+
+  it('Then loadRegion повертає region з limitsEvidence (іде в store через setRegionData)', async () => {
+    const r = await loadRegion(disk);
+    if (r.kind !== 'real') throw new Error(r.kind);
+    expect(r.region.limitsEvidence?.o2.id).toBe('limit-o2-assumption');
   });
 });

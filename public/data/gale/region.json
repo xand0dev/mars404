@@ -36,88 +36,122 @@
     1285.0
   ],
   "model": {
-    "speedMps": 1,
+    "speedMps": 1.0,
     "uphillFactor": 2,
     "downhillFactor": 0.5,
-    "o2GPerS": 0.2,
+    "o2GPerS": 0.031,
     "energyWhPerM": 0.05,
     "doseUSvPerS": null,
     "maxSlopeDeg": 25,
     "hazardWeight": 0.5,
     "reserveFraction": 0.2,
-    "emergencyO2G": 360.0,
+    "emergencyO2G": 55.8,
     "evidence": {
       "speedMps": {
-        "id": "model-assumption",
-        "title": "Walk model and limits",
-        "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "id": "jones-apollo-walk",
+        "title": "Apollo EVA walking: O2 use and speed",
+        "status": "verified",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+        "url": "https://www.osti.gov/servlets/purl/7168757",
+        "productId": "LA-UR-89-3858",
+        "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+        "accessedAt": "2026-11-14"
       },
       "uphillFactor": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "downhillFactor": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "o2GPerS": {
-        "id": "model-assumption",
-        "title": "Walk model and limits",
-        "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "id": "jones-apollo-walk",
+        "title": "Apollo EVA walking: O2 use and speed",
+        "status": "verified",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+        "url": "https://www.osti.gov/servlets/purl/7168757",
+        "productId": "LA-UR-89-3858",
+        "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+        "accessedAt": "2026-11-14"
       },
       "energyWhPerM": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "doseUSvPerS": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "maxSlopeDeg": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "hazardWeight": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "reserveFraction": {
         "id": "model-assumption",
-        "title": "Walk model and limits",
+        "title": "Walk model coefficients",
         "status": "assumption",
-        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "emergencyO2G": {
-        "id": "emu-sop-emergency-o2",
+        "id": "emu-sop-30min",
         "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
-        "status": "assumption",
-        "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
-        "url": "https://ntrs.nasa.gov/citations/20140009556",
+        "status": "verified",
+        "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 g. ISS suit, not a Mars suit.",
+        "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
         "productId": "NTRS 20140009556",
-        "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+        "credit": "NASA",
         "accessedAt": "2026-11-14"
       }
     }
   },
   "limits": {
     "time": 3600,
-    "o2": 720,
+    "o2": 112,
     "energy": 600,
     "dose": null
+  },
+  "limitsEvidence": {
+    "time": {
+      "id": "limit-time-assumption",
+      "title": "EVA time limit",
+      "status": "assumption",
+      "note": "3600 s demo limit (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
+    },
+    "o2": {
+      "id": "limit-o2-assumption",
+      "title": "O2 available for this EVA",
+      "status": "assumption",
+      "note": "112 g = 1 h of walking x Apollo rate (0.031 g/s x 3600 s), same principle as SPEC §7.4; decision #20."
+    },
+    "energy": {
+      "id": "limit-energy-assumption",
+      "title": "Suit energy limit",
+      "status": "assumption",
+      "note": "600 Wh; not set in SPEC, no source."
+    },
+    "dose": {
+      "id": "limit-dose-assumption",
+      "title": "Radiation dose limit",
+      "status": "assumption",
+      "note": "Unknown -> null -> budget status incomplete (SPEC §7.6); no point dose is spread over the map."
+    }
   },
   "layers": [
     {
@@ -352,20 +386,54 @@
       "note": "Walkable cell nearest to bbox centre (lon 137.40674, lat -4.73802, centroid of F6 targets); not a real habitat site."
     },
     {
-      "id": "emu-sop-emergency-o2",
+      "id": "jones-apollo-walk",
+      "title": "Apollo EVA walking: O2 use and speed",
+      "status": "verified",
+      "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Moon 1/6 g, transferred to Mars 0.38 g.",
+      "url": "https://www.osti.gov/servlets/purl/7168757",
+      "productId": "LA-UR-89-3858",
+      "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "emu-sop-30min",
       "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
-      "status": "assumption",
-      "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
-      "url": "https://ntrs.nasa.gov/citations/20140009556",
+      "status": "verified",
+      "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 g. ISS suit, not a Mars suit.",
+      "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
       "productId": "NTRS 20140009556",
-      "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+      "credit": "NASA",
       "accessedAt": "2026-11-14"
     },
     {
       "id": "model-assumption",
-      "title": "Walk model and limits",
+      "title": "Walk model coefficients",
       "status": "assumption",
-      "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
+    },
+    {
+      "id": "limit-time-assumption",
+      "title": "EVA time limit",
+      "status": "assumption",
+      "note": "3600 s demo limit (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556)."
+    },
+    {
+      "id": "limit-o2-assumption",
+      "title": "O2 available for this EVA",
+      "status": "assumption",
+      "note": "112 g = 1 h of walking x Apollo rate (0.031 g/s x 3600 s), same principle as SPEC §7.4; decision #20."
+    },
+    {
+      "id": "limit-energy-assumption",
+      "title": "Suit energy limit",
+      "status": "assumption",
+      "note": "600 Wh; not set in SPEC, no source."
+    },
+    {
+      "id": "limit-dose-assumption",
+      "title": "Radiation dose limit",
+      "status": "assumption",
+      "note": "Unknown -> null -> budget status incomplete (SPEC §7.6); no point dose is spread over the map."
     }
   ],
   "hazardFromSlope": {
