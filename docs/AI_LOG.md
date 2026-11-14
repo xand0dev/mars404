@@ -89,6 +89,7 @@
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Настя | Codex · GPT-5 | T1–T8: контракти, AC-тести, UI цілей, 8 MMGIS stops, локальні NASA Navcam фото й каталог F6-AC5 (#34) | `specs/F6/spec.md`, `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`, F6 у `docs/SOURCES.md` | red→green: UI 4/4, data 3/3; `npm run check` — 376/376; браузер 400/1440: без horizontal overflow і console errors | #21 (draft) |
 | 2026-11-14 | Настя | Codex · GPT-5 | T9–T11: точна F6-AC3 reachability, EVA-знаки, адаптивне фото, Pre-EVA checklist F6-AC6 (#60), збереження `done` через перебудову плану, стиснені QA-скріни | `src/features/science/**`, `src/features/prep/**`, `specs/F6/**` | red→green: science 8/8, checklist 5/5; `npm run check` — 500/500; Chrome 400/1440: `scrollWidth = clientWidth`, 0 console errors | #66 (draft) |
+| 2026-11-14 | Настя | Codex · GPT-5 | T12 (#78): список цілей на дизайн-системі `ItemRow`, `EvaSign`, badge- і button-класи зі збереженням доступних назв | `src/features/science/TargetsPanel*`, `specs/F6/**` | red→green; `npm run check` — 578/578; Chrome 400/768/1440: 8 рядків, кнопки ≥40 px, фокус 3 px, без overflow і console errors | #87 (draft) |
 
 ## F7
 
