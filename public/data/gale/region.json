@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "id": "gale",
+  "name": "Gale · Mount Sharp (Curiosity stops, sol 3008–3192)",
+  "status": "verified",
+  "grid": {
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 10,
+    "originM": [
+      0,
+      2560
+    ],
+    "rowOrder": "north-to-south",
+    "boundsLonLat": [
+      137.385072,
+      -4.759614,
+      137.428408,
+      -4.716426
+    ],
+    "crs": "Mars 2000 geographic (Trek bboxSR 104905)"
+  },
+  "files": {
+    "elevation": "elevation.f32",
+    "slope": "slope.f32",
+    "walkable": "walkable.u8",
+    "hazard": "hazard.f32",
+    "texture": "hirise.jpg",
+    "targets": "targets.geojson",
+    "traverse": "traverse.geojson",
+    "photos": "photos/photos.geojson"
+  },
+  "noData": -9999.0,
+  "base": [
+    1275.0,
+    1285.0
+  ],
+  "model": {
+    "speedMps": 1,
+    "uphillFactor": 2,
+    "downhillFactor": 0.5,
+    "o2GPerS": 0.2,
+    "energyWhPerM": 0.05,
+    "doseUSvPerS": null,
+    "maxSlopeDeg": 25,
+    "hazardWeight": 0.5,
+    "reserveFraction": 0.2,
+    "emergencyO2G": 360.0,
+    "evidence": {
+      "speedMps": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "uphillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "downhillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "o2GPerS": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "energyWhPerM": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "doseUSvPerS": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "maxSlopeDeg": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "hazardWeight": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "reserveFraction": {
+        "id": "model-assumption",
+        "title": "Walk model and limits",
+        "status": "assumption",
+        "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+      },
+      "emergencyO2G": {
+        "id": "emu-sop-emergency-o2",
+        "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+        "status": "assumption",
+        "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
+        "url": "https://ntrs.nasa.gov/citations/20140009556",
+        "productId": "NTRS 20140009556",
+        "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+        "accessedAt": "2026-11-14"
+      }
+    }
+  },
+  "limits": {
+    "time": 3600,
+    "o2": 720,
+    "energy": 600,
+    "dose": null
+  },
+  "layers": [
+    {
+      "id": "terrain",
+      "name": "Terrain (DEM)",
+      "kind": "terrain",
+      "url": "elevation.f32",
+      "sourceIds": [
+        "trek-gale-dem-1m"
+      ],
+      "status": "verified",
+      "units": "m",
+      "nativeResolutionM": 1,
+      "gridResolutionM": 10,
+      "method": "mean of valid 1 m pixels per cell",
+      "legend": [
+        {
+          "value": -4217,
+          "label": "-4217 m (lowest)",
+          "color": "#3b2a20"
+        },
+        {
+          "value": -3736,
+          "label": "-3736 m (highest)",
+          "color": "#e8dcc8"
+        }
+      ]
+    },
+    {
+      "id": "optical",
+      "name": "Optical (HiRISE)",
+      "kind": "optical",
+      "url": "hirise.jpg",
+      "sourceIds": [
+        "trek-hirise-mosaic"
+      ],
+      "status": "verified",
+      "units": "grayscale",
+      "nativeResolutionM": 0.25,
+      "gridResolutionM": 10,
+      "method": "exportImage resample to 2048²",
+      "legend": [
+        {
+          "value": 0,
+          "label": "dark",
+          "color": "#000000"
+        },
+        {
+          "value": 255,
+          "label": "bright",
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "thermal",
+      "name": "Thermal IR night (THEMIS)",
+      "kind": "thermal",
+      "url": "layers/themis-night.png",
+      "sourceIds": [
+        "trek-themis-night-ir"
+      ],
+      "status": "verified",
+      "units": "relative IR brightness (8-bit DN)",
+      "nativeResolutionM": 100,
+      "gridResolutionM": 10,
+      "method": "WMTS tile, nearest per cell; linear stretch DN 156–255 (p2–p98) to colour ramp",
+      "legend": [
+        {
+          "value": 156,
+          "label": "DN 156 · cooler at night (lower thermal inertia)",
+          "color": "#1b1f5e"
+        },
+        {
+          "value": 205.5,
+          "label": "DN 206 · middle",
+          "color": "#b0306a"
+        },
+        {
+          "value": 255,
+          "label": "DN 255 · warmer at night (higher thermal inertia)",
+          "color": "#f7c548"
+        }
+      ]
+    },
+    {
+      "id": "thermal-day",
+      "name": "Thermal IR day (THEMIS)",
+      "kind": "thermal",
+      "url": "layers/themis-day.png",
+      "sourceIds": [
+        "trek-themis-day-ir"
+      ],
+      "status": "verified",
+      "units": "relative IR brightness (8-bit DN)",
+      "nativeResolutionM": 100,
+      "gridResolutionM": 10,
+      "method": "WMTS tile, nearest per cell; linear stretch DN 113–215 (p2–p98) to colour ramp",
+      "legend": [
+        {
+          "value": 113,
+          "label": "DN 113 · cooler by day (shaded slopes)",
+          "color": "#1b1f5e"
+        },
+        {
+          "value": 164.0,
+          "label": "DN 164 · middle",
+          "color": "#b0306a"
+        },
+        {
+          "value": 215,
+          "label": "DN 215 · warmer by day (sunward slopes)",
+          "color": "#f7c548"
+        }
+      ]
+    },
+    {
+      "id": "slope",
+      "name": "Slope (derived)",
+      "kind": "slope",
+      "url": "slope.f32",
+      "sourceIds": [
+        "trek-gale-dem-1m",
+        "hazard-from-slope"
+      ],
+      "status": "assumption",
+      "units": "°",
+      "nativeResolutionM": 1,
+      "gridResolutionM": 10,
+      "method": "Horn 3x3 at 1 m, max per cell",
+      "legend": [
+        {
+          "value": 0,
+          "label": "0° flat",
+          "color": "#2f6f4f"
+        },
+        {
+          "value": 15,
+          "label": "15° moderate",
+          "color": "#c9a227"
+        },
+        {
+          "value": 25,
+          "label": "25° model limit",
+          "color": "#c0392b"
+        }
+      ]
+    },
+    {
+      "id": "traverse",
+      "name": "Curiosity traverse",
+      "kind": "mission",
+      "url": "traverse.geojson",
+      "sourceIds": [
+        "mmgis-msl-traverse"
+      ],
+      "status": "verified",
+      "units": "path",
+      "nativeResolutionM": null,
+      "gridResolutionM": 10,
+      "method": "clip to bbox",
+      "legend": [
+        {
+          "value": 1,
+          "label": "rover path",
+          "color": "#e8b84a"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "trek-gale-dem-1m",
+      "title": "Gale DEM 1 m (HiRISE stereo)",
+      "status": "verified",
+      "note": "Float32 TIFF via exportImage, nearest neighbour at native 1 m; mean of valid pixels per 10 m cell.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
+      "productId": "Gale_DEM_SMG_1m",
+      "credit": "NASA/JPL-Caltech, Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-hirise-mosaic",
+      "title": "HiRISE mosaic, Curiosity area",
+      "status": "verified",
+      "note": "Grayscale JPEG 2048², same bbox; display only.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage?bbox=137.385072%2C-4.759614%2C137.428408%2C-4.716426&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image",
+      "productId": "curiosity_hirise_mosaic",
+      "credit": "NASA/JPL-Caltech, Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "mmgis-msl-traverse",
+      "title": "Curiosity traverse (MMGIS)",
+      "status": "verified",
+      "note": "MSL_traverse.json clipped to bbox; line leaves bbox → split.",
+      "url": "https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json",
+      "productId": "MSL_traverse",
+      "credit": "NASA/JPL-Caltech, MSL MMGIS",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-themis-night-ir",
+      "title": "THEMIS IR night, controlled mosaic 100 m v2 (Mars Odyssey)",
+      "status": "verified",
+      "note": "Trek WMTS PNG tiles, level 9 (~81 m/px), 1 tile(s); ~32x31 native pixels over the bbox, nearest per 10 m cell. 8-bit display brightness, not calibrated temperature. Display only, not an input to hazard (SPEC §8).",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "productId": "THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018",
+      "credit": "NASA/JPL-Caltech/Arizona State University, Mars Odyssey THEMIS; Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-themis-day-ir",
+      "title": "THEMIS IR day, controlled mosaic 100 m v2 (Mars Odyssey)",
+      "status": "verified",
+      "note": "Trek WMTS PNG tiles, level 9 (~81 m/px), 1 tile(s); ~32x31 native pixels over the bbox, nearest per 10 m cell. 8-bit display brightness, not calibrated temperature. Display only, not an input to hazard (SPEC §8).",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/269/902.png",
+      "productId": "THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018",
+      "credit": "NASA/JPL-Caltech/Arizona State University, Mars Odyssey THEMIS; Mars Trek",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "hazard-from-slope",
+      "title": "Hazard derived from slope",
+      "status": "assumption",
+      "note": "hazard = min(1, slopeDeg / 25) x 0.5; NoData = 1. Test coefficients, not measured hazard."
+    },
+    {
+      "id": "base-assumption",
+      "title": "Habitat base",
+      "status": "assumption",
+      "note": "Walkable cell nearest to bbox centre (lon 137.40674, lat -4.73802, centroid of F6 targets); not a real habitat site."
+    },
+    {
+      "id": "emu-sop-emergency-o2",
+      "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+      "status": "assumption",
+      "note": "NASA EVA overview (NTRS 20140009556, 2014): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 30 min x 0.2 g/s (o2GPerS, assumption) = 360 g. ISS suit, not a Mars suit.",
+      "url": "https://ntrs.nasa.gov/citations/20140009556",
+      "productId": "NTRS 20140009556",
+      "credit": "NASA / United Space Alliance (Moore, Marmolejo)",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "model-assumption",
+      "title": "Walk model and limits",
+      "status": "assumption",
+      "note": "Values of SPEC §7.3–7.4 reference example (src/mocks); sources pending (F4/F5)."
+    }
+  ],
+  "hazardFromSlope": {
+    "kind": "slope-linear",
+    "slopeDegAtMax": 25,
+    "maxHazard": 0.5
+  }
+}
