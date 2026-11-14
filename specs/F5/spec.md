@@ -52,6 +52,22 @@
 
 **Інтеграція з F7 (коментар Олі в #9, PR #17):** контракт `reach` збігається з очікуваннями HUD. Після мержу #17 у `main`: хвилини через `formatMinutes`, `Gauge` з `reserve`/`need`, рівні `StatusNote` `pending`/`deficit`; прибрати дубль alert-у дефіциту (Gauge + статус панелі).
 
+### Abort map (#29, F5-AC5, SPEC §7.8)
+- **F5-AC5. Given** чинний план і mock-модель (`emergencyO2G = 360 г`, `limits` §7.4, `t = 0`); **When** порахувано; **Then** відрізок з `used.o2 = 100 г`, `back.time = 500 с` → `ok`, з `back.time = 1400 с` → не `ok`; `pointOfNoReturnS` — початок першого не-`ok`; без чинного плану `abort = null`; «O₂ −40%» не робить жоден відрізок `ok`.
+
+Контракт (`AbortPlan`, `reach.abort`, `model.emergencyO2G`) приходить у #26. До мержу ядро приймає `emergencyO2G` параметром і повертає локальний результат; після мержу — тип із `src/contracts` і запис у `reach.abort`.
+
+| # | Задача | Файли | AC |
+|---|---|---|---|
+| A1 | Тести еталону §7.8 (ok / не ok, рівність), `pointOfNoReturnS`, «всі ok → null», «немає шляху назад → ok=false, returnS=null», «пізній відрізок знову ok», невідома доза — без неї → red | `src/core/abort.test.ts` | AC5 |
+| A2 | `assessAbort(plan, toBase, budget, reserve, model, emergencyO2G)`: `used_k` накопичувально, `back` із зворотного дерева (той самий `toBase`, що й ореол), запас O₂ = `emergencyO2G`, решта — резерв, `fitsWithin` | `src/core/abort.ts`, `index.ts` | AC5 |
+| A3 | Тест «O₂ −40%»: жоден відрізок не стає `ok`, `pointOfNoReturnS` не пізніше | `src/core/abort.test.ts` | AC5 |
+| A4 | Після мержу #26: `assessReach` пише `reach.abort` (лише `plan.status = 'ok'`, інакше `null`; `invalid` → `null`), тип `AbortPlan` з контракту | `src/core/reachability.ts` | AC5 |
+| A5 | Тест `BudgetEngine`: план у store → `reach.abort` є; `setLimits` O₂ −40% → не кращий | `src/features/budget/BudgetEngine.test.tsx` | AC5 |
+| A6 | `npm run check`, AI_LOG, draft PR `feat/F5-abort` (AC → доказ) | — | AC5 |
+
+**Статус:** A1–A3 зроблено (`src/core/abort.ts`, 14 тестів); A4–A5 — після мержу #26.
+
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
