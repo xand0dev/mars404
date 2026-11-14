@@ -86,6 +86,29 @@ describe('useMission · правила SPEC §6.1 (F0-AC4)', () => {
     expect(st().model.evidence.emergencyO2G.status).toBe('assumption');
   });
 
+  it('мітки: impassable / hazard інвалідують план, note — ні; переживають setSite (§7.12)', () => {
+    const mk = (id: string, kind: 'impassable' | 'note') => ({ id, kind, coordinates: [100, 100] as const, radiusM: 20, text: '', createdAt: '2026-11-14T00:00:00Z', origin: 'this-eva' as const });
+    st().setPlan(plan);
+    st().addAnnotation(mk('n1', 'note'));
+    expect(st().plan).toBe(plan);
+    st().addAnnotation(mk('i1', 'impassable'));
+    expect(st().plan).toBeNull();
+    st().setSite('gale');
+    expect(st().annotations.map((a) => a.id)).toEqual(['n1', 'i1']);
+    st().removeAnnotation('n1');
+    expect(st().annotations.map((a) => a.id)).toEqual(['i1']);
+    st().setAnnotations([]);
+    expect(st().annotations).toEqual([]);
+  });
+
+  it('чекліст: setChecklist, toggleChecklistItem, скидається з setSite (§7.13)', () => {
+    st().setChecklist([{ id: 'o2', label: 'Spare O₂', reason: 'long route', done: false }]);
+    st().toggleChecklistItem('o2');
+    expect(st().checklist[0]!.done).toBe(true);
+    st().setSite('gale');
+    expect(st().checklist).toEqual([]);
+  });
+
   it('setWaypoints інвалідує план; setLimits скидає reach, але не plan', () => {
     st().setPlan(plan);
     st().setReach(reach);

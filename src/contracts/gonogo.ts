@@ -3,7 +3,7 @@
 import type { MissionData, ResourceKey } from './index';
 import { validateGrid, xyToCell } from './planning';
 
-export type StationId = 'RTE' | 'LSS' | 'RTN' | 'SCI' | 'ABT' | 'DAT' | 'RAD' | 'MDL';
+export type StationId = 'RTE' | 'LSS' | 'RTN' | 'SCI' | 'ABT' | 'DAT' | 'RAD' | 'MDL' | 'EQP';
 export type Call = 'go' | 'caution' | 'nogo' | 'hold';
 
 export type Fix =
@@ -12,7 +12,8 @@ export type Fix =
   | { kind: 'build-route' }
   | { kind: 'replace-target'; dropId: string; addId: string }
   | { kind: 'remove-target'; targetId: string }
-  | { kind: 'return-now' };
+  | { kind: 'return-now' }
+  | { kind: 'open-checklist' };
 
 export interface StationCall {
   id: StationId;
@@ -32,11 +33,11 @@ export interface GoNoGo {
 /** Поріг застереження для «Return in»: менше 15 хв запасу — CAUTION. Припущення (SPEC §7.10). */
 export const RETURN_CAUTION_S = 15 * 60;
 
-export const STATION_ORDER: readonly StationId[] = ['RTE', 'LSS', 'RTN', 'SCI', 'ABT', 'DAT', 'RAD', 'MDL'];
+export const STATION_ORDER: readonly StationId[] = ['RTE', 'LSS', 'RTN', 'SCI', 'ABT', 'DAT', 'RAD', 'MDL', 'EQP'];
 
 export type GoNoGoInput = Pick<
   MissionData,
-  'site' | 'targets' | 'selectedTargetIds' | 'grid' | 'region' | 'model' | 'limits' | 'plan' | 'reach' | 'time'
+  'site' | 'targets' | 'selectedTargetIds' | 'grid' | 'region' | 'model' | 'limits' | 'plan' | 'reach' | 'time' | 'checklist'
 >;
 
 const RES_NAME: Record<ResourceKey, string> = { time: 'time', o2: 'O₂', energy: 'energy', dose: 'dose' };
@@ -124,6 +125,12 @@ export function evaluateGoNoGo(s: GoNoGoInput): GoNoGo {
   else if (reach.status === 'invalid') stations.push({ id: 'MDL', call: 'nogo', reason: 'Model parameters invalid' });
   else if (reach.status === 'incomplete') stations.push({ id: 'MDL', call: 'caution', reason: 'Model incomplete: unknown inputs' });
   else stations.push({ id: 'MDL', call: 'go', reason: 'Model estimate complete' });
+
+  // EQP — чекліст спорядження (F6, §7.13)
+  const left = s.checklist.filter((c) => !c.done).length;
+  if (s.checklist.length === 0) stations.push({ id: 'EQP', call: 'caution', reason: 'Equipment checklist not prepared', fix: { kind: 'open-checklist' } });
+  else if (left > 0) stations.push({ id: 'EQP', call: 'caution', reason: `${left} checklist item${left === 1 ? '' : 's'} not checked`, fix: { kind: 'open-checklist' } });
+  else stations.push({ id: 'EQP', call: 'go', reason: `All ${s.checklist.length} checklist items checked` });
 
   return { verdict: verdictOf(stations), during, stations };
 }

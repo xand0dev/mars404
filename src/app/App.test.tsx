@@ -11,6 +11,8 @@ import * as budget from '../features/budget';
 import * as science from '../features/science';
 import * as hud from '../features/hud';
 import * as ui from '../ui';
+import * as notes from '../features/notes';
+import * as prep from '../features/prep';
 
 beforeEach(() => resetMission());
 
@@ -24,6 +26,7 @@ describe('F0 · композиція', () => {
     expect([typeof budget.BudgetEngine, typeof budget.BudgetPanel]).toEqual([fn, fn]);
     expect([typeof science.TargetsPanel, typeof science.TargetCard]).toEqual([fn, fn]);
     expect([typeof hud.Shell, typeof hud.Hud]).toEqual([fn, fn]);
+    expect([typeof notes.NotesPanel, typeof prep.ChecklistPanel]).toEqual([fn, fn]);
     expect([typeof ui.Panel, typeof ui.Gauge, typeof ui.StatusNote, typeof ui.OwnerBadge, typeof ui.MockBadge]).toEqual([fn, fn, fn, fn, fn]);
   });
 

@@ -42,6 +42,11 @@ describe('guard (F0-AC2)', () => {
     expect(ownsFile('F1', 'pipeline/globe/make.py')).toBe(true);
   });
 
+  it('нові папки: notes — F1, prep — F6', () => {
+    expect(ownsFile('F1', 'src/features/notes/NotesPanel.tsx')).toBe(true);
+    expect(ownsFile('F6', 'src/features/prep/ChecklistPanel.tsx')).toBe(true);
+  });
+
   it('F4 і F5 ділять src/core', () => {
     expect(ownsFile('F4', 'src/core/index.ts') && ownsFile('F5', 'src/core/index.ts')).toBe(true);
     expect(Object.keys(FEATURES)).toHaveLength(8);

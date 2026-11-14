@@ -2,7 +2,10 @@
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useMission } from '../../store/useMission';
-import { Panel, StatusNote, formatAmount } from '../../ui';
+import { EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
+import { abortLine } from './abortLine';
+import { GoNoGoPanel } from './GoNoGo';
+import { useGoNoGo } from './useGoNoGo';
 import { hudState } from './hudState';
 
 export function Hud() {
@@ -17,6 +20,7 @@ export function Hud() {
       budget: s.budget,
     })),
   );
+  const model = useMission((s) => s.model);
   const time = useMission((s) => s.time);
   const setTime = useMission((s) => s.setTime);
   const replaceTarget = useMission((s) => s.replaceTarget);
@@ -24,6 +28,10 @@ export function Hud() {
   const [draft, setDraft] = useState<string | null>(null);
 
   const v = hudState(input);
+  const abort = abortLine(input.reach?.abort ?? null, model);
+  const gng = useGoNoGo();
+  // Під час виходу NO-GO озвучує «Return to base now» (alert у GO / NO-GO); статус HUD тоді — status, щоб alert був один.
+  const live = gng.during && gng.verdict === 'nogo' ? 'status' : v.live;
 
   const onElapsed = (raw: string) => {
     setDraft(raw);
@@ -44,10 +52,20 @@ export function Hud() {
           Return in <strong>{v.minutes}</strong> min
         </p>
         <div className="hud__status">
-          <StatusNote level={v.level} live={v.live}>
+          <StatusNote level={v.level} live={live}>
             <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
           </StatusNote>
         </div>
+        {abort && (
+          <p className={`hud__abort hud__abort--${abort.kind}`}>
+            {abort.kind === 'ponr' ? <EvaSign kind="ponr" size={22} /> : <span className="hud__abort-icon" aria-hidden="true">{STATUS_ICON.ok}</span>}
+            <strong>{abort.text}</strong>
+            <span className="hud__abort-reserve">
+              {abort.emergency}
+              {abort.assumption && <> · <span className="hud__assumption">assumption</span></>}
+            </span>
+          </p>
+        )}
         {v.warnings.length > 0 && (
           <ul className="hud__warnings" aria-label="Model warnings">
             {v.warnings.map((w) => (
@@ -83,6 +101,7 @@ export function Hud() {
             </span>
           )}
         </p>
+        <GoNoGoPanel onStart={() => elapsedRef.current?.focus()} />
       </div>
     </Panel>
   );
