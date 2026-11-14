@@ -4,7 +4,7 @@ import { Line, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Color, DataTexture, LinearFilter, NearestFilter, RGBAFormat, ShaderMaterial, Vector3, type Texture } from 'three';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
-import { xyToCell } from '../../contracts/planning';
+import { toR3F, xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
 import { RENDER_ORDER } from './lib/layerRaster';
@@ -14,7 +14,9 @@ import { LABEL_HEIGHT, Label3D } from './Label3D';
 import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
 import { labelAspect, labelledTargetIds, stackLabels } from './lib/labels';
 import { useOptionalTexture } from './useRegionTexture';
-import { renderPoint, renderShape, type RenderHeights } from './lib/hd';
+import { renderPoint, renderShape, sampleRender, type RenderHeights } from './lib/hd';
+import { tileFramePoints, type ContextHeights } from './lib/context';
+import { Atmosphere, ContextTerrain, Sun } from './Environment';
 import { BLOCKED_RGB, HALO_RGB } from './lib/overlay';
 
 /** Підйом ліній і маркерів над поверхнею, м (лише візуально, щоб не тонули в меші). */
@@ -32,7 +34,18 @@ export interface SceneData {
   render?: RenderHeights | null;
   /** Маска зон для гладкого шейдера (lib/hd buildZoneMask); немає — клітинкова накладка topRGBA */
   zoneRGBA?: Uint8Array | null;
+  /** Кільце рельєфу довкола району (Region.context), лише огляд */
+  context?: ContextHeights | null;
 }
+
+/** Напрямок на сонце: низько із заходу-південного заходу — тіні падають до камери, рельєф об'ємний. */
+const SUN_DIR: [number, number, number] = (() => {
+  const v = [-1, 0.5, 0.45];
+  const l = Math.hypot(v[0]!, v[1]!, v[2]!);
+  return [v[0]! / l, v[1]! / l, v[2]! / l];
+})();
+/** Тривалість прольоту камери при відкритті району, мс */
+const FLY_IN_MS = 3200;
 
 export interface SceneProps {
   data: SceneData;
@@ -83,13 +96,40 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
   const frame = useMemo(() => gridFrame(data.grid, data.heights), [data]);
   // Поза Orbit/Top не залежить від вибору цілей — не стрибаємо камерою при кожному кліку.
   const povKey = mode === 'pov' ? pov : null;
+  const wide = !!data.context;
+  // Проліт при відкритті району: з висоти над усім кратером униз до звичного ракурсу (один раз на район).
+  const anim = useRef<{ from: [number, number, number]; to: [number, number, number]; target: [number, number, number]; t0: number } | null>(null);
+  const flownFor = useRef<PlanningGrid | null>(null);
   useEffect(() => {
     const { camera, invalidate } = get();
     const controls = get().controls as unknown as { target: { set(x: number, y: number, z: number): void }; update(): void } | null;
-    const pose = cameraPose(mode, frame, povKey, aspect);
-    camera.position.set(...pose.position);
+    const base = cameraPose(mode, frame, povKey, aspect);
+    // З кільцем контексту Orbit дивиться з північного заходу на південний схід — на Mount Sharp за районом.
+    const pose =
+      wide && mode === 'orbit'
+        ? {
+            target: base.target,
+            position: [
+              base.target[0] - frame.size * 0.62,
+              base.target[1] + (frame.maxY - frame.minY) * 0.6 + frame.size * 0.42,
+              base.target[2] - frame.size * 0.78,
+            ] as [number, number, number],
+          }
+        : base;
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const fly = wide && mode === 'orbit' && controlsReady && flownFor.current !== data.grid && !reduced;
+    if (fly) {
+      flownFor.current = data.grid;
+      const [cx, cy, cz] = frame.center;
+      const from: [number, number, number] = [cx - frame.size * 7, cy + frame.size * 8, cz - frame.size * 9];
+      anim.current = { from, to: pose.position, target: pose.target, t0: performance.now() };
+      camera.position.set(...from);
+    } else {
+      anim.current = null;
+      camera.position.set(...pose.position);
+    }
     camera.near = mode === 'pov' ? 0.5 : Math.max(0.5, frame.size / 2000);
-    camera.far = frame.size * 20 + (frame.maxY - frame.minY) * 4;
+    camera.far = wide ? 400_000 : frame.size * 20 + (frame.maxY - frame.minY) * 4;
     camera.lookAt(...pose.target);
     camera.updateProjectionMatrix();
     if (controls) {
@@ -97,7 +137,20 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
       controls.update();
     }
     invalidate();
-  }, [get, frame, mode, povKey, aspect, controlsReady]);
+  }, [get, frame, mode, povKey, aspect, controlsReady, wide, data.grid]);
+  useFrame(({ camera, invalidate, controls }) => {
+    const a = anim.current;
+    if (!a) return;
+    const t = Math.min(1, (performance.now() - a.t0) / FLY_IN_MS);
+    const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+    camera.position.set(a.from[0] + (a.to[0] - a.from[0]) * e, a.from[1] + (a.to[1] - a.from[1]) * e, a.from[2] + (a.to[2] - a.from[2]) * e);
+    camera.lookAt(...a.target);
+    const c = controls as unknown as { target?: { set(x: number, y: number, z: number): void }; update?(): void } | null;
+    c?.target?.set(...a.target);
+    c?.update?.();
+    if (t >= 1) anim.current = null;
+    invalidate();
+  });
   return null;
 }
 
@@ -153,8 +206,8 @@ void main() {
   vec4 col = vec4(0.0);
   col = mix(col, vec4(haloColor, 0.05), h);
   col = mix(col, vec4(haloColor, 1.0), edge(z.b, 2.0) * step(0.02, z.b));
-  col = mix(col, vec4(blockedColor, 0.34 * stripe + 0.06), b);
-  col = mix(col, vec4(blockedColor * 1.35, 0.75), edge(z.r, 1.2) * step(0.02, z.r));
+  col = mix(col, vec4(blockedColor, 0.22 * stripe + 0.04), b);
+  col = mix(col, vec4(blockedColor * 1.35, 0.5), edge(z.r, 1.0) * step(0.02, z.r));
   col = mix(col, vec4(0.06, 0.06, 0.08, 0.8), n);
   if (col.a < 0.01) discard;
   gl_FragColor = col;
@@ -343,13 +396,51 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     }
   });
 
+  const tileSize = Math.max(grid.width, grid.height) * grid.metersPerPixel;
+  const frameCenter = useMemo<[number, number, number]>(() => {
+    const [ox, oy] = grid.originM;
+    const w = grid.width * grid.metersPerPixel;
+    const h = grid.height * grid.metersPerPixel;
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const v of heights) {
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+    return toR3F([ox + w / 2, oy - h / 2], Number.isFinite(lo) ? (lo + hi) / 2 : 0);
+  }, [grid, heights]);
+  const tileFrame = useMemo(() => {
+    if (!data.context) return null;
+    const [ox, oy] = grid.originM;
+    const hAt = (x: number, y: number) => {
+      const v = render ? sampleRender(grid, render, [x, y]) : null;
+      if (v !== null) return v;
+      const c = xyToCell(grid, [Math.min(Math.max(x, ox + 1), ox + tileSize - 1), Math.min(Math.max(y, oy - tileSize + 1), oy - 1)]);
+      return c ? (heights[c.index] ?? 0) : 0;
+    };
+    return tileFramePoints(grid, hAt, 2);
+  }, [data.context, grid, render, heights, tileSize]);
+
   return (
     <group>
       {/* Низьке сонце з північного заходу: рельєф читається тінями; HiRISE сірий — тонуємо в марсіанський (лише відображення). */}
-      <hemisphereLight args={['#f4dcc0', '#3a2418', render ? 0.6 : 0.55]} />
-      <directionalLight position={render ? [-1, 0.85, -0.7] : [-1, 2, -0.6]} intensity={render ? 2.1 : 1.6} />
+      <hemisphereLight args={['#f4dcc0', '#3a2418', 0.55]} />
+      {render ? (
+        <Sun center={frameCenter} size={tileSize} dir={SUN_DIR} intensity={2.3} />
+      ) : (
+        <directionalLight position={[-1, 2, -0.6]} intensity={1.6} />
+      )}
+      {data.context && (
+        <>
+          <Atmosphere center={frameCenter} size={tileSize} sunDir={SUN_DIR} />
+          <ContextTerrain grid={grid} ctx={data.context} />
+          {tileFrame && <Line points={tileFrame} color="#f3ece6" lineWidth={1.5} transparent opacity={0.55} renderOrder={RENDER_ORDER.lines} />}
+        </>
+      )}
       <mesh
         geometry={geometry}
+        castShadow={!!render}
+        receiveShadow={!!render}
         onClick={
           onPick
             ? (e: ThreeEvent<MouseEvent>) => {

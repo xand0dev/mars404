@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { Region } from '../../contracts';
 import { parseRenderHeights, type RenderHeights } from './lib/hd';
+import { parseContext, type ContextHeights } from './lib/context';
 import { regionFileUrl } from './lib/paths';
 
 export function useRenderHeights(region: Region | null, enabled: boolean): RenderHeights | null {
@@ -33,5 +34,35 @@ export function useRenderHeights(region: Region | null, enabled: boolean): Rende
     // eslint-disable-next-line react-hooks/exhaustive-deps -- url уже містить region / file; rg і noData з того самого region
   }, [url]);
 
+  return url && state.url === url ? state.value : null;
+}
+
+/** Кільце рельєфу довкола району (Region.context): немає поля чи помилка — null, сцена без кільця. */
+export function useContextHeights(region: Region | null, enabled: boolean): ContextHeights | null {
+  const ctx = region?.context;
+  const url = enabled && region && ctx ? regionFileUrl(region.id, ctx.file) : null;
+  const [state, setState] = useState<{ url: string | null; value: ContextHeights | null }>({ url: null, value: null });
+  useEffect(() => {
+    if (!url || !ctx) return;
+    let alive = true;
+    fetch(url)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((buf) => {
+        if (!alive) return;
+        const c = parseContext(buf, ctx, region?.noData);
+        if (!c) console.warn(`context: expected ${ctx.width}×${ctx.height} float32, got ${buf.byteLength} bytes`);
+        setState({ url, value: c });
+      })
+      .catch((e: unknown) => {
+        if (alive) {
+          console.warn(`context not loaded: ${String(e)}`);
+          setState({ url, value: null });
+        }
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- url уже містить region / file; ctx і noData з того самого region
+  }, [url]);
   return url && state.url === url ? state.value : null;
 }
