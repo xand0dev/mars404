@@ -12,8 +12,12 @@ async function act(page: Page, target: Locator) {
   await target.click();
 }
 
+// У CI немає відеокарти: 3D-рельєф на програмному WebGL гальмує сторінку. UX-контракт однаковий для 3D і 2D-плану Б (F2, ?2d),
+// тож у CI тести йдуть з ?2d; локально — справжнє 3D.
+const START = process.env.CI ? './?2d' : './';
+
 test.beforeEach(async ({ page }) => {
-  await page.goto('./');
+  await page.goto(START);
 });
 
 test('перший екран: видно поточний крок і що зробити далі', async ({ page }) => {
