@@ -1,7 +1,7 @@
 // F5: шкали ресурсів, «Return in N min», сценарій «O₂ −40%» (SPEC §7.4). Числа — лише з reach (BudgetEngine).
-import type { ReachabilityResult, ResourceKey, Resources, RoutePlan, Target } from '../../contracts';
+import type { ReachabilityResult, ResourceKey, Resources, RoutePlan, Source, Target } from '../../contracts';
 import { REACH_WARNINGS, reserveOf } from '../../core';
-import { mockLimits } from '../../mocks';
+import { mockLimits, mockLimitsEvidence } from '../../mocks';
 import { useMission } from '../../store/useMission';
 import { DASH, Gauge, Panel, StatusNote, formatMinutes } from '../../ui';
 import './budget.css';
@@ -50,6 +50,13 @@ function BudgetStatus({ reach }: { reach: ReachabilityResult | null }) {
 /** Планова витрата лише з чинного плану; інакше шкала без «plan». */
 const plannedOf = (plan: RoutePlan | null): Resources | null => (plan?.status === 'ok' ? plan.totals : null);
 
+/** SPEC §7.6: verified — без позначки; mock — «MOCK»; решта чи без джерела — «assumption». */
+function LimitEvidence({ resource, source }: { resource: ResourceKey; source: Source | undefined }) {
+  if (source?.status === 'verified') return null;
+  const text = !source ? 'assumption (no source)' : source.status === 'mock' ? 'MOCK' : `assumption · ${source.title}`;
+  return <p className="budget-evidence" data-testid={`limit-evidence-${resource}`}>limit: {text}</p>;
+}
+
 const nameOf = (targets: Target[], id: string) => targets.find((t) => t.id === id)?.name ?? id;
 
 export function BudgetPanel() {
@@ -68,9 +75,14 @@ export function BudgetPanel() {
   const scenarioOn = limits.o2 === o2Scenario.o2;
   const reserve = reserveOf(limits, model);
   const planned = plannedOf(plan);
+  // До завантаження району ліміти — mock-фікстура; після — джерела з region.json.
+  const limitsEvidence = region ? region.limitsEvidence : mockLimitsEvidence;
   const gauge = (key: ResourceKey, label: string, unit: string, max: number) => (
-    <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
-      deficit={reach?.deficits.includes(key) ?? false} />
+    <>
+      <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
+        deficit={reach?.deficits.includes(key) ?? false} />
+      <LimitEvidence resource={key} source={limitsEvidence?.[key]} />
+    </>
   );
   const notes = (reach?.warnings ?? []).filter((w) => !STATUS_WARNINGS.includes(w) && !w.startsWith('invalid: '));
 
