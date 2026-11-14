@@ -7,7 +7,7 @@ import { NotesPanel } from '../features/notes';
 import { ChecklistPanel } from '../features/prep';
 import { RoutePanel } from '../features/route';
 import { TargetsPanel } from '../features/science';
-import { CameraModes, MapView } from '../features/terrain';
+import { CameraModes, MapView, NavPanel } from '../features/terrain';
 
 export function App() {
   return (
@@ -28,6 +28,7 @@ export function App() {
             <LayersPanel />
             <TargetsPanel />
             <RoutePanel />
+            <NavPanel />
           </>
         }
         status={

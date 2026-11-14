@@ -32,6 +32,7 @@ import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
 import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
+import { navOverlay, useNavPlan, useNavView } from './navStore';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -121,6 +122,10 @@ function textureLabel(hasRegion: boolean, status: ReturnType<typeof useOptionalT
 }
 
 export function MapView({ globe }: MapViewProps) {
+  // Навігація без GPS: маяки, інерціалка, контрольні точки (NavPanel) — на карті, якщо не вимкнено.
+  const navPlan = useNavPlan();
+  const navShown = useNavView((v) => v.show);
+  const navMap = useMemo(() => (navShown ? navOverlay(navPlan) : null), [navShown, navPlan]);
   const site = useMission((s) => s.site);
   const grid = useMission((s) => s.grid);
   const region = useMission((s) => s.region);
@@ -278,6 +283,7 @@ export function MapView({ globe }: MapViewProps) {
         base={base}
         position={position}
         ponr={ponr}
+        nav={navMap}
         marks={marks}
         onPick={onPick}
       />
@@ -348,6 +354,7 @@ export function MapView({ globe }: MapViewProps) {
                       onPick={onPick}
                       inReach={inReach}
                       ponr={ponrMarker}
+                      nav={navMap}
                     />
                     {fps && <FpsProbe onReport={setFpsReport} />}
                   </>
@@ -375,7 +382,7 @@ export function MapView({ globe }: MapViewProps) {
             {(['impassable', 'hazard', 'note', 'plan'] as const).map((k) => (
               <li key={k}>
                 <MarkGlyphIcon kind={k} size={16} label="" />
-                <span>{k === 'impassable' ? 'Impassable (route avoids)' : k === 'hazard' ? 'Hazard (route costs more)' : k === 'note' ? 'Note' : 'Plan'}</span>
+                <span>{k === 'impassable' ? 'Blocked (route never goes)' : k === 'hazard' ? 'Hazard (route goes around)' : k === 'note' ? 'Note' : 'Plan'}</span>
               </li>
             ))}
           </ul>

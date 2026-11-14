@@ -133,3 +133,18 @@ function xyToCellUnbounded(grid: Pick<PlanningGrid, 'metersPerPixel' | 'originM'
 export function siteDataUrl(site: SiteId, path: string): string {
   return dataUrl(`${site}/${path.replace(/^\/+/, '')}`);
 }
+
+/**
+ * Ґрунт → швидкість ходьби (assumption). Нічна ІЧ-яскравість THEMIS ~ теплова інерція: темніше вночі — пухкий пісок / пил,
+ * світліше — скеля й щільний ґрунт. Ходьба по піску в 1,6–2,5 раза енергозатратніша (Lejeune et al. 1998, J Exp Biol 201:2071);
+ * беремо обережно: до +40 % часу на найпухкішому ґрунті, лінійно до 0 % на середині легенди шару.
+ */
+export const SOIL_MAX_SLOWDOWN = 0.4;
+/** Межі легенди шару themis-night (region.json): 156 — найпухкіше, 205,5 — середина (далі вважаємо щільним). */
+export const SOIL_DN = { loose: 156, firm: 205.5 } as const;
+
+export function soilFromNightDN(dn: number): number {
+  if (!Number.isFinite(dn)) return 1;
+  const t = Math.min(1, Math.max(0, (SOIL_DN.firm - dn) / (SOIL_DN.firm - SOIL_DN.loose)));
+  return 1 + SOIL_MAX_SLOWDOWN * t;
+}

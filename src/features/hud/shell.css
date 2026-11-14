@@ -85,7 +85,7 @@
 
 /* UX (знайшов E2E): після вибору цілей «Build route» ховалась під довгим списком цілей.
    На кроці Route остання панель плану (Route, App.tsx) прилипає до низу колонки — наступна дія завжди на виду. */
-.shell--step-route:not(.shell--glove) .shell__side > :last-child {
+.shell--step-route:not(.shell--glove) .shell__side > :has(.route-build) {
   position: sticky; bottom: 0; z-index: 2;
   border-color: rgb(255 42 42 / 0.45);
   box-shadow: 0 -18px 28px -12px rgb(0 0 0 / 0.9), 0 0 22px -10px rgb(224 16 26 / 0.8);

@@ -21,7 +21,27 @@
 .ui-panel:has(> .terrain-stage) { display: flex; flex-direction: column; }
 .ui-panel:has(> .terrain-stage) > .terrain-marks { order: 1; margin: 10px 0 0; }
 .ui-panel:has(> .terrain-stage) > .terrain-legend-eva { order: 2; }
-
+/* Вид мітки — сегментований перемикач зі знаками; підказка пояснює, що станеться з маршрутом. */
+.terrain-marks__kinds { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.terrain-marks__kind { display: inline-flex; align-items: center; gap: 6px; border-color: transparent; background: transparent; padding: 0 12px; }
+.terrain-marks__kind[aria-pressed='true'] { background: var(--surface-3); border-color: var(--border); box-shadow: none; }
+.terrain-marks__kind--impassable[aria-pressed='true'] { border-color: var(--danger); }
+.terrain-marks__kind--hazard[aria-pressed='true'] { border-color: var(--warn); }
+.terrain-marks__hint { flex-basis: 100%; margin: 0; font-size: var(--fs-small); color: var(--text-muted); }
+/* Навігація без GPS (NavPanel) */
+.nav { display: grid; gap: var(--space-3); }
+.nav__big { margin: 0; color: var(--text-muted); }
+.nav__big strong { font-size: 1.6rem; font-weight: 800; color: #5ee7ff; letter-spacing: -0.02em; margin-right: 4px; }
+.nav__bar { height: 6px; border-radius: 999px; background: repeating-linear-gradient(90deg, #c084fc55 0 6px, transparent 6px 10px); overflow: hidden; margin-top: 6px; }
+.nav__bar span { display: block; height: 100%; background: #5ee7ff; box-shadow: 0 0 10px #5ee7ff88; border-radius: 999px; }
+.nav__facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; font-family: var(--font-mono); font-size: 0.8rem; }
+.nav__facts li { padding: 6px 8px; border-radius: var(--radius-sm, 8px); background: var(--surface-2); border: 1px solid var(--line); }
+.nav__k { display: block; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim, var(--text-muted)); }
+.nav__tri { color: #5ee7ff; }
+.nav__meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+.nav__how { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: var(--fs-small); color: var(--text-muted); }
+.nav__how strong { color: var(--text); }
+.nav__src { margin: 8px 0 0; font-size: var(--fs-small); color: var(--text-muted); }
 /* Демо-прогулянка астронавта (15.11) */
 .walk-panel { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border, #3a2e27); border-radius: var(--radius, 10px); background: var(--surface, #1f1916); min-width: 0; }
 .walk-panel__row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

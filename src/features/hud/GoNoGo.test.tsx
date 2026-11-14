@@ -96,7 +96,7 @@ describe('F7-AC7 · CAUTION перед виходом — утримування
     const rec = screen.getByText(/Confirmed/);
     expect(rec).toHaveTextContent('Confirmed 16:42:07');
     expect(rec).toHaveTextContent('GO · CAUTION');
-    expect(rec).toHaveTextContent(/DAT, RAD, MDL, EQP/);
+    expect(rec).toHaveTextContent(/Map data, Radiation, Walk model, Equipment/);
     expect(rec).toHaveTextContent('not saved');
   });
 
@@ -184,13 +184,15 @@ describe('F7-AC7 · станція EQP (чекліст, §7.13)', () => {
 
 // T27: станції — чипи «код · іконка · слово»; деталі по кліку; NO-GO і станції з кнопкою-виправленням розгорнуті.
 describe('T27 · чипи станцій', () => {
-  const chip = (id: string) => within(screen.getByRole('listitem', { name: new RegExp(`^${id}:`) })).getByRole('button', { name: new RegExp(`^${id} (GO|CAUTION|NO-GO|HOLD)$`) });
+  const NAME: Record<string, string> = { RTE: 'Route', RAD: 'Radiation', LSS: 'Life support' };
+  const chip = (id: string) =>
+    within(screen.getByRole('listitem', { name: new RegExp(`\\(${id}\\):`) })).getByRole('button', { name: new RegExp(`^${NAME[id]} (GO|CAUTION|NO-GO|HOLD)$`) });
 
   it('GO і CAUTION без кнопки-виправлення — згорнуті; клік розгортає й згортає', () => {
     cautionState();
     render(<GoNoGoPanel />);
     expect(chip('RTE')).toHaveAttribute('aria-expanded', 'false');
-    expect(chip('RAD')).toHaveTextContent('RAD');
+    expect(chip('RAD')).toHaveTextContent('Radiation');
     expect(chip('RAD')).toHaveTextContent('CAUTION');
     expect(chip('RAD')).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(chip('RAD'));
@@ -205,6 +207,18 @@ describe('T27 · чипи станцій', () => {
     useMission.setState({ plan, reach: reach({ deficits: ['o2'], returnInS: -60, swap: { dropId: 'mock-a', addId: 'mock-d' } }) });
     render(<GoNoGoPanel />);
     expect(chip('LSS')).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('listitem', { name: /^LSS:/ })).toHaveClass('is-open');
+    expect(screen.getByRole('listitem', { name: /\(LSS\):/ })).toHaveClass('is-open');
+  });
+});
+
+describe('станції людською мовою', () => {
+  it('на табло — назви, а не коди; пояснення в деталях', () => {
+    cautionState();
+    render(<GoNoGoPanel />);
+    const list = screen.getByRole('list', { name: 'Station calls' });
+    expect(list).toHaveTextContent('Life support');
+    expect(list).toHaveTextContent('Radiation');
+    expect(within(list).queryByText('LSS')).toBeNull();
+    expect(screen.getByRole('listitem', { name: /Radiation \(RAD\)/ })).toHaveTextContent('Radiation dose is known and within the limit.');
   });
 });

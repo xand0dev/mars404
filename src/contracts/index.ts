@@ -218,6 +218,11 @@ export interface PlanningGrid {
   walkable: Uint8Array;
   /** [0, 1], модельний індекс */
   hazard: Float32Array;
+  /**
+   * Сповільнення ходьби ґрунтом, множник часу ≥ 1 на клітинку (пісок повільніше за скелю).
+   * З нічної яскравості THEMIS (теплова інерція), `soilFromNightDN`; немає → 1 (як раніше). Assumption.
+   */
+  soil?: Float32Array;
 }
 
 export interface Segment {

@@ -38,6 +38,8 @@ export interface Plan2DProps {
   marks?: Annotation[];
   /** Режим «Add mark»: клік по плану → локальні метри */
   onPick?: ((xy: XY) => void) | null;
+  /** Навігація без GPS: маяки, відрізки на інерціалці, контрольні точки */
+  nav?: { beacons: { xy: XY; label: string }[]; drift: XY[][]; checkpoints: XY[] } | null;
 }
 
 function canDraw2D(): boolean {
@@ -60,7 +62,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, nav = null }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -179,6 +181,25 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
               <EvaSignShape kind="target" state={!inReach(t.coordinates) ? 'outside' : sel ? 'selected' : 'unselected'} x={x} y={y} size={sign} label={`${t.name}${!inReach(t.coordinates) ? ', outside reachable area' : sel ? ', selected' : ''}`} />
               <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400}>
                 {text}
+              </text>
+            </g>
+          );
+        })}
+        {nav?.drift.map((l, k) => (
+          <polyline key={`drift-${k}`} points={polyline(grid, l)} fill="none" stroke={CSS.drift} strokeWidth={unit * 0.9} strokeDasharray={`${unit * 1.5} ${unit}`} strokeLinecap="round" data-kind="drift" />
+        ))}
+        {nav?.checkpoints.map((c, k) => {
+          const [x, y] = planPoint(grid, c);
+          return <rect key={`cp-${k}`} x={x - unit * 1.2} y={y - unit * 1.2} width={unit * 2.4} height={unit * 2.4} transform={`rotate(45 ${x} ${y})`} fill="none" stroke={CSS.checkpoint} strokeWidth={unit * 0.5} data-kind="checkpoint" />;
+        })}
+        {nav?.beacons.map((b) => {
+          const [x, y] = planPoint(grid, b.xy);
+          return (
+            <g key={`beacon-${b.label}`} data-kind="beacon">
+              <circle cx={x} cy={y} r={unit * 2.4} fill="none" stroke={CSS.beacon} strokeWidth={unit * 0.4} />
+              <polygon points={`${x},${y - unit * 1.6} ${x + unit * 1.3},${y + unit} ${x - unit * 1.3},${y + unit}`} fill={CSS.beacon} />
+              <text x={x + unit * 2.8} y={y + unit * 0.8} fontSize={unit * 2.2} fill={CSS.beacon} stroke="#050506" strokeWidth={unit * 0.3} paintOrder="stroke">
+                {b.label}
               </text>
             </g>
           );
