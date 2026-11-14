@@ -68,6 +68,15 @@
 
 **Статус:** A1–A3 зроблено (#40); A4–A5 зроблено — `reach.abort` публікує `BudgetEngine`; A6 — PR.
 
+### Мітки екіпажу в ореолі й Abort map (#59, F5-AC6, SPEC §7.12)
+- **F5-AC6. Given** мітки `impassable` / `hazard`; **When** рахується ореол і Abort map; **Then** використовується `applyAnnotations(grid, annotations)`, і клітинки під непрохідною міткою не входять в ореол.
+
+| # | Задача | Файли | AC |
+|---|---|---|---|
+| M5 | Тест `BudgetEngine` → red: мітка `impassable` → клітинки під нею не в `reach.mask`, abort перераховано; `hazard` — клітинка лишається в масці (прохідна) | `BudgetPanel.test.tsx` | AC6 |
+| M6 | `BudgetEngine`: `applyAnnotations(grid, annotations)` (useMemo) у дерева й `assessReach` — ореол і abort на одній сітці | `BudgetEngine.tsx` | AC6 |
+| M7 | `npm run check`, браузер 1440 / 400 px на реальному Gale (мітка на маршруті Mont Mercou + Gardonne), AI_LOG, PR | — | AC6, AC7 |
+
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
 |---|---|---|---|
