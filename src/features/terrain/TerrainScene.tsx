@@ -1,9 +1,9 @@
 // 3D-сцена Gale (F2): рельєф, текстура/колір за висотою, шари, blocked/NoData, ореол, цілі, маршрут, камери.
 import { useEffect, useMemo } from 'react';
 import { Line, OrbitControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
+import { useThree, type ThreeEvent } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, DataTexture, NearestFilter, RGBAFormat, type Texture } from 'three';
-import type { PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
+import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
@@ -11,6 +11,7 @@ import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
 import { segmentMarker } from './lib/segment';
 import { Label3D } from './Label3D';
+import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
 import { useOptionalTexture } from './useRegionTexture';
 
 /** Підйом ліній і маркерів над поверхнею, м (лише візуально, щоб не тонули в меші). */
@@ -44,6 +45,12 @@ export interface SceneProps {
   base: XY | null;
   position: XY | null;
   mode: CameraMode;
+  /** Мітки екіпажу (§7.12) */
+  marks?: Annotation[];
+  /** Режим «Add mark»: клік по рельєфу → локальні метри */
+  onPick?: ((xy: XY) => void) | null;
+  /** Позначка «поза ореолом» для цілей (маска reach) */
+  inReach?: (xy: XY) => boolean;
 }
 
 function useDataTexture(rgba: Uint8Array, width: number, height: number): DataTexture {
@@ -106,7 +113,7 @@ function GridLayerOverlay({ rgba, grid, geometry, order }: { rgba: Uint8Array; g
   );
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true }: SceneProps) {
   const { grid, heights, noData } = data;
   const geometry = useMemo(() => {
     const g = buildTerrainGeometry(grid, heights);
@@ -197,7 +204,19 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
     <group>
       <ambientLight intensity={0.55} />
       <directionalLight position={[-1, 2, -0.6]} intensity={1.6} />
-      <mesh geometry={geometry}>
+      <mesh
+        geometry={geometry}
+        onClick={
+          onPick
+            ? (e: ThreeEvent<MouseEvent>) => {
+                // Перетягування камерою — не клік.
+                if (e.delta > 4) return;
+                e.stopPropagation();
+                onPick(r3fToXY(e.point));
+              }
+            : undefined
+        }
+      >
         <meshStandardMaterial map={texture ?? baseTex} roughness={1} metalness={0} />
       </mesh>
       {layerUrls.map((l, k) => (
@@ -248,6 +267,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         const p = at(t.coordinates);
         if (!p) return null;
         const sel = selectedIds.includes(t.id);
+        const out = !inReach(t.coordinates);
         return (
           <group key={t.id} position={p.position}>
             <mesh position={[0, markerR, 0]} renderOrder={RENDER_ORDER.markers}>
@@ -256,8 +276,8 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
             </mesh>
             <Label3D
               position={[0, markerR * 3, 0]}
-              color={sel ? '#ffd38a' : '#f3ece6'}
-              text={`${sel ? '● ' : ''}${t.name}${p.heightM === null ? ' · elev. unknown' : ''}`}
+              color={out ? '#e8b84a' : sel ? '#ffd38a' : '#f3ece6'}
+              text={`${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${p.heightM === null ? ' · elev. unknown' : ''}`}
             />
           </group>
         );
@@ -278,6 +298,41 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
           <meshBasicMaterial color="#7fb4e6" transparent />
         </mesh>
       )}
+
+      {marks.map((m) => {
+        const p = at(m.coordinates);
+        if (!p) return null;
+        const c = MARK_COLOR[m.kind];
+        const r = Math.max(m.radiusM, grid.metersPerPixel);
+        return (
+          <group key={m.id} position={p.position} name={markLabel(m)}>
+            {(m.kind === 'impassable' || m.kind === 'hazard') && (
+              <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={RENDER_ORDER.ring}>
+                <ringGeometry args={[r * 0.9, r, 48]} />
+                <meshBasicMaterial color={c} depthTest={false} transparent opacity={0.9} />
+              </mesh>
+            )}
+            {m.kind === 'impassable' || m.kind === 'hazard' ? (
+              <mesh position={[0, markerR, 0]} renderOrder={RENDER_ORDER.markers}>
+                <coneGeometry args={[markerR * 1.1, markerR * 2.2, 3]} />
+                <meshBasicMaterial color={c} wireframe={m.kind === 'hazard'} transparent />
+              </mesh>
+            ) : (
+              <>
+                <mesh position={[0, markerR * 1.5, 0]} renderOrder={RENDER_ORDER.markers}>
+                  <cylinderGeometry args={[markerR * 0.12, markerR * 0.12, markerR * 3, 6]} />
+                  <meshBasicMaterial color={c} transparent />
+                </mesh>
+                <mesh position={[markerR * 0.6, markerR * 2.6, 0]} renderOrder={RENDER_ORDER.markers}>
+                  <boxGeometry args={[markerR * 1.2, markerR * 0.7, markerR * 0.1]} />
+                  <meshBasicMaterial color={c} wireframe={m.kind === 'note'} transparent />
+                </mesh>
+              </>
+            )}
+            <Label3D position={[0, markerR * 3.4, 0]} color={c} text={`${MARK_CHAR[m.kind]} ${m.text || m.kind}${m.origin === 'imported' ? ' · prev EVA' : ''}`} />
+          </group>
+        );
+      })}
 
       <OrbitControls makeDefault enableDamping={false} />
       <CameraRig data={data} mode={mode} pov={pov} />
