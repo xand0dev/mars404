@@ -1,6 +1,6 @@
-// F5: шкали ресурсів, «Return in N min», сценарій «O₂ −40%» (SPEC §7.4). Числа — лише з reach (BudgetEngine).
+// F5 «Life support»: «Return in N min» зі статусом словом, що обмежує, шкали ресурсів, «What if» (SPEC §7.4). Числа — з reach (BudgetEngine).
 import type { ReachabilityResult, ResourceKey, Resources, RoutePlan, Source, Target } from '../../contracts';
-import { REACH_WARNINGS, reserveOf } from '../../core';
+import { estimateReturn, REACH_WARNINGS, reserveOf } from '../../core';
 import { mockLimits, mockLimitsEvidence } from '../../mocks';
 import { useMission } from '../../store/useMission';
 import { DASH, Gauge, Panel, StatusNote, formatMinutes } from '../../ui';
@@ -15,6 +15,27 @@ const STATUS_WARNINGS: readonly string[] = Object.values(REACH_WARNINGS);
 const HEADLINE_WARNINGS: readonly string[] = [REACH_WARNINGS.buildRoute, REACH_WARNINGS.noPathBack];
 
 const NOT_ASSESSED = `Return in ${DASH} min`;
+
+/** Поріг CAUTION для «Return in» у GO / NO-GO (SPEC §7.10). */
+const LOW_MARGIN_S = 15 * 60;
+
+type LifeTone = 'ok' | 'warn' | 'danger' | 'info';
+
+/** Одне слово для екіпажу: чи в межах моделі, мало запасу, повертатися, не оцінено. */
+function lifeStatus(reach: ReachabilityResult | null, siteChosen: boolean): { word: string; tone: LifeTone } {
+  if (siteChosen && !reach) return { word: 'ASSESSING', tone: 'info' };
+  if (!siteChosen || !reach || reach.status === 'invalid' || (reach.returnInS === null && reach.deficits.length === 0)) return { word: 'NOT ASSESSED', tone: 'info' };
+  if (reach.deficits.length > 0 || reach.returnInS! < 0) return { word: 'RETURN NOW', tone: 'danger' };
+  if (reach.returnInS! < LOW_MARGIN_S) return { word: 'LOW MARGIN', tone: 'warn' };
+  return { word: 'WITHIN MODEL', tone: 'ok' };
+}
+
+/** Стан окремого ресурсу словом; колір лише доповнює (SPEC §7.7). */
+function resourceStatus(key: ResourceKey, value: number | null, reach: ReachabilityResult | null): { word: string; tone: LifeTone } {
+  if (reach?.deficits.includes(key)) return { word: 'DEFICIT', tone: 'danger' };
+  if (value === null || !Number.isFinite(value)) return { word: 'NO DATA', tone: 'warn' };
+  return { word: 'OK', tone: 'ok' };
+}
 
 /** Без обраного місця оцінювати нема що — «—», як у HUD (#9). */
 function returnHeadline(reach: ReachabilityResult | null, siteChosen: boolean): string {
@@ -77,25 +98,40 @@ export function BudgetPanel() {
   const planned = plannedOf(plan);
   // До завантаження району ліміти — mock-фікстура; після — джерела з region.json.
   const limitsEvidence = region ? region.limitsEvidence : mockLimitsEvidence;
-  const gauge = (key: ResourceKey, label: string, unit: string, max: number) => (
-    <>
-      <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
-        deficit={reach?.deficits.includes(key) ?? false} />
-      <LimitEvidence resource={key} source={limitsEvidence?.[key]} />
-    </>
-  );
+  const gauge = (key: ResourceKey, label: string, unit: string, max: number) => {
+    const state = resourceStatus(key, budget[key], reach);
+    return (
+      <div className="life-resource">
+        <div className="life-resource__row">
+          <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
+            deficit={reach?.deficits.includes(key) ?? false} />
+          <span className={`life-word life-word--${state.tone}`} data-testid={`resource-status-${key}`}>{state.word}</span>
+        </div>
+        <LimitEvidence resource={key} source={limitsEvidence?.[key]} />
+      </div>
+    );
+  };
+  const status = lifeStatus(reach, site !== null);
+  // Що закінчиться першим — лише для чинного плану, тим самим правилом, що й «Return in».
+  const limitedBy = planned && reach && reach.status !== 'invalid' ? estimateReturn({ budget, reserve, model, planned }).limitedBy : null;
   const notes = (reach?.warnings ?? []).filter((w) => !STATUS_WARNINGS.includes(w) && !w.startsWith('invalid: '));
 
   return (
     <Panel title="Resources" featureId="F5" owner="Влад" mock={region === null}>
-      <p className="budget-return">{returnHeadline(reach, site !== null)}</p>
+      <div className={`life-hero life-hero--${status.tone}`}>
+        <p className="life-label">Life support</p>
+        <p className="budget-return">{returnHeadline(reach, site !== null)}</p>
+        <p className={`life-word life-word--${status.tone} life-hero__status`} data-testid="life-support-status">{status.word}</p>
+        {limitedBy && <p className="life-limited">limited by: {RESOURCE_NAMES[limitedBy]}</p>}
+      </div>
       <BudgetStatus reach={reach} />
       {gauge('time', 'Time', 's', limits.time)}
       {gauge('o2', 'O₂', 'g', limits.o2)}
       {gauge('energy', 'Energy', 'Wh', limits.energy)}
       {gauge('dose', 'Dose', 'µSv', limits.dose ?? 1)}
       <p className="budget-reserve">Reserve {Math.round(model.reserveFraction * 100)}% of limits kept on every gauge (model).</p>
-      <div className="budget-actions">
+      <div className="budget-actions" role="group" aria-label="What if">
+        <span className="life-label">What if:</span>
         <button type="button" aria-pressed={scenarioOn} onClick={() => setLimits(scenarioOn ? baseline : o2Scenario)}>O₂ −40%</button>
         <button type="button" onClick={() => setLimits(baseline)}>Reset</button>
       </div>

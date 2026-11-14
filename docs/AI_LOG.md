@@ -81,6 +81,7 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #59 (F5-AC6): ореол і Abort map на `applyAnnotations(grid, annotations)` — impassable випадає з ореолу, hazard лишається | src/features/budget/**, specs/F5/** | npm run check (491 тест); тести BudgetEngine: abort дорівнює розрахунку на сітці з мітками | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | SOURCES ## F5: `jones-apollo-walk` verified → assumption (Місяць → Марс), як у `region.json` після рев'ю #63 / #70 | docs/SOURCES.md | звірено з рядком F3 і `region.json` | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | SOURCES ## F5 (#79 п.1): `assumption-limits` — `limits.o2` 720 → 140 г з посиланням на #20 | docs/SOURCES.md | звірено з `region.json` у `main` | — |
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 «Life support»: головне «Return in N min» зі статусом словом (WITHIN MODEL / LOW MARGIN < 15 хв за §7.10 / RETURN NOW / NOT ASSESSED), «limited by: …» (`estimateReturn.limitedBy`), слово стану біля кожної шкали (OK / DEFICIT / NO DATA), «What if» для сценаріїв | src/features/budget/**, src/core/budget.ts | npm run check (585 тестів); Chromium 1440 і 400 px на реальному Gale: глобус NOT ASSESSED → 48 хв WITHIN MODEL → маршрут 23 хв limited by time → O₂ −40% 11 хв LOW MARGIN limited by O₂; без горизонтального скролу й помилок | — |
 
 ## F6
 

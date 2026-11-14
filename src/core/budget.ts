@@ -48,8 +48,8 @@ export interface ReturnEstimateInput {
   planned: Resources;
 }
 
-/** returnInS = min_k((budget − reserve − planned) / rate) для time, O₂ і дози (якщо відома); енергія — лише в deficits. */
-export function estimateReturn({ budget, reserve, model, planned }: ReturnEstimateInput): { returnInS: number; deficits: ResourceKey[] } {
+/** returnInS = min_k((budget − reserve − planned) / rate) для time, O₂ і дози (якщо відома); енергія — лише в deficits. limitedBy — ресурс з цим мінімумом. */
+export function estimateReturn({ budget, reserve, model, planned }: ReturnEstimateInput): { returnInS: number; deficits: ResourceKey[]; limitedBy: ResourceKey | null } {
   const available = availableOf(budget, reserve);
   const marginOf = (avail: number | null, usage: number | null) => {
     if (avail === null || usage === null) return null;
@@ -64,12 +64,16 @@ export function estimateReturn({ budget, reserve, model, planned }: ReturnEstima
   const rates: [ResourceKey, number | null][] = [['time', 1], ['o2', model.o2GPerS], ['dose', model.doseUSvPerS]];
 
   let returnInS = Infinity;
+  let limitedBy: ResourceKey | null = null;
   for (const [key, rate] of rates) {
     const margin = margins[key];
-    if (margin !== null && rate !== null && rate > 0) returnInS = Math.min(returnInS, margin / rate);
+    if (margin !== null && rate !== null && rate > 0 && margin / rate < returnInS) {
+      returnInS = margin / rate;
+      limitedBy = key;
+    }
   }
   const deficits = (Object.keys(margins) as ResourceKey[]).filter((key) => margins[key] !== null && margins[key]! < 0);
-  return { returnInS, deficits };
+  return { returnInS, deficits, limitedBy };
 }
 
 /** Помилки входів (SPEC §7.4 «invalid»): модель, від'ємні/NaN ліміти, elapsed. */
