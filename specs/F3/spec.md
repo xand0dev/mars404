@@ -3,6 +3,15 @@
 Власник: Максим (@kingsneverdie17) · гілка `feat/F3` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Нові задачі (14.11): Abort map + «View from here»
+План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
+
+| Задача | AC / правило | Issue | Залежить від |
+|---|---|---|---|
+| `DataLoader`: `region.files.photos` → `setRegionData({ …, photos })`, поза сіткою — відкинути з попередженням | F3-AC5, §6.0 | #35 | #26, #34 |
+| `region.json`: `model.emergencyO2G` з `evidence` (без джерела — `assumption`) | F3-AC5, §7.6 | #35 | #26, #31 |
+| Перевірити, що демо-цілі в ореолі (≈19.5 % реальної сітки) і є одна ближня для заміни | §12 | #35 | F6 цілі |
+
 ## Мета й обсяг
 Pipeline у Docker вивантажує bbox (§8), рахує схил, walkable і hazard, валідує й пише `public/data/gale/`. `DataLoader` вантажить пакет і викликає `setRegionData`. `LayersPanel` перемикає шари й показує легенду та походження.
 

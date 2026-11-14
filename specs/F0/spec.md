@@ -3,6 +3,13 @@
 Власник: Олександр (@xand0dev) · гілка `feat/F0` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Нові задачі (14.11): Abort map + «View from here»
+План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
+
+| Задача | AC / правило | Issue | Залежить від |
+|---|---|---|---|
+| Contract-PR: `ModelParams.emergencyO2G` (+ `evidence`), `ReachabilityResult.abort`, `SurfacePhoto`, `Region.files.photos?`, `photos` у store і `setRegionData`; mocks (`emergencyO2G = 360`, `assumption`; `photos: []`); тести store §6.1 | SPEC §6, §6.1 | #26 | мерж #24; дедлайн сб 16:00 |
+
 ## Мета й обсяг
 Vite-проєкт, contracts, store з правилами §6.1, mocks (128×128 синтетична сітка по 10 м з blocked-зоною й NaN, 5 цілей MOCK, модель з `assumption`), `src/app` зі слотами, заглушки експортів, CI, automerge, path-guard, Pages, CONSTITUTION, AGENTS, specs F1–F8, AI_LOG, SOURCES, LICENSE.
 

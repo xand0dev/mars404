@@ -3,6 +3,15 @@
 Власник: Влад (@froozy3) · гілка `feat/F5` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Нові задачі (14.11): Abort map + «View from here»
+План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
+
+| Задача | AC / правило | Issue | Залежить від |
+|---|---|---|---|
+| `reach.abort` у ядрі й `BudgetEngine`: `segments`, `pointOfNoReturnS`, еталон §7.8 | F5-AC5, §7.8 | #29 | #26 |
+| Джерела `emergencyO2G`, швидкості й O₂ (EMU, NASA BVAD) → `docs/SOURCES.md`, значення для F3 | §7.6 | #31 | до сб 21:00 |
+| `BudgetPanel` на `Gauge` / `StatusNote` / `formatMinutes` від F7 | #9 | #32 | мерж #17 |
+
 ## Мета й обсяг
 `BudgetEngine` (headless) за §7.4 рахує `budget` і `reach` (маска, `returnInS`, `deficits`, `swap`). `BudgetPanel` показує шкали O₂, енергії, часу й дози, сценарій «O₂ −40%» (`setLimits`) і «Reset».
 
