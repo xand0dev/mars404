@@ -125,7 +125,7 @@ function NotesBody() {
               </span>
               <span className="notes__text">{a.text || '—'}</span>
               <span className="notes__meta">
-                <time dateTime={a.createdAt}>{formatTime(a.createdAt)}</time> · origin: {ORIGIN_LABEL[a.origin]}
+                <time dateTime={a.createdAt}>{formatTime(a.createdAt)}</time> · <span className="notes__origin">origin: {ORIGIN_LABEL[a.origin]}</span>
               </span>
               <button type="button" onClick={() => removeAnnotation(a.id)} aria-label={`Remove ${KIND_LABEL[a.kind]} mark: ${a.text}`}>
                 Remove

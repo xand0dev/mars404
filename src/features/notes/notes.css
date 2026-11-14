@@ -13,6 +13,7 @@
 .notes__kind { font-weight: 700; }
 .notes__text { grid-column: 1; overflow-wrap: anywhere; }
 .notes__meta { grid-column: 1; font-size: var(--fs-small); color: var(--text-muted); }
+.notes__origin, .notes__meta time { white-space: nowrap; }
 .notes__item > button { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
 .notes__io { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Файловий input прихований візуально, але фокусований; фокус видно на підписі-кнопці. */
