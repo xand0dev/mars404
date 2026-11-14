@@ -157,3 +157,17 @@ describe('F7-AC5 · кандидат заміни', () => {
     expect(st({}).swap).toBeNull();
   });
 });
+
+describe('F7 · reach.warnings без дублів статусу', () => {
+  it('«return not fully assessed: dose — no data» не дублює статус incomplete; інші попередження лишаються', () => {
+    const v = st({ reach: reach({ warnings: ['return not fully assessed: dose — no data', 'MOCK Site B is outside the reachable area (model)'] }) });
+    expect(v.message).toBe('Estimate incomplete: dose — no data');
+    expect(v.warnings).toEqual(['MOCK Site B is outside the reachable area (model)']);
+  });
+
+  it('«Calculating route…» і «Build route to assess return» HUD уже каже статусом — не дублюємо', () => {
+    const v = st({ reach: reach({ warnings: ['Calculating route…', 'Build route to assess return', 'No path from current position back to base'] }) });
+    expect(v.warnings).toEqual(['No path from current position back to base']);
+  });
+});
+

@@ -55,6 +55,7 @@
 | 2026-11-14 | Оля | Claude Code | За відгуком F5 (issue #9): `Gauge` бере дефіцит з пропа `deficit` (з `reach.deficits`), без власного розрахунку й `alert`; HUD показує `reach.warnings` | `src/ui/**`, `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (72 тести) | #17 |
 | 2026-11-14 | Оля | Claude Code | Аудит доступності панелей (F7-AC2); прогін F7-AC1…AC5 у браузері на dev-сервері зі станами `reach`; правка текстів HUD | `specs/F7/**`, `src/features/hud/**` | `npm run check` зелений (72 тести); Playwright: усі 5 AC пройдено | #17 |
 | 2026-11-14 | Оля | Claude Code | HUD: рядок витрат чинного плану «Plan N s · N g O₂» (як на концепт-сторінці команди) | `src/features/hud/**` | `npm run check` зелений (74 тести); Chromium 400/1440 px без гор. скролу | #17 |
+| 2026-11-14 | Оля | Claude Code | Злиття `main` (F1, F4, F5) у `feat/F7`; наскрізна перевірка HUD на справжньому `reach` (Build route → 30 хв, +600 с → 20, O₂ −40% → 10, дефіцит); прибрано дублі попереджень F5 у HUD | `src/features/hud/**` | `npm run check` зелений (237 тестів); Playwright 400/1440: N у HUD = N у BudgetPanel, без помилок консолі | #17 |
 
 ## F8
 

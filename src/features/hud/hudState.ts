@@ -29,6 +29,12 @@ export interface HudView {
 
 const RESOURCE_NAME: Record<keyof Resources, string> = { time: 'time', o2: 'O₂', energy: 'energy', dose: 'dose' };
 
+/**
+ * Попередження F5, які HUD уже передає своїм статусом (тексти — `REACH_WARNINGS` у src/core/reachability.ts;
+ * F7 не імпортує src/core, тому рядки тут). Решту (ціль поза ореолом, немає шляху назад) показуємо.
+ */
+const STATUS_WARNINGS = new Set(['return not fully assessed: dose — no data', 'Calculating route…', 'Build route to assess return']);
+
 const NO_TARGETS = 'Select science targets in the Targets panel.';
 const GIVE_UP = 'Remove a target or return to base now';
 
@@ -98,7 +104,7 @@ export function hudState(s: HudInput): HudView {
 
   const swap = resolveSwap(s);
   const minutes = formatMinutes(returnInS);
-  const warnings = reach.warnings;
+  const warnings = reach.warnings.filter((w) => !STATUS_WARNINGS.has(w));
 
   if (reach.deficits.length > 0 || (returnInS !== null && returnInS < 0)) {
     const names = reach.deficits.map((k) => RESOURCE_NAME[k]).join(', ');
