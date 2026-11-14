@@ -33,9 +33,9 @@ const NO_TARGETS = 'Select science targets in the Targets panel.';
 const GIVE_UP = 'Remove a target or return to base now';
 
 function pointName(i: number, nTargets: number): string {
-  if (i === 0) return 'start';
-  if (i === nTargets + 1) return 'base';
-  return `target ${i}`;
+  if (i === 0) return 'The start';
+  if (i === nTargets + 1) return 'The base';
+  return `Target ${i}`;
 }
 
 function failureText(r: RouteFailure | undefined, nTargets: number): string {
@@ -44,11 +44,11 @@ function failureText(r: RouteFailure | undefined, nTargets: number): string {
     case 'invalid-params':
       return 'Model parameters are invalid.';
     case 'out-of-grid':
-      return `The ${pointName(r.pointIndex, nTargets)} is outside the map.`;
+      return `${pointName(r.pointIndex, nTargets)} is outside the map.`;
     case 'blocked-point':
-      return `The ${pointName(r.pointIndex, nTargets)} is on a blocked cell.`;
+      return `${pointName(r.pointIndex, nTargets)} is on a blocked cell.`;
     case 'disconnected':
-      return `The ${pointName(r.pointIndex, nTargets)} is cut off by blocked terrain.`;
+      return `${pointName(r.pointIndex, nTargets)} is cut off by blocked terrain.`;
     case 'no-path-leg':
       return `No path for leg ${r.legIndex + 1}.`;
   }
@@ -114,7 +114,7 @@ export function hudState(s: HudInput): HudView {
     });
   }
 
-  const next = nTargets === 0 ? NO_TARGETS : swap ? `Replace ${swap.dropName} with ${swap.addName}` : `Head back within ${minutes} min of stops.`;
+  const next = nTargets === 0 ? NO_TARGETS : swap ? `Replace ${swap.dropName} with ${swap.addName}` : `Up to ${minutes} min at stops, then head back.`;
   if (reach.status === 'incomplete') {
     return view({ kind: 'incomplete', level: 'warn', minutes, message: 'Estimate incomplete: dose — no data', next, swap, warnings });
   }

@@ -81,7 +81,7 @@ describe('F7-AC4 · стани HUD: пояснення + наступна дія
   it('no-path → причина з reason і порада', () => {
     const v = st({ plan: plan('no-path', { reason: { code: 'blocked-point', pointIndex: 2 } }) });
     expect(v.kind).toBe('no-path');
-    expect(v.message).toMatch(/target 2/i);
+    expect(v.message).toBe('No path. Target 2 is on a blocked cell.');
     expect(v.next).toMatch(/Remove or replace a target/);
   });
 
@@ -111,6 +111,7 @@ describe('F7-AC4 · стани HUD: пояснення + наступна дія
     expect(v.kind).toBe('estimated');
     expect(v.level).toBe('ok');
     expect(v.message).toBe('Within model');
+    expect(v.next).toBe('Up to 33 min at stops, then head back.');
     expect(JSON.stringify(v)).not.toMatch(/safe/i);
   });
 
