@@ -23,6 +23,8 @@ export interface HudView {
   next: string;
   mock: boolean;
   swap: HudSwap | null;
+  /** Попередження F5 (reach.warnings) — лише для чинної оцінки */
+  warnings: string[];
 }
 
 const RESOURCE_NAME: Record<keyof Resources, string> = { time: 'time', o2: 'O₂', energy: 'energy', dose: 'dose' };
@@ -55,10 +57,11 @@ function failureText(r: RouteFailure | undefined, nTargets: number): string {
 export function hudState(s: HudInput): HudView {
   const mock = s.region === null || s.region.status === 'mock';
   const nTargets = s.selectedTargetIds.length;
-  const view = (v: Omit<HudView, 'mock' | 'swap' | 'live' | 'minutes'> & Partial<Pick<HudView, 'live' | 'minutes' | 'swap'>>): HudView => ({
+  const view = (v: Omit<HudView, 'mock' | 'swap' | 'live' | 'minutes' | 'warnings'> & Partial<Pick<HudView, 'live' | 'minutes' | 'swap' | 'warnings'>>): HudView => ({
     live: 'status',
     minutes: '—',
     swap: null,
+    warnings: [],
     mock,
     ...v,
   });
@@ -95,6 +98,7 @@ export function hudState(s: HudInput): HudView {
 
   const swap = resolveSwap(s);
   const minutes = formatMinutes(returnInS);
+  const warnings = reach.warnings;
 
   if (reach.deficits.length > 0 || (returnInS !== null && returnInS < 0)) {
     const names = reach.deficits.map((k) => RESOURCE_NAME[k]).join(', ');
@@ -106,14 +110,15 @@ export function hudState(s: HudInput): HudView {
       message: names ? `Deficit: ${names} — plan exceeds budget minus reserve.` : 'Deficit: plan exceeds budget minus reserve.',
       next: swap ? `Replace ${swap.dropName} with ${swap.addName}` : GIVE_UP,
       swap,
+      warnings,
     });
   }
 
   const next = nTargets === 0 ? NO_TARGETS : swap ? `Replace ${swap.dropName} with ${swap.addName}` : `Head back within ${minutes} min of stops.`;
   if (reach.status === 'incomplete') {
-    return view({ kind: 'incomplete', level: 'warn', minutes, message: 'Estimate incomplete: dose — no data', next, swap });
+    return view({ kind: 'incomplete', level: 'warn', minutes, message: 'Estimate incomplete: dose — no data', next, swap, warnings });
   }
-  return view({ kind: 'estimated', level: 'ok', minutes, message: 'Within model', next, swap });
+  return view({ kind: 'estimated', level: 'ok', minutes, message: 'Within model', next, swap, warnings });
 }
 
 function resolveSwap(s: HudInput): HudSwap | null {

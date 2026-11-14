@@ -48,6 +48,13 @@ export function Hud() {
             <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
           </StatusNote>
         </div>
+        {v.warnings.length > 0 && (
+          <ul className="hud__warnings" aria-label="Model warnings">
+            {v.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        )}
         <div className="hud__controls">
           <label className="hud__elapsed">
             <span>Elapsed, s</span>

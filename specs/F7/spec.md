@@ -49,9 +49,10 @@
 - **T5 · Перевірка в браузері**: Playwright-скрипт (не в репо, у скретчпаді) — `scrollWidth ≤ clientWidth` на 4 ширинах, Tab-обхід, скриншоти 400 px і 1440 px → у PR.
 - **T6 · `npm run check`**, рядок у `docs/AI_LOG.md` (`## F7`), draft PR з таблицею AC → доказ.
 
-- **T7 · `Gauge` для F5** (пропи лише розширено): `reserve` — позначка резерву на шкалі й текст; `need` — план; дефіцит за §7.4 (`need > value − reserve`, рівність допустима) → ⛔ + «Deficit: …» + `role="alert"`; `null`/`NaN` → ⚠ «no data», без шкали. Чиста `gaugeLevel()` у `src/ui/gaugeLevel.ts`.
+- **T7 · `Gauge` для F5** (пропи лише розширено): `reserve` — позначка резерву на шкалі й текст; `need` — лише текст «plan …»; `deficit` — передає F5 з `reach.deficits` (Gauge сам не рахує — одне джерело чисел, §5.2; погоджено з Владом в issue #9) → ⛔ «Deficit: …» і червона шкала, без власного `role="alert"` (alert — у статусі панелі); `null`/`NaN` → ⚠ «no data», без шкали.
+- **T8 · `reach.warnings` у HUD** (напр. «‹name› is outside the reachable area (model)») — лише для чинної оцінки (deficit / incomplete / estimated), не під час `pending`.
 
-Порядок: T1 → T2 → T3 → T4 → T5 → T6 → T7. До сб 21:00 — T1–T4 на mocks; після F5 — перевірка на реальному `reach`.
+Порядок: T1 → … → T8. До сб 21:00 — T1–T4 на mocks; після F5 — перевірка на реальному `reach`.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |

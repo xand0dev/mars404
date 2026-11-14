@@ -93,4 +93,17 @@ describe('F7 · Hud', () => {
     expect(screen.queryByRole('button', { name: /Replace/ })).toBeNull();
     expect(screen.getByText('Remove a target or return to base now')).toBeInTheDocument();
   });
+
+  it('попередження F5 з reach.warnings видно в HUD (ціль поза ореолом)', () => {
+    withPlan(reach({ warnings: ['MOCK Site B is outside the reachable area (model)'] }));
+    render(<Hud />);
+    expect(screen.getByText('MOCK Site B is outside the reachable area (model)')).toBeInTheDocument();
+  });
+
+  it('попередження не показуємо, поки план рахується (старі не «протікають»)', () => {
+    withPlan(reach({ warnings: ['Calculating route…'] }));
+    useMission.setState({ plan: { ...okPlan, status: 'pending' } });
+    render(<Hud />);
+    expect(screen.queryByText('Calculating route…')).toBeNull();
+  });
 });

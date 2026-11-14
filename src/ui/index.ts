@@ -9,6 +9,4 @@ export { STATUS_ICON } from './statusLevel';
 export type { StatusLevel } from './statusLevel';
 export { Gauge } from './Gauge';
 export type { GaugeProps } from './Gauge';
-export { gaugeLevel } from './gaugeLevel';
-export type { GaugeLevel } from './gaugeLevel';
 export { formatMinutes, formatAmount, DASH } from './format';

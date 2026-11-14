@@ -46,6 +46,7 @@
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Оля | Claude Code | T1–T5: план у spec, стан HUD (`hudState`), `Hud` (Return in N, статус, Elapsed, заміна цілі), формат «—», іконки рівнів, токени й сітка | `src/ui/**`, `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (63 тести); Playwright: 400/768/1024/1440 без гор. скролу, Tab-фокус 3 px | #17 |
 | 2026-11-14 | Оля | Claude Code | T7: `Gauge` — резерв, план, дефіцит (§7.4), «no data» для null/NaN; `gaugeLevel` | `src/ui/**`, `specs/F7/**` | `npm run check` зелений (70 тестів); скриншот шкал у Chromium 400 px | #17 |
+| 2026-11-14 | Оля | Claude Code | За відгуком F5 (issue #9): `Gauge` бере дефіцит з пропа `deficit` (з `reach.deficits`), без власного розрахунку й `alert`; HUD показує `reach.warnings` | `src/ui/**`, `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (72 тести) | #17 |
 
 ## F8
 
