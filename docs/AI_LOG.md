@@ -49,6 +49,7 @@
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 T1–T7: план у spec; ядро бюджету й ореолу (budget.ts, reachability.ts: резерв, Return in N, маска туди й назад, swap); BudgetEngine; BudgetPanel («O₂ −40%», Reset, статуси) | src/core/**, src/features/budget/**, specs/F5/** | npm run check (190 тестів разом з main); Edge headless 1440 і 400 px: 48 хв → Build route → 3 хв → O₂ −40% → дефіцит + swap → Reset, без горизонтального скролу | #22 |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #9 (зауваги Олі): дефіцит у BudgetPanel — `role="status"` (єдиний alert — у HUD), назва «O₂» замість ключа `o2` | src/features/budget/** | npm run check (274 тести); Chromium headless 1440 і 400 px: Gale → цілі C, D, E → Build route → O₂ −40% → «Deficit: time, O₂», 0 `role="alert"`, без горизонтального скролу, без помилок у консолі | — |
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 #29 A1–A3 (F5-AC5, §7.8): `assessAbort` у ядрі — накопичена витрата + дорога назад зі зворотного дерева, аварійний запас O₂, точка неповернення; до мержу #26 — локальний тип і `emergencyO2G` параметром | src/core/abort.ts, src/core/index.ts, specs/F5/** | npm run check (335 тестів); еталон §7.8 (100 г / 500 с → ok, 1400 с → ні), «O₂ −40%» не покращує жоден відрізок; UI ще немає — браузер не перевіряв | — |
 
 ## F6
 
