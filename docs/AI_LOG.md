@@ -39,7 +39,7 @@
 
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
-| 2026-11-14 | Настя | Codex · GPT-5 | T1–T5: звірка контрактів, AC-тести, список і картка цілей, фото fallback, toggle/reach warning на mocks | `specs/F6/spec.md`, `src/features/science/**` | red: 4/4 падали; green: 4/4 F6, `npm run check` — 33/33 | #21 (draft) |
+| 2026-11-14 | Настя | Codex · GPT-5 | T1–T6: контракти, AC-тести, UI цілей, 8 MMGIS stops і локальні NASA Navcam фото з джерелами | `specs/F6/spec.md`, `src/features/science/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`, F6 у `docs/SOURCES.md` | red→green: UI 4/4, data 2/2; `npm run check` — 35/35; браузер 400/1440: без horizontal overflow і console errors | #21 (draft) |
 
 ## F7
 
