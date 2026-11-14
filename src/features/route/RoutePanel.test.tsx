@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { cellCenter } from '../../contracts/planning';
 import { mockGrid, mockTargets } from '../../mocks';
@@ -11,6 +11,22 @@ const store = () => useMission.getState();
 beforeEach(() => resetMission());
 
 describe('RoutePanel', () => {
+  it('F4-AC6: відрізки з abort.ok = false — іконка й текст «no return» у таблиці', async () => {
+    store().toggleTarget('mock-a');
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+
+    const count = store().plan!.segments.length;
+    const segments = Array.from({ length: count }, (_, i) => ({ returnS: i === 1 ? null : 100, ok: i !== 1 }));
+    act(() => store().setReach({ status: 'incomplete', mask: new Uint8Array(0), returnInS: 600, deficits: [], swap: null, warnings: [],
+      abort: { segments, pointOfNoReturnS: 10, emergencyO2G: 360 } }));
+
+    expect(screen.getByRole('button', { name: /^Segment 2:.*no return/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Segment 1:/ }).getAttribute('aria-label')).not.toMatch(/no return/);
+    expect(screen.getAllByText('no return')).toHaveLength(1);
+  });
+
   it('F4-AC6: вибір відрізка показує «View from here»', async () => {
     store().toggleTarget('mock-a');
     render(<RoutePanel />);

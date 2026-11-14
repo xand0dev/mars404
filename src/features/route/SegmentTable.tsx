@@ -1,9 +1,12 @@
 import type { KeyboardEvent } from 'react';
-import type { RoutePlan } from '../../contracts';
+import type { AbortPlan, RoutePlan } from '../../contracts';
+import { STATUS_ICON } from '../../ui';
 import { formatDistance, formatDose, formatEnergy, formatO2, formatSeconds, formatSlope } from './format';
 
 export interface SegmentTableProps {
   plan: RoutePlan;
+  /** reach.abort (F5, SPEC §7.8); null — оцінки немає, позначок теж. */
+  abort: AbortPlan | null;
   selectedSegment: number | null;
   onSelect: (segment: number) => void;
 }
@@ -19,10 +22,12 @@ const STEP_KEYS: Record<string, (current: number, last: number) => number> = {
   End: (_i, last) => last,
 };
 
-export function SegmentTable({ plan, selectedSegment, onSelect }: SegmentTableProps) {
+export function SegmentTable({ plan, abort, selectedSegment, onSelect }: SegmentTableProps) {
   const selected = selectedSegment === null ? undefined : plan.segments[selectedSegment];
   const tabStop = selectedSegment ?? 0;
   const last = plan.segments.length - 1;
+  // Довжина не збігається — abort від іншого плану, позначок не ставимо.
+  const noReturn = (k: number) => abort?.segments.length === plan.segments.length && abort.segments[k]?.ok === false;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, k: number) => {
     const step = STEP_KEYS[event.key];
@@ -39,6 +44,7 @@ export function SegmentTable({ plan, selectedSegment, onSelect }: SegmentTablePr
         <p className="route-details" data-testid="segment-details" role="status">
           Segment {selectedSegment! + 1} (leg {legOf(plan.legs, selectedSegment!) + 1}): {formatDistance(selected.dist)} · slope {formatSlope(selected.slope)} ·{' '}
           {formatSeconds(selected.time)} · {formatO2(selected.o2)} · {formatEnergy(selected.energy)} · dose {formatDose(selected.dose)}
+          {noReturn(selectedSegment!) && ' · no return with emergency O₂ (model)'}
         </p>
       )}
       <div className="route-table">
@@ -59,13 +65,18 @@ export function SegmentTable({ plan, selectedSegment, onSelect }: SegmentTablePr
             {plan.segments.map((s, k) => (
               <tr key={k} aria-selected={k === selectedSegment}>
                 <td>
-                  <button type="button" aria-label={`Segment ${k + 1}: ${formatDistance(s.dist)}, ${formatSlope(s.slope)}`} aria-pressed={k === selectedSegment}
+                  <button type="button" aria-label={`Segment ${k + 1}: ${formatDistance(s.dist)}, ${formatSlope(s.slope)}${noReturn(k) ? ', no return' : ''}`} aria-pressed={k === selectedSegment}
                     tabIndex={k === tabStop ? 0 : -1}
                     onClick={() => onSelect(k)}
                     onKeyDown={(event) => handleKeyDown(event, k)}
                   >
                     {k + 1}
                   </button>
+                  {noReturn(k) && (
+                    <span className="route-no-return">
+                      <span aria-hidden="true">{STATUS_ICON.deficit}</span> no return
+                    </span>
+                  )}
                 </td>
                 <td>{s.dist.toFixed(1)}</td>
                 <td>{formatSlope(s.slope)}</td>

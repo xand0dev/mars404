@@ -1,17 +1,20 @@
 // «View from here» (SPEC §7.9): найближчий справжній знімок до середини обраного відрізка.
-import type { Segment, Target, TargetPhoto, XY } from '../../contracts';
+import type { Segment, SurfacePhoto, Target, TargetPhoto, XY } from '../../contracts';
 
 /** Поріг показу знімка — assumption (SPEC §7.9). */
 export const VIEW_RADIUS_M = 300;
 
-// TODO(#26): додати кандидати з `photos` (SurfacePhoto, location 'rover-stop') з пріоритетом над фото цілей.
+/** Звідки знято кадр: зупинка ровера (photos), приблизне місце або координати цілі (запасний варіант). */
+export type PhotoLocation = 'rover-stop' | 'approximate' | 'target';
+
 export interface PhotoCandidate {
-  photo: TargetPhoto;
+  photo: Pick<TargetPhoto, 'url' | 'alt' | 'credit' | 'sol' | 'sourceUrl'>;
   coordinates: XY;
-  /** Де стояла камера: 'target' — координати цілі, а не точка кадру. */
-  location: 'target';
-  targetId: string;
-  name: string;
+  location: PhotoLocation;
+  /** Камера з raw images API ('NAV_LEFT_B'); у фото цілей немає. */
+  camera?: string;
+  /** Назва цілі — лише для location = 'target'. */
+  name?: string;
 }
 
 export interface NearestPhoto {
@@ -24,9 +27,13 @@ export function segmentMidpoint(segment: Segment): XY {
 }
 
 export function photoCandidatesFromTargets(targets: Target[]): PhotoCandidate[] {
-  return targets.flatMap((target) =>
-    target.photo ? [{ photo: target.photo, coordinates: target.coordinates, location: 'target' as const, targetId: target.id, name: target.name }] : [],
-  );
+  return targets.flatMap((target) => (target.photo ? [{ photo: target.photo, coordinates: target.coordinates, location: 'target' as const, name: target.name }] : []));
+}
+
+/** Кандидати — photos; немає жодного — фото цілей (SPEC §7.9). */
+export function photoCandidates(photos: SurfacePhoto[], targets: Target[]): PhotoCandidate[] {
+  if (photos.length === 0) return photoCandidatesFromTargets(targets);
+  return photos.map((photo) => ({ photo, coordinates: photo.coordinates, location: photo.locationAccuracy, camera: photo.camera }));
 }
 
 /** null — немає кандидата ближче VIEW_RADIUS_M (рівність — так). */
