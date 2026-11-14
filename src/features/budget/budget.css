@@ -56,12 +56,11 @@ html[data-eva-dock='collapsed'] .eva-dock__whatif { display: none; }
 .eva-dock__details { display: none; }
 html[data-eva-dock='expanded'] .eva-dock { height: var(--eva-sheet-h); }
 html[data-eva-dock='expanded'] .eva-dock__details { display: block; flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--space-2, 8px) var(--space-1, 4px); }
-html[data-eva-dock='expanded'] body { padding-bottom: calc(var(--eva-sheet-h) + 44px); }
+html[data-eva-dock='expanded'] body { padding-bottom: calc(var(--eva-sheet-h) + 40px); }
 
 /* Ручка шторки: тап або потягнути. Над пультом, на всю ширину — легко влучити рукавицею. */
-/* Ручка — лише смужка, як у шухляди: висоту шторки обирає астронавт. Зона дотику на всю ширину, 28 px заввишки + запас. */
-.eva-sheet-handle { position: fixed; left: 0; right: 0; bottom: var(--eva-dock-h); z-index: 41; min-height: 28px; height: 28px; width: 100%; padding: 0; display: grid; place-items: center; border: none; border-top: 1px solid var(--border, var(--line)); border-radius: 14px 14px 0 0; background: var(--surface, #15181d); cursor: grab; touch-action: none; }
-.eva-sheet-handle::before { content: ''; position: absolute; inset: -12px 0 0; }
+/* Ручка — лише смужка, як у шухляди: висоту шторки обирає астронавт. Зона дотику на всю ширину, 40 px (F7-AC1). */
+.eva-sheet-handle { position: fixed; left: 0; right: 0; bottom: var(--eva-dock-h); z-index: 41; min-height: 40px; height: 40px; width: 100%; padding: 0; display: grid; place-items: center; border: none; border-top: 1px solid var(--border, var(--line)); border-radius: 14px 14px 0 0; background: var(--surface, #15181d); cursor: grab; touch-action: none; }
 .eva-sheet-handle:active { cursor: grabbing; }
 .eva-sheet-handle__grip { width: 52px; height: 5px; border-radius: 3px; background: var(--text-muted); opacity: 0.7; }
 .eva-sheet-handle:hover .eva-sheet-handle__grip, .eva-sheet-handle:focus-visible .eva-sheet-handle__grip { opacity: 1; background: var(--text); }
