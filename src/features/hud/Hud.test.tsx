@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { ReachabilityResult, RoutePlan } from '../../contracts';
@@ -119,4 +119,26 @@ describe('F7 · Hud', () => {
     render(<Hud />);
     expect(screen.queryByText(/^Plan /)).toBeNull();
   });
+
+  it('F7-AC6: точка неповернення видно знаком ◆! і текстом, поруч аварійний запас з «assumption»', () => {
+    withPlan(reach({ abort: { segments: [], pointOfNoReturnS: 1380, emergencyO2G: 360 } }));
+    render(<Hud />);
+    const line = screen.getByText('Point of no return in 23 min').closest('p') as HTMLElement;
+    expect(within(line).getByRole('img', { name: 'Point of no return' })).toBeInTheDocument();
+    expect(screen.getByText(/Emergency O₂ reserve 360 g/)).toBeInTheDocument();
+    expect(screen.getByText('assumption')).toBeInTheDocument();
+  });
+
+  it('F7-AC6: повернення звідусіль — «Return possible along the whole route»', () => {
+    withPlan(reach({ abort: { segments: [], pointOfNoReturnS: null, emergencyO2G: 360 } }));
+    render(<Hud />);
+    expect(screen.getByText('Return possible along the whole route')).toBeInTheDocument();
+  });
+
+  it('F7-AC6: abort = null → рядка немає', () => {
+    withPlan(reach({ abort: null }));
+    render(<Hud />);
+    expect(screen.queryByText(/Point of no return|Return possible along/)).toBeNull();
+  });
 });
+

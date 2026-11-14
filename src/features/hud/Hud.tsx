@@ -2,7 +2,8 @@
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useMission } from '../../store/useMission';
-import { Panel, StatusNote, formatAmount } from '../../ui';
+import { EvaSign, Panel, STATUS_ICON, StatusNote, formatAmount } from '../../ui';
+import { abortLine } from './abortLine';
 import { hudState } from './hudState';
 
 export function Hud() {
@@ -17,6 +18,7 @@ export function Hud() {
       budget: s.budget,
     })),
   );
+  const model = useMission((s) => s.model);
   const time = useMission((s) => s.time);
   const setTime = useMission((s) => s.setTime);
   const replaceTarget = useMission((s) => s.replaceTarget);
@@ -24,6 +26,7 @@ export function Hud() {
   const [draft, setDraft] = useState<string | null>(null);
 
   const v = hudState(input);
+  const abort = abortLine(input.reach?.abort ?? null, model);
 
   const onElapsed = (raw: string) => {
     setDraft(raw);
@@ -48,6 +51,16 @@ export function Hud() {
             <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
           </StatusNote>
         </div>
+        {abort && (
+          <p className={`hud__abort hud__abort--${abort.kind}`}>
+            {abort.kind === 'ponr' ? <EvaSign kind="ponr" size={22} /> : <span className="hud__abort-icon" aria-hidden="true">{STATUS_ICON.ok}</span>}
+            <strong>{abort.text}</strong>
+            <span className="hud__abort-reserve">
+              {abort.emergency}
+              {abort.assumption && <> · <span className="hud__assumption">assumption</span></>}
+            </span>
+          </p>
+        )}
         {v.warnings.length > 0 && (
           <ul className="hud__warnings" aria-label="Model warnings">
             {v.warnings.map((w) => (
