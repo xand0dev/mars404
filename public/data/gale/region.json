@@ -444,6 +444,15 @@
       "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer",
       "credit": "NASA/JPL/University of Arizona (HiRISE), NASA Mars Trek",
       "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "trek-mola-hrsc-200m-context",
+      "title": "Mars MOLA + HRSC blended DEM 200 m — 61 km context around the EVA site (3D only)",
+      "status": "verified",
+      "note": "exportImage 256×256 (240 m cells, bilinear by Trek) on bbox 136.886698…137.926782 E, −5.256285…−4.219755; min −4633 m, max +483 m (Mount Sharp slopes). Not used for planning.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer",
+      "credit": "NASA/JPL/GSFC (MOLA), ESA/DLR/FU Berlin (HRSC), USGS Astrogeology, via NASA Mars Trek",
+      "accessedAt": "2026-11-14"
     }
   ],
   "hazardFromSlope": {
@@ -454,5 +463,16 @@
   "renderGrid": {
     "width": 1024,
     "height": 1024
+  },
+  "context": {
+    "file": "context.f32",
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 240.0,
+    "originM": [
+      -29440.0,
+      32000.0
+    ],
+    "noData": -9999.0
   }
 }

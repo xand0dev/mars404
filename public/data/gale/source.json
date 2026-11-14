@@ -46,6 +46,12 @@
       "bytes": 1624971,
       "sha256": "5372aff04c6eeb1eca9114e42fee00ff3439a271feca25ba747aad14711bf993",
       "accessedAt": "2026-11-14"
+    },
+    "context_mola.tif": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer/exportImage?bbox=136.886698%2C-5.256285%2C137.926782%2C-4.219755&bboxSR=104905&imageSR=104905&size=256%2C256&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image",
+      "bytes": 66380,
+      "sha256": "63a421871b8f8b6dd93484f2fb1a9b5e8b406abcc24e520854e3e21b7ea300ce",
+      "accessedAt": "2026-11-14"
     }
   },
   "native": {

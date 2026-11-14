@@ -31,6 +31,7 @@
 
 | id | Що | URL / product ID | Credit | Доступ | Статус | Примітка |
 |---|---|---|---|---|---|---|
+| trek-mola-hrsc-200m-context | Кільце рельєфу 61 км довкола Gale для 3D (`context.f32`, 256² по 240 м) | https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer | NASA/JPL/GSFC (MOLA), ESA/DLR/FU Berlin (HRSC), USGS via Mars Trek | 2026-11-14 | verified | Білінійно з 200 м; −4633…+483 м; лише огляд, не планування |
 | trek-gale-dem-1m | HiRISE DEM Gale, 1 м, float32 | https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer/exportImage · `Gale_DEM_SMG_1m` | NASA/JPL Mars Trek | 2026-11-14 | verified | 14.11: bbox B (#7) 137.385072…137.428408, −4.759614…−4.716426, 2560² nearest → −4217.4…−3733.8 м, NoData 0 %. Endpoint перевірено живим запитом; ранній пробний bbox 137.400–137.422, −4.750…−4.728 → −4108…−3817 м |
 | trek-hirise-mosaic | HiRISE ортомозаїка Curiosity | https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer/exportImage · `curiosity_hirise_mosaic` | NASA/JPL Mars Trek | 2026-11-14 | verified | `format=jpg`, U8, native ≈0.25 м; 2048² на bbox → hirise.jpg |
 | mmgis-msl-traverse | Маршрут Curiosity | https://mars.nasa.gov/mmgis-maps/MSL/Layers/json/MSL_traverse.json | NASA/JPL-Caltech, MSL MMGIS | 2026-11-14 | verified | Обрізка по bbox → traverse.geojson (212 ліній) |
