@@ -3,7 +3,8 @@ import type { ReachabilityResult, ResourceKey, Resources, RoutePlan, Source, Tar
 import { estimateReturn, REACH_WARNINGS, reserveOf } from '../../core';
 import { mockLimits, mockLimitsEvidence } from '../../mocks';
 import { useMission } from '../../store/useMission';
-import { DASH, Gauge, Panel, StatusNote, formatMinutes } from '../../ui';
+import { DASH, Disclosure, Gauge, Panel, StatusNote, formatMinutes } from '../../ui';
+import { LifeDock, type ResourceRow } from './LifeDock';
 import './budget.css';
 
 /** Сценарій SPEC §3: O₂ −40% від базових лімітів. */
@@ -78,6 +79,35 @@ function LimitEvidence({ resource, source }: { resource: ResourceKey; source: So
   return <p className="budget-evidence" data-testid={`limit-evidence-${resource}`}>limit: {text}</p>;
 }
 
+/** Одиниці для людей у шторці: час — хвилини, решта — як на шкалах. */
+const DOCK_UNITS: Record<ResourceKey, { label: string; format: (value: number) => string }> = {
+  time: { label: 'Time', format: (s) => `${Math.floor(s / 60)} min` },
+  o2: { label: 'O₂', format: (g) => `${Math.round(g)} g` },
+  energy: { label: 'Energy', format: (wh) => `${Math.round(wh)} Wh` },
+  dose: { label: 'Dose', format: (usv) => `${Math.round(usv)} µSv` },
+};
+
+/** Рядки шторки: є зараз, візьме маршрут, лишиться після нього; смуга — частки ліміту. */
+function resourceRows(budget: Resources, limits: Resources, reserve: Resources, planned: Resources | null, reach: ReachabilityResult | null): ResourceRow[] {
+  return (['o2', 'time', 'energy', 'dose'] as const).map((key) => {
+    const { label, format } = DOCK_UNITS[key];
+    const now = budget[key];
+    const limit = limits[key];
+    const route = planned?.[key] ?? null;
+    const known = now !== null && Number.isFinite(now);
+    const ratio = (value: number) => (limit && limit > 0 ? Math.min(1, Math.max(0, value / limit)) : 0);
+    return {
+      key,
+      label,
+      now: known ? format(now) : null,
+      route: known && route !== null ? format(route) : null,
+      after: known && route !== null ? format(now - route) : null,
+      status: resourceStatus(key, now, reach),
+      bar: known && limit ? { now: ratio(now), route: ratio(route ?? 0), reserve: ratio(reserve[key] ?? 0) } : null,
+    };
+  });
+}
+
 const nameOf = (targets: Target[], id: string) => targets.find((t) => t.id === id)?.name ?? id;
 
 export function BudgetPanel() {
@@ -101,13 +131,12 @@ export function BudgetPanel() {
   const gauge = (key: ResourceKey, label: string, unit: string, max: number) => {
     const state = resourceStatus(key, budget[key], reach);
     return (
-      <div className="life-resource">
+      <div className="life-resource" data-resource={key}>
         <div className="life-resource__row">
           <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
             deficit={reach?.deficits.includes(key) ?? false} />
           <span className={`life-word life-word--${state.tone}`} data-testid={`resource-status-${key}`}>{state.word}</span>
         </div>
-        <LimitEvidence resource={key} source={limitsEvidence?.[key]} />
       </div>
     );
   };
@@ -129,7 +158,12 @@ export function BudgetPanel() {
       {gauge('o2', 'O₂', 'g', limits.o2)}
       {gauge('energy', 'Energy', 'Wh', limits.energy)}
       {gauge('dose', 'Dose', 'µSv', limits.dose ?? 1)}
-      <p className="budget-reserve">Reserve {Math.round(model.reserveFraction * 100)}% of limits kept on every gauge (model).</p>
+      <Disclosure summary="Sources of limits">
+        {(['time', 'o2', 'energy', 'dose'] as const).map((key) => (
+          <LimitEvidence key={key} resource={key} source={limitsEvidence?.[key]} />
+        ))}
+        <p className="budget-reserve">Reserve {Math.round(model.reserveFraction * 100)}% of limits kept on every gauge (model).</p>
+      </Disclosure>
       <div className="budget-actions" role="group" aria-label="What if">
         <span className="life-label">What if:</span>
         <button type="button" aria-pressed={scenarioOn} onClick={() => setLimits(scenarioOn ? baseline : o2Scenario)}>O₂ −40%</button>
@@ -144,6 +178,11 @@ export function BudgetPanel() {
         </StatusNote>
       )}
       {region === null && <StatusNote level="info">Limits and coefficients: MOCK (SPEC §7.4 reference fixture), not mission data.</StatusNote>}
+      {site !== null && (
+        <LifeDock headline={returnHeadline(reach, true)} status={status} limitedBy={limitedBy ? { key: limitedBy, label: RESOURCE_NAMES[limitedBy] } : null}
+          scenarioOn={scenarioOn} onScenario={() => setLimits(scenarioOn ? baseline : o2Scenario)} onReset={() => setLimits(baseline)}
+          rows={resourceRows(budget, limits, reserve, planned, reach)} emergencyO2G={model.emergencyO2G} />
+      )}
     </Panel>
   );
 }
