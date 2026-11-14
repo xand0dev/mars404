@@ -3,7 +3,8 @@
 .ui-panel:has(> .hud) { position: relative; padding-top: var(--space-4); border-color: #2a1517; background: radial-gradient(600px 220px at 0% 0%, rgb(224 16 26 / 0.16), transparent 70%), linear-gradient(180deg, #0f0f12, var(--surface)); box-shadow: inset 0 1px 0 rgb(255 42 42 / 0.25), 0 24px 48px -28px rgb(224 16 26 / 0.35); }
 .ui-panel:has(> .hud) > header { position: absolute; bottom: var(--space-3); right: var(--space-3); margin: 0; min-height: 0; z-index: 1; }
 /* Бейджі HUD — праворуч у рядку станцій; на вузькому екрані — над ним, щоб не перекривати чипи. */
-@media (max-width: 1199px) { .ui-panel:has(> .hud) > header { position: static; margin-bottom: var(--space-2); justify-content: flex-end; } }
+/* Компонування HUD — за шириною його панелі (container queries): у правій колонці — стовпчиком, на всю ширину — смугою. */
+@container (max-width: 1099px) { .ui-panel:has(> .hud) > header { top: var(--space-3); bottom: auto; padding: 0; } }
 .ui-panel:has(> .hud) > header h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .hud {
@@ -34,12 +35,12 @@
 .hud__swap { border-color: var(--accent); font-weight: 600; max-width: 100%; white-space: normal; text-align: left; }
 .hud__left { margin: 0; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
-@media (min-width: 768px) {
+@container (min-width: 640px) {
   .hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'hero verdict' 'info side' 'stations stations'; }
   .hud__side { justify-items: end; text-align: right; }
 }
-/* ≥ 1200: одна смуга — «Return in» · вердикт · статус · Elapsed; станції рядком під нею. */
-@media (min-width: 1200px) {
+/* Широка панель: одна смуга — «Return in» · вердикт · статус · Elapsed; станції рядком під нею. */
+@container (min-width: 1100px) {
   .hud { grid-template-columns: auto minmax(200px, 280px) minmax(240px, 1fr) minmax(200px, 300px); grid-template-areas: 'hero verdict info side' 'stations stations stations stations'; }
   .hud__elapsed { grid-auto-flow: column; align-items: center; gap: var(--space-2); }
   .gonogo__stations { padding-right: 150px; }
@@ -92,7 +93,7 @@
 .gonogo__reason { color: var(--text); }
 .gonogo__fix { color: var(--text-muted); }
 .gonogo__fixbtn { font-size: var(--fs-small); margin-top: var(--space-1); max-width: 100%; white-space: normal; text-align: left; }
-@media (max-width: 520px) {
+@container (max-width: 520px) {
   .gonogo__stations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .gonogo__station.is-open { grid-column: 1 / -1; }
   .gonogo__station { overflow: hidden; }
@@ -100,7 +101,7 @@
   .gonogo__chip::after { content: none; }
   .gonogo__chip[aria-expanded='true']::after { content: none; }
 }
-@media (max-width: 359px) { .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 260px) { .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Glove mode: одна колонка; «Return in» і вердикт — зверху, станції згорнуті в «Stations». */
 .shell--glove .hud { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'hero' 'verdict' 'info' 'side' 'stations'; }
@@ -109,3 +110,13 @@
 .shell--glove .gonogo__stations { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .gonogo__more > summary { list-style: none; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: var(--surface-2); cursor: pointer; }
 .gonogo__more > summary::-webkit-details-marker { display: none; }
+
+/* Вузька колонка: «Elapsed» в один рядок з полем, щоб HUD вміщався разом із Resources. */
+@container (max-width: 639px) {
+  .hud { row-gap: var(--space-2); }
+  .hud__elapsed { grid-auto-flow: column; justify-content: start; align-items: center; gap: var(--space-2); }
+  .hud__elapsed input { width: 7rem; }
+  .gonogo__hint { font-size: 0.72rem; }
+}
+/* Іконка точки неповернення тримається біля свого тексту, текст переноситься всередині. */
+.hud__abort > strong { flex: 1 1 12rem; min-width: 0; }

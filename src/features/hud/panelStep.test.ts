@@ -1,22 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type { RoutePlan } from '../../contracts';
-import { STEP_PANEL, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
+import { STEP_PANELS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
 
-// T24: відкрита та панель правої колонки, що потрібна для наступного кроку демо (SPEC §3).
+// T24: відкриті ті панелі, що потрібні для наступного кроку демо (SPEC §3); Resources — завжди.
 const plan = (status: RoutePlan['status']) => ({ status }) as RoutePlan;
 
 describe('panelStep — наступний крок', () => {
-  it('сайт не обрано → Location', () => expect(STEP_PANEL[panelStep({ site: null, plan: null })]).toBe('Location'));
-  it('сайт є, плану немає або він не ok → Science targets', () => {
-    expect(STEP_PANEL[panelStep({ site: 'gale', plan: null })]).toBe('Science targets');
-    expect(STEP_PANEL[panelStep({ site: 'gale', plan: plan('no-path') })]).toBe('Science targets');
+  it('сайт не обрано → site', () => expect(panelStep({ site: null, plan: null, selectedTargetIds: [] })).toBe('site'));
+  it('сайт є, цілей немає → targets', () => expect(panelStep({ site: 'gale', plan: null, selectedTargetIds: [] })).toBe('targets'));
+  it('цілі є, плану немає або він не ok → route', () => {
+    expect(panelStep({ site: 'gale', plan: null, selectedTargetIds: ['a'] })).toBe('route');
+    expect(panelStep({ site: 'gale', plan: plan('no-path'), selectedTargetIds: ['a'] })).toBe('route');
   });
-  it('план ok → Pre-EVA checklist', () => expect(STEP_PANEL[panelStep({ site: 'gale', plan: plan('ok') })]).toBe('Pre-EVA checklist'));
+  it('план ok → checklist', () => expect(panelStep({ site: 'gale', plan: plan('ok'), selectedTargetIds: ['a'] })).toBe('checklist'));
+  it('Resources відкрито на кожному кроці; Route — коли вже є цілі', () => {
+    for (const step of ['site', 'targets', 'route', 'checklist'] as const) expect(STEP_PANELS[step]).toContain('Resources');
+    expect(STEP_PANELS.route).toEqual(expect.arrayContaining(['Science targets', 'Route']));
+    expect(STEP_PANELS.checklist).toContain('Pre-EVA checklist');
+  });
 });
 
 describe('ручний вибір має пріоритет, доки крок не зміниться', () => {
   const none: PanelOverrides = { step: 'site', open: {} };
-  it('за замовчуванням відкрита лише панель кроку', () => {
+  it('за замовчуванням відкриті лише панелі кроку', () => {
     expect(isPanelOpen('site', none, 'Location')).toBe(true);
     expect(isPanelOpen('site', none, 'Layers')).toBe(false);
   });

@@ -1,17 +1,28 @@
-/* F7 · пульт місії (T25). Одна сітка: верхня смуга (бренд + HUD) → карта (головна площа) → панелі праворуч → Route | Resources під картою.
-   < 768 px: одна колонка HUD → карта → панелі. Без горизонтального скролу на 400 px (F7-AC1). */
+/* F7 · застосунок на весь екран.
+   ≥ 1200 px: шапка · ліворуч план (Location → Route) · карта · праворуч HUD і стан; сторінка не прокручується, колонки — самі.
+   Вужче: одна колонка HUD → карта → план → стан (звичайна прокрутка, 400 px без гор. скролу, F7-AC1). */
 .shell {
   display: grid; gap: var(--space-3); padding: var(--space-3); max-width: 3200px; margin: 0 auto;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: 'top' 'map' 'side' 'bottom';
+  grid-template-areas: 'bar' 'hud' 'map' 'side' 'status';
   align-items: start;
-  --side-top: var(--space-3);
 }
 .shell > * { min-width: 0; }
-.shell__top { grid-area: top; display: grid; gap: var(--space-2); }
-.shell__map { grid-area: map; }
+.shell__bar { grid-area: bar; }
+.shell__hud { grid-area: hud; min-width: 0; }
+.shell__map { grid-area: map; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .shell__side { grid-area: side; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
-.shell__bottom { grid-area: bottom; display: grid; gap: var(--space-3); min-width: 0; align-items: start; }
+.shell__status { grid-area: status; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
+
+/* Кроки демо в шапці: що зроблено (✔), що зараз (червоне світіння), що далі. */
+.shell__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+.shell__step { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid transparent; }
+.shell__step + .shell__step::before { content: ''; width: 14px; height: 1px; background: var(--border); margin: 0 4px 0 -2px; }
+.shell__step-n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); font-size: 0.65rem; letter-spacing: 0; }
+.shell__step.is-done { color: var(--text-muted); }
+.shell__step.is-done .shell__step-n { border-color: #0f5a37; color: var(--ok); background: var(--ok-bg); }
+.shell__step.is-current { color: var(--text); border-color: rgb(255 42 42 / 0.45); background: rgb(224 16 26 / 0.1); box-shadow: 0 0 16px -6px rgb(224 16 26 / 0.9); }
+.shell__step.is-current .shell__step-n { border-color: var(--accent); background: var(--accent); color: #fff; }
 
 /* Бренд — тонкий рядок: головне на екрані — HUD і карта. */
 .shell__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
@@ -23,37 +34,42 @@
 .shell__disclaimer { margin: 0; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
 .shell__glove { flex: none; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-radius: 999px; padding: 0 18px; }
 
-@media (min-width: 768px) {
-  .shell__side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .shell__bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 768px) and (max-width: 1199px) {
+  .shell__side, .shell__status { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
 
-/* ≥ 1024: карта — головна площа, праворуч колонка панелей зі своєю прокруткою, Route | Resources під картою. */
-@media (min-width: 1024px) {
-  .shell {
-    grid-template-columns: minmax(0, 1fr) var(--side-w);
-    grid-template-areas: 'top top' 'map side' 'bottom side';
+/* ≥ 1200 і висота ≥ 600: усе в одному вікні, як застосунок. */
+@media (min-width: 1200px) and (min-height: 600px) {
+  html:has(.shell:not(.shell--glove)), body:has(.shell:not(.shell--glove)) { height: 100%; overflow: hidden; }
+  .shell:not(.shell--glove) {
+    height: 100dvh; max-width: none; padding: var(--space-2) var(--space-3) var(--space-3); gap: var(--space-2) var(--space-3);
+    grid-template-columns: clamp(300px, 22vw, 380px) minmax(0, 1fr) clamp(340px, 25vw, 420px);
+    grid-template-rows: auto minmax(0, max-content) minmax(160px, 1fr);
+    grid-template-areas: 'bar bar bar' 'side map hud' 'side map status';
+    align-items: stretch;
   }
-  .shell__side {
-    grid-template-columns: minmax(0, 1fr);
-    position: sticky; top: var(--side-top);
-    max-height: calc(100dvh - var(--side-top) - var(--space-3));
-    overflow-y: auto; overscroll-behavior: contain;
-    padding-right: 2px; /* фокус-рамка не обрізається прокруткою */
-  }
-}
-/* Липка смуга HUD — лише там, де вона одна лінія (≥ 1200) і під нею лишається місце для карти. */
-@media (min-width: 1200px) and (min-height: 700px) {
-  .shell { --side-top: calc(var(--topbar-h) + var(--space-3)); }
-  .shell__top {
-    position: sticky; top: 0; z-index: 20;
-    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) 0; padding: var(--space-3) var(--space-3) var(--space-2);
-    background: rgb(5 5 6 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); box-shadow: 0 10px 24px -16px #000;
-  }
+  .shell:not(.shell--glove) > .shell__bar { padding-bottom: var(--space-1); }
+  /* Колонки прокручуються самі; фокус-рамка не обрізається (відступ). */
+  .shell:not(.shell--glove) > .shell__side,
+  .shell:not(.shell--glove) > .shell__status { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 2px 2px; margin: -2px -4px -2px -2px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .shell:not(.shell--glove) > .shell__side { grid-row: 2 / 4; }
+  .shell:not(.shell--glove) > .shell__map { grid-row: 2 / 4; min-height: 0; }
+  .shell:not(.shell--glove) > .shell__map > .ui-panel { flex: 1 1 auto; min-height: 0; }
+  .shell:not(.shell--glove) .shell__map .terrain-stage { flex: 1 1 auto; height: auto; min-height: 260px; }
+  /* HUD завжди зверху правої колонки; на низькому екрані прокручується сам, а Resources лишаються видимі. */
+  .shell:not(.shell--glove) > .shell__hud { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  /* Шапка в один рядок: назва з дисклеймером під нею, кроки, перемикач. */
+  .shell:not(.shell--glove) > .shell__bar { flex-wrap: nowrap; }
+  .shell:not(.shell--glove) .shell__brand { flex-direction: column; align-items: flex-start; gap: 0; }
+  .shell:not(.shell--glove) .shell__brand::before { position: absolute; margin: 8px 0 0 -16px; }
+  .shell:not(.shell--glove) .shell__brand { position: relative; padding-left: 16px; }
+  .shell:not(.shell--glove) .shell__disclaimer { font-size: 0.62rem; }
+  /* Легенда карти дрібніше — більше місця рельєфу. */
+  .shell:not(.shell--glove) .shell__map .terrain-legend-eva { font-size: 0.72rem; margin-top: 6px; }
 }
 
 /* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px; лише HUD і карта, решта — у «More panels». */
-.shell--glove { --touch: 64px; font-size: 1.1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'map' 'more'; }
+.shell--glove { --touch: 64px; font-size: 1.1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'bar' 'hud' 'map' 'more'; }
 .shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
 .shell--glove input[type='number'] { width: 12rem; }
 .shell__more { grid-area: more; }
@@ -63,10 +79,6 @@
 .shell__more[open] > summary::before { content: '▾'; }
 .shell__more-body { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
 .shell__more-body > * { grid-area: auto; }
-.shell--glove .shell__side { position: static; max-height: none; overflow: visible; }
 @media (min-width: 1024px) {
-  .shell--glove { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'map' 'more'; }
   .shell--glove .shell__more-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .shell--glove .shell__side { grid-template-columns: minmax(0, 1fr); }
-  .shell--glove .shell__bottom { grid-template-columns: minmax(0, 1fr); }
 }

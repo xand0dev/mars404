@@ -14,7 +14,7 @@ const page = () =>
       hud={<Hud />}
       map={<section aria-label="Gale terrain">map</section>}
       side={<section aria-label="Layers">layers</section>}
-      bottom={<section aria-label="Route">route</section>}
+      status={<section aria-label="Route">route</section>}
     />,
   );
 const toggle = () => screen.getByRole('button', { name: 'Glove mode' });
@@ -69,7 +69,7 @@ describe('F7-AC9 · перемикач Glove mode', () => {
 describe('F7-AC9 · у режимі другорядне згорнуто, головне — зверху', () => {
   beforeEach(() => localStorage.setItem(GLOVE_KEY, '1'));
 
-  it('side і bottom — у закритому «More panels», який можна розгорнути', () => {
+  it('план і стан — у закритому «More panels», який можна розгорнути', () => {
     page();
     const more = screen.getByText('More panels').closest('details') as HTMLDetailsElement;
     expect(more.open).toBe(false);
@@ -116,17 +116,18 @@ describe('права колонка: панелі згортаються, від
             <Panel title="Science targets" featureId="F6" owner="Настя">targets</Panel>
           </>
         }
-        bottom={<Panel title="Route" featureId="F4" owner="Влад">route</Panel>}
+        status={<Panel title="Resources" featureId="F5" owner="Влад">res</Panel>}
       />,
     );
   const expanded = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-expanded');
 
-  it('без сайту відкрита Location, решта згорнута; Route під картою не згортається', () => {
+  it('без сайту відкриті Location і Resources, решта згорнута; кроки демо в шапці', () => {
     panels();
     expect(expanded('Location')).toBe('true');
+    expect(expanded('Resources')).toBe('true');
     expect(expanded('Layers')).toBe('false');
     expect(expanded('Science targets')).toBe('false');
-    expect(screen.queryByRole('button', { name: 'Route' })).toBeNull();
+    expect(within(screen.getByRole('list', { name: 'Demo steps' })).getByText('Location').closest('li')).toHaveAttribute('aria-current', 'step');
   });
 
   it('обрали сайт → відкрита Science targets; клік по заголовку перемикає панель', () => {

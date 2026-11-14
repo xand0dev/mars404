@@ -17,10 +17,6 @@
 .terrain-legend-eva { margin-top: 8px; display: grid; gap: 4px; }
 .terrain-legend-eva .terrain-legend-marks { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-small, 0.8rem); color: var(--text-muted); list-style: none; margin: 0; padding: 0; }
 .terrain-legend-eva .terrain-legend-marks li { display: inline-flex; gap: 6px; align-items: center; }
-/* F7 · пульт місії: на десктопі з липкою смугою HUD рельєф займає висоту під viewport (--topbar-h міряє Shell). */
-@media (min-width: 1200px) and (min-height: 700px) {
-  .shell__map .terrain-stage { height: max(360px, calc(100dvh - var(--topbar-h) - 210px)); }
-}
 /* Рев'ю UI: рельєф одразу під заголовком; інструменти міток і легенда — під ним (на телефоні вони займали 3 рядки до карти). */
 .ui-panel:has(> .terrain-stage) { display: flex; flex-direction: column; }
 .ui-panel:has(> .terrain-stage) > .terrain-marks { order: 1; margin: 10px 0 0; }
