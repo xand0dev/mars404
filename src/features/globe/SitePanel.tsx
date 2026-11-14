@@ -14,7 +14,6 @@ function formatLatLon({ latDeg, lonEastDeg }: Site): string {
   return `${Math.abs(latDeg).toFixed(2)}° ${latDeg < 0 ? 'S' : 'N'}, ${lonEastDeg.toFixed(2)}° E`;
 }
 
-const zoomBtnStyle = { minWidth: 40, minHeight: 40 } as const;
 
 /** #80: кнопки масштабу — для клавіатури й тих, хто без тачпада. */
 function ZoomControls() {
@@ -23,13 +22,13 @@ function ZoomControls() {
   const { zoomIn, zoomOut, reset } = useZoom.getState();
   return (
     <div role="group" aria-label="Globe zoom" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      <button type="button" style={zoomBtnStyle} onClick={zoomOut} disabled={zoom <= ZOOM_MIN + 1e-9} aria-label="Zoom out">
+      <button type="button" onClick={zoomOut} disabled={zoom <= ZOOM_MIN + 1e-9} aria-label="Zoom out">
         −
       </button>
-      <button type="button" style={zoomBtnStyle} onClick={zoomIn} disabled={zoom >= maxZoom - 1e-9} aria-label="Zoom in">
+      <button type="button" onClick={zoomIn} disabled={zoom >= maxZoom - 1e-9} aria-label="Zoom in">
         +
       </button>
-      <button type="button" style={zoomBtnStyle} onClick={reset}>
+      <button type="button" onClick={reset}>
         Reset view
       </button>
       <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }} aria-live="polite">
