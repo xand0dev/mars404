@@ -1,6 +1,7 @@
 // Підпис у 3D як спрайт з canvas-текстурою: без DOM-коренів (drei Html створює окремий React-root на кожен підпис).
 import { useEffect, useMemo } from 'react';
 import { CanvasTexture, SRGBColorSpace } from 'three';
+import { RENDER_ORDER } from './lib/layerRaster';
 
 const PX = 40;
 
@@ -36,7 +37,7 @@ export function Label3D({ text, color = '#f3ece6', position }: { text: string; c
   useEffect(() => () => label?.texture.dispose(), [label]);
   if (!label) return null;
   return (
-    <sprite position={position} center={[0.5, 0]} scale={[HEIGHT * label.aspect, HEIGHT, 1]} renderOrder={20}>
+    <sprite position={position} center={[0.5, 0]} scale={[HEIGHT * label.aspect, HEIGHT, 1]} renderOrder={RENDER_ORDER.labels}>
       <spriteMaterial map={label.texture} sizeAttenuation={false} depthTest={false} depthWrite={false} transparent />
     </sprite>
   );

@@ -16,6 +16,8 @@ export interface Plan2DProps {
   rasterRGBA: Uint8Array | null;
   mask: Uint8Array | null;
   layerUrls: { id: string; url: string }[];
+  /** Шари з сітки (slope, terrain): RGBA північ-вгору */
+  gridLayers: { id: string; rgba: Uint8Array }[];
   /** Траверс марсохода, локальні метри (T12) */
   traverse: XY[][];
   targets: Target[];
@@ -45,7 +47,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, traverse, targets, selectedIds, plan, selectedSegment, base }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, targets, selectedIds, plan, selectedSegment, base }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -56,6 +58,7 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
     return [cellsPath(w, halo, (c) => c === HALO.fill), cellsPath(w, halo, (c) => c === HALO.edge)];
   }, [w, classes, mask]);
   const raster = useMemo(() => rasterUrl(w, h, rasterRGBA), [w, h, rasterRGBA]);
+  const gridLayerImgs = useMemo(() => gridLayers.map((l) => ({ id: l.id, href: rasterUrl(w, h, l.rgba) })), [w, h, gridLayers]);
   const seg = selectedSegmentLine(grid, plan, selectedSegment);
   const unit = Math.max(w, h) / 64;
   const routeStr = plan && plan.path.length >= 2 ? polyline(grid, plan.path) : '';
@@ -87,6 +90,10 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         {layerUrls.map((l) => (
           <image key={l.id} data-layer={l.id} href={l.url} width={w} height={h} preserveAspectRatio="none" opacity={0.6} />
         ))}
+        {gridLayerImgs.map(
+          (l) =>
+            l.href && <image key={l.id} data-layer={l.id} href={l.href} width={w} height={h} preserveAspectRatio="none" opacity={0.6} style={{ imageRendering: 'pixelated' }} />,
+        )}
         {haloFillD && <path d={haloFillD} fill={CSS.halo} opacity={HALO_FILL_ALPHA / 255} data-kind="halo" />}
         {haloEdgeD && <path d={haloEdgeD} fill={CSS.halo} data-kind="halo-edge" />}
         {blockedD && <path d={blockedD} fill={CSS.blocked} data-kind="blocked" />}

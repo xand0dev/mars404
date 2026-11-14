@@ -217,6 +217,7 @@ describe('План Б: ?2d — підпис без «3D unavailable»', () => {
         rasterRGBA={null}
         mask={null}
         layerUrls={[]}
+        gridLayers={[]}
         traverse={[]}
         targets={[]}
         selectedIds={[]}
@@ -227,5 +228,26 @@ describe('План Б: ?2d — підпис без «3D unavailable»', () => {
     );
     expect(screen.getByText(/2D plan requested with \?2d/)).toBeInTheDocument();
     expect(screen.queryByText(/3D unavailable/)).toBeNull();
+  });
+});
+
+describe('Шари F3: slope з сітки, чесна легенда', () => {
+  it('slope (.f32 з легендою) малюється з сітки; шар, який F2 не вміє, позначено «not drawn»', () => {
+    const mk = (id: string, kind: Layer['kind'], url: string, legend: Layer['legend']): Layer => ({
+      id, name: id === 'slope' ? 'Slope (derived)' : 'Thermal', kind, url, sourceIds: [], status: 'assumption',
+      units: '', nativeResolutionM: null, gridResolutionM: 10, method: 'test', legend,
+    });
+    const region: Region = {
+      ...testRegion(mockGrid, 'verified'),
+      layers: [mk('slope', 'slope', 'slope.f32', [{ value: 0, label: '0', color: '#2f6f4f' }, { value: 25, label: '25', color: '#c0392b' }]), mk('thermal', 'thermal', 'themis.f32', [])],
+    };
+    render(<MapView globe={null} />);
+    act(() => {
+      useMission.getState().setRegionData({ region, grid: mockGrid, targets: [] });
+      useMission.setState({ site: 'gale', layers: { slope: true, thermal: true } });
+    });
+    const legend = within(terrain()).getByText(/Slope \(derived\)/).closest('p') as HTMLElement;
+    expect(legend).toHaveTextContent(/Slope \(derived\) \(assumption\)(?! · not drawn)/);
+    expect(legend).toHaveTextContent('Thermal (assumption) · not drawn');
   });
 });

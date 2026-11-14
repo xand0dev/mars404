@@ -7,6 +7,7 @@ import type { PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
+import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
 import { segmentMarker } from './lib/segment';
 import { Label3D } from './Label3D';
@@ -30,6 +31,8 @@ export interface SceneProps {
   texture: Texture | null;
   /** Увімкнені шари (region.layers[].url, уже через dataUrl) */
   layerUrls: { id: string; url: string }[];
+  /** Шари, які F2 малює із сітки (slope, terrain): RGBA, рядок 0 — південь */
+  gridLayers: { id: string; rgba: Uint8Array }[];
   /** Траверс марсохода, локальні метри (T12) */
   traverse: XY[][];
   targets: Target[];
@@ -85,13 +88,23 @@ function LayerOverlay({ url, geometry, order }: { url: string; geometry: BufferG
   const t = useOptionalTexture(url);
   if (t.status !== 'ready') return null;
   return (
-    <mesh geometry={geometry} renderOrder={1 + order}>
+    <mesh geometry={geometry} renderOrder={RENDER_ORDER.layers + order}>
       <meshBasicMaterial map={t.texture} transparent opacity={0.6} depthWrite={false} polygonOffset polygonOffsetFactor={-1 - order} polygonOffsetUnits={-4} />
     </mesh>
   );
 }
 
-export function TerrainScene({ data, texture, layerUrls, traverse, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
+/** Шар із сітки (slope / terrain за легендою F3). */
+function GridLayerOverlay({ rgba, grid, geometry, order }: { rgba: Uint8Array; grid: PlanningGrid; geometry: BufferGeometry; order: number }) {
+  const tex = useDataTexture(rgba, grid.width, grid.height);
+  return (
+    <mesh geometry={geometry} renderOrder={RENDER_ORDER.layers + order}>
+      <meshBasicMaterial map={tex} transparent opacity={0.6} depthWrite={false} polygonOffset polygonOffsetFactor={-1 - order} polygonOffsetUnits={-4} />
+    </mesh>
+  );
+}
+
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, targets, selectedIds, plan, selectedSegment, base, position, mode }: SceneProps) {
   const { grid, heights, noData } = data;
   const geometry = useMemo(() => {
     const g = buildTerrainGeometry(grid, heights);
@@ -121,7 +134,8 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
     () =>
       traverse
         .map((l) => l.flatMap((p) => {
-          const s = surfacePoint(grid, heights, noData, p, LIFT_M * 0.6);
+          // Точки траверсу не в центрах клітинок: на реальному Gale до 1.5 м під поверхнею меша — підйом LIFT_M.
+          const s = surfacePoint(grid, heights, noData, p, LIFT_M);
           return s ? [s.position] : [];
         }))
         .filter((l) => l.length >= 2),
@@ -173,26 +187,39 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
       {layerUrls.map((l, k) => (
         <LayerOverlay key={l.id} url={l.url} geometry={geometry} order={k} />
       ))}
-      <mesh geometry={geometry} renderOrder={10}>
+      {gridLayers.map((l, k) => (
+        <GridLayerOverlay key={l.id} rgba={l.rgba} grid={grid} geometry={geometry} order={layerUrls.length + k} />
+      ))}
+      <mesh geometry={geometry} renderOrder={RENDER_ORDER.overlay}>
         <meshBasicMaterial map={topTex} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-8} polygonOffsetUnits={-8} />
       </mesh>
 
       {traversePts.map((l, k) => (
-        <Line key={k} points={l} color={CSS.traverse} lineWidth={2.5} dashed dashSize={grid.metersPerPixel * 1.5} gapSize={grid.metersPerPixel} />
+        <Line
+          key={k}
+          points={l}
+          color={CSS.traverse}
+          lineWidth={2.5}
+          dashed
+          dashSize={grid.metersPerPixel * 1.5}
+          gapSize={grid.metersPerPixel}
+          transparent
+          renderOrder={RENDER_ORDER.lines}
+        />
       ))}
-      {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} />}
-      {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} renderOrder={15} />}
+      {routePts.length >= 2 && <Line points={routePts} color={CSS.route} lineWidth={3} transparent renderOrder={RENDER_ORDER.lines} />}
+      {segPts && <Line points={segPts} color={CSS.segment} lineWidth={8} depthTest={false} transparent renderOrder={RENDER_ORDER.segment} />}
 
       {segMark && (
         <group position={segMark.position}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={16}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} renderOrder={RENDER_ORDER.ring}>
             <ringGeometry args={[markerR * 1.6, markerR * 2.2, 40]} />
             <meshBasicMaterial color={CSS.segment} depthTest={false} transparent />
           </mesh>
           {/* Маяк вищий за маркери цілей (їхні підписи на 3 R), щоб підписи не накладались. */}
-          <mesh position={[0, markerR * 4, 0]} renderOrder={16}>
+          <mesh position={[0, markerR * 4, 0]} renderOrder={RENDER_ORDER.ring}>
             <cylinderGeometry args={[markerR * 0.25, markerR * 0.25, markerR * 8, 8]} />
-            <meshBasicMaterial color={CSS.segment} />
+            <meshBasicMaterial color={CSS.segment} transparent />
           </mesh>
           <Label3D position={[0, markerR * 8.5, 0]} color={CSS.segment} text={segMark.label} />
         </group>
@@ -204,9 +231,9 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
         const sel = selectedIds.includes(t.id);
         return (
           <group key={t.id} position={p.position}>
-            <mesh position={[0, markerR, 0]}>
+            <mesh position={[0, markerR, 0]} renderOrder={RENDER_ORDER.markers}>
               <coneGeometry args={[markerR * (sel ? 1.3 : 0.9), markerR * 2.5, 12]} />
-              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} />
+              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent />
             </mesh>
             <Label3D
               position={[0, markerR * 3, 0]}
@@ -219,17 +246,17 @@ export function TerrainScene({ data, texture, layerUrls, traverse, targets, sele
 
       {base && at(base) && (
         <group position={at(base)?.position}>
-          <mesh position={[0, markerR, 0]}>
+          <mesh position={[0, markerR, 0]} renderOrder={RENDER_ORDER.markers}>
             <boxGeometry args={[markerR * 1.6, markerR * 2, markerR * 1.6]} />
-            <meshBasicMaterial color="#6cc28a" />
+            <meshBasicMaterial color="#6cc28a" transparent />
           </mesh>
           <Label3D position={[0, markerR * 3, 0]} text="■ Base" />
         </group>
       )}
       {position && base && (position[0] !== base[0] || position[1] !== base[1]) && at(position) && (
-        <mesh position={at(position)?.position}>
+        <mesh position={at(position)?.position} renderOrder={RENDER_ORDER.markers}>
           <sphereGeometry args={[markerR, 16, 12]} />
-          <meshBasicMaterial color="#7fb4e6" />
+          <meshBasicMaterial color="#7fb4e6" transparent />
         </mesh>
       )}
 

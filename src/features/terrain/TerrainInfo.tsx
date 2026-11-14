@@ -17,7 +17,8 @@ export interface TerrainInfoProps {
   segmentShown: boolean;
   /** Траверс марсохода показано (T12) */
   traverse: { status: Evidence } | null;
-  layers: { name: string; status: Evidence }[];
+  /** drawn: false — F2 не вміє намалювати цей шар (чесно в легенді) */
+  layers: { name: string; status: Evidence; drawn: boolean }[];
   warnings: string[];
 }
 
@@ -66,7 +67,7 @@ export function TerrainInfo({ width, height, metersPerPixel, status, texture, co
         )}
         {layers.map((l) => (
           <span key={l.name}>
-            ▦ {l.name} ({EVIDENCE_LABEL[l.status]})
+            ▦ {l.name} ({EVIDENCE_LABEL[l.status]}){l.drawn ? '' : ' · not drawn'}
           </span>
         ))}
       </p>

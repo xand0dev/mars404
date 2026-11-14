@@ -15,7 +15,8 @@ import { displayHeights } from './lib/geometry';
 import { buildOverlay } from './lib/overlay';
 import { regionFileUrl } from './lib/paths';
 import { force2DRequested, planReason, type PlanReason } from './lib/plan2d';
-import { isRasterUrl, traverseToXY, traverseVisible } from './lib/traverse';
+import { gridLayerKind, gridLayerRGBA } from './lib/layerRaster';
+import { traverseToXY, traverseVisible } from './lib/traverse';
 import { Plan2D } from './Plan2D';
 import { TerrainInfo } from './TerrainInfo';
 import { TerrainScene } from './TerrainScene';
@@ -170,11 +171,22 @@ export function MapView({ globe }: MapViewProps) {
     () => (region ? region.layers.filter((l) => layerFlags[l.id] && l.url) : []),
     [region, layerFlags],
   );
-  // Текстурами вантажимо лише растри; traverse (geojson) малюється лінією нижче.
+  // Шари, крім traverse (він малюється лінією нижче): растри вантажимо текстурою, slope/terrain малюємо із сітки.
+  const mapLayers = useMemo(() => enabledLayers.filter((l) => l.id !== 'traverse').map((l) => ({ layer: l, kind: gridLayerKind(l) })), [enabledLayers]);
   const layerUrls = useMemo(
-    () => (region ? enabledLayers.filter((l) => l.id !== 'traverse' && isRasterUrl(l.url)).map((l) => ({ id: l.id, url: regionFileUrl(region.id, l.url) })) : []),
-    [region, enabledLayers],
+    () => (region ? mapLayers.filter((m) => m.kind === 'raster').map((m) => ({ id: m.layer.id, url: regionFileUrl(region.id, m.layer.url) })) : []),
+    [region, mapLayers],
   );
+  const gridLayers = (northUp: boolean) =>
+    valid
+      ? mapLayers.flatMap((m) =>
+          m.kind === 'slope' || m.kind === 'terrain' ? [{ id: m.layer.id, rgba: gridLayerRGBA(grid, m.kind, m.layer.legend, { northUp }) }] : [],
+        )
+      : [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- залежить від тих самих mapLayers / grid / valid
+  const gridLayers3D = useMemo(() => (show3D && site !== null ? gridLayers(false) : []), [show3D, site, mapLayers, grid, valid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- див. вище
+  const gridLayers2D = useMemo(() => (reason ? gridLayers(true) : []), [reason, mapLayers, grid, valid]);
 
   const traverseFile = site !== null && traverseVisible(region, layerFlags) ? region?.files.traverse : undefined;
   const traverse = useTraverse(region && traverseFile ? regionFileUrl(region.id, traverseFile) : null);
@@ -194,7 +206,7 @@ export function MapView({ globe }: MapViewProps) {
   const redrawKey = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- новий ключ на будь-яку зміну сцени
-    [site, sceneData, texture, layerUrls, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode],
+    [site, sceneData, texture, layerUrls, gridLayers3D, traverseXY, targets, selectedIds, plan, selectedSegment, base, position, mode],
   );
 
   const plan2D = (r: PlanReason) =>
@@ -207,6 +219,7 @@ export function MapView({ globe }: MapViewProps) {
         rasterRGBA={raster2D ?? (heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null)}
         mask={mask ?? null}
         layerUrls={layerUrls}
+        gridLayers={gridLayers2D}
         traverse={traverseLines}
         targets={targets}
         selectedIds={selectedIds}
@@ -241,7 +254,7 @@ export function MapView({ globe }: MapViewProps) {
           haloShown={(sceneData?.haloCells ?? 0) > 0}
           routeShown={(plan?.path.length ?? 0) >= 2}
           segmentShown={plan !== null && selectedSegment !== null && plan.segments[selectedSegment] !== undefined}
-          layers={enabledLayers.filter((l) => l.id !== 'traverse').map((l) => ({ name: l.name, status: l.status }))}
+          layers={mapLayers.map((m) => ({ name: m.layer.name, status: m.layer.status, drawn: m.kind !== null }))}
           traverse={traverseLines.length > 0 ? { status: traverseStatus } : null}
           warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings]}
         />
@@ -264,6 +277,7 @@ export function MapView({ globe }: MapViewProps) {
                       data={sceneData}
                       texture={texture}
                       layerUrls={layerUrls}
+                      gridLayers={gridLayers3D}
                       traverse={traverseLines}
                       targets={targets}
                       selectedIds={selectedIds}
