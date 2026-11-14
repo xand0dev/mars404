@@ -1,0 +1,16 @@
+/* F7: HUD. «Return in N min» — найбільший текст (F7-AC1). */
+.hud { display: grid; gap: 8px; }
+.hud__return { font-size: var(--fs-hero); line-height: 1.1; font-weight: 700; margin: 0; }
+.hud__return strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+.hud__status { font-size: var(--fs-body); }
+.hud__next-label { color: var(--text-muted); }
+.hud__controls { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: end; }
+.hud__elapsed { display: grid; gap: 4px; font-size: var(--fs-small); color: var(--text-muted); }
+.hud__elapsed input { width: 9rem; max-width: 100%; color: var(--text); }
+.hud__swap { border-color: var(--accent); font-weight: 600; max-width: 100%; white-space: normal; text-align: left; }
+.hud__left { margin: 0; font-size: var(--fs-small); color: var(--text-muted); }
+@media (min-width: 768px) {
+  .hud { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: calc(var(--gap) * 2); }
+  .hud__return { grid-row: span 2; }
+  .hud__left { grid-column: 1 / -1; }
+}
