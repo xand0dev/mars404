@@ -39,6 +39,7 @@
 
 | Дата | Хто | Агент / модель | Задача | Файли | Перевірка | PR |
 |---|---|---|---|---|---|---|
+| 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F5 T1–T7: план у spec; ядро бюджету й ореолу (budget.ts, reachability.ts: резерв, Return in N, маска туди й назад, swap); BudgetEngine; BudgetPanel («O₂ −40%», Reset, статуси) | src/core/**, src/features/budget/**, specs/F5/** | npm run check (16 файлів, 114 тестів); Edge headless 1440 і 400 px: 48 хв → Build route → 3 хв → O₂ −40% → дефіцит + swap → Reset, без горизонтального скролу | — |
 
 ## F6
 
