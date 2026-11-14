@@ -1,0 +1,44 @@
+# Automerge (SPEC §10). Запускається з коду main після завершення CI на PR.
+# Мерджить squash-ом, якщо: CI зелений для поточного head, PR не draft, гілка feat/F<N>,
+# немає спільних файлів (інакше — мітка `shared`, мерджить @xand0dev). Потім запускає deploy.
+name: Automerge
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+jobs:
+  merge:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Decide and merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          pr=$(gh pr list --state open --head "$HEAD_BRANCH" --base main --json number,headRefOid,isDraft,isCrossRepository --jq '.[0] // empty')
+          if [ -z "$pr" ]; then echo "No open PR for $HEAD_BRANCH"; exit 0; fi
+          num=$(jq -r .number <<<"$pr")
+          if [ "$(jq -r .isCrossRepository <<<"$pr")" = "true" ]; then echo "Fork PR — manual review"; exit 0; fi
+          if [ "$(jq -r .headRefOid <<<"$pr")" != "$HEAD_SHA" ]; then echo "PR head moved since CI ran — waiting for the next CI run"; exit 0; fi
+          if [ "$(jq -r .isDraft <<<"$pr")" = "true" ]; then echo "PR #$num is draft — not merging"; exit 0; fi
+          gh pr diff "$num" --name-only > files.txt
+          if ! result=$(node .github/scripts/guard.mjs "$HEAD_BRANCH" < files.txt); then echo "$result"; exit 1; fi
+          echo "$result"
+          if [ "$(jq '.shared | length' <<<"$result")" != "0" ] || [ "$(jq -r .feature <<<"$result")" = "null" ]; then
+            gh pr edit "$num" --add-label shared
+            echo "PR #$num touches shared files — waiting for @xand0dev"
+            exit 0
+          fi
+          gh pr merge "$num" --squash --delete-branch
+          gh workflow run deploy.yml --ref main

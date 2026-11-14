@@ -1,0 +1,8 @@
+.shell { display: grid; gap: var(--gap); padding: var(--gap); grid-template-columns: minmax(0, 1fr); max-width: 1600px; margin: 0 auto; }
+.shell__title { font-size: 1.2rem; margin: 0; }
+.shell__disclaimer { margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem; }
+.shell__side, .shell__bottom { display: grid; gap: var(--gap); min-width: 0; }
+@media (min-width: 1024px) {
+  .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
+  .shell__top, .shell__hud, .shell__bottom { grid-column: 1 / -1; }
+}

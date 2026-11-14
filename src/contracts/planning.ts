@@ -1,0 +1,86 @@
+// Чисте ядро координат (SPEC §7.1–7.2). Без React і стану.
+import type { PlanningGrid, Region, XY } from './index';
+import { METERS_PER_DEG, VERTICAL_EXAGGERATION } from './index';
+
+type GridShape = Pick<PlanningGrid, 'width' | 'height' | 'metersPerPixel' | 'originM'>;
+
+/** Індекс клітинки: row-major, рядки з півночі на південь. */
+export function cellIndex(grid: GridShape, row: number, col: number): number {
+  return row * grid.width + col;
+}
+
+export function inGrid(grid: GridShape, row: number, col: number): boolean {
+  return Number.isInteger(row) && Number.isInteger(col) && row >= 0 && col >= 0 && row < grid.height && col < grid.width;
+}
+
+/** Центр клітинки в локальних метрах. */
+export function cellCenter(grid: GridShape, row: number, col: number): XY {
+  const [ox, oy] = grid.originM;
+  const m = grid.metersPerPixel;
+  return [ox + (col + 0.5) * m, oy - (row + 0.5) * m];
+}
+
+/** Клітинка, що містить точку; null — поза сіткою. */
+export function xyToCell(grid: GridShape, [x, y]: XY): { row: number; col: number; index: number } | null {
+  const [ox, oy] = grid.originM;
+  const col = Math.floor((x - ox) / grid.metersPerPixel);
+  const row = Math.floor((oy - y) / grid.metersPerPixel);
+  if (!Number.isFinite(col) || !Number.isFinite(row) || !inGrid(grid, row, col)) return null;
+  return { row, col, index: cellIndex(grid, row, col) };
+}
+
+/** Lon/lat (°) → локальні метри. Рівнопроміжна площина з cos(lat) для довготи; origin — північно-західний кут bounds. */
+export function lonLatToXY(region: Pick<Region, 'grid'>, [lon, lat]: readonly [number, number]): XY {
+  const [west, south, , north] = region.grid.boundsLonLat;
+  const [ox, oy] = region.grid.originM;
+  const midLat = ((south + north) / 2) * (Math.PI / 180);
+  return [ox + (lon - west) * METERS_PER_DEG * Math.cos(midLat), oy - (north - lat) * METERS_PER_DEG];
+}
+
+/** Локальні метри + висота → координати R3F: (x, h × 3, −y). */
+export function toR3F([x, y]: XY, heightM: number): [number, number, number] {
+  return [x, heightM * VERTICAL_EXAGGERATION, -y];
+}
+
+/** Сира висота, яку треба вважати NoData (SPEC §7.2). */
+export function isNoDataValue(h: number, noData?: number): boolean {
+  return !Number.isFinite(h) || Math.abs(h) >= 3e38 || (noData !== undefined && h === noData);
+}
+
+/**
+ * Заблокована клітинка: walkable ≠ 1, нескінченні/NaN висота, схил чи hazard,
+ * або схил більший за maxSlopeDeg (якщо передано). Заблоковане ніколи не «безпечне».
+ */
+export function isBlocked(grid: PlanningGrid, i: number, maxSlopeDeg?: number): boolean {
+  if (grid.walkable[i] !== 1) return true;
+  const h = grid.elevationsM[i] ?? NaN;
+  const s = grid.slopesDeg[i] ?? NaN;
+  const z = grid.hazard[i] ?? NaN;
+  if (isNoDataValue(h) || !Number.isFinite(s) || !Number.isFinite(z)) return true;
+  return maxSlopeDeg !== undefined && s > maxSlopeDeg;
+}
+
+/** Перевірка сітки; порожній масив — сітка валідна. */
+export function validateGrid(grid: PlanningGrid): string[] {
+  const errors: string[] = [];
+  const { width, height, metersPerPixel } = grid;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) errors.push('invalid size');
+  if (!(metersPerPixel > 0)) errors.push('invalid metersPerPixel');
+  if (!grid.originM.every(Number.isFinite)) errors.push('invalid originM');
+  const n = width * height;
+  for (const [name, arr] of [
+    ['elevationsM', grid.elevationsM],
+    ['slopesDeg', grid.slopesDeg],
+    ['walkable', grid.walkable],
+    ['hazard', grid.hazard],
+  ] as const) {
+    if (arr.length !== n) errors.push(`${name}: expected ${n} cells, got ${arr.length}`);
+  }
+  return errors;
+}
+
+/** URL файлу даних через Vite BASE_URL (працює на GitHub Pages і офлайн). */
+export function dataUrl(path: string): string {
+  const base = import.meta.env.BASE_URL ?? './';
+  return `${base.endsWith('/') ? base : `${base}/`}data/${path.replace(/^\/+/, '')}`;
+}

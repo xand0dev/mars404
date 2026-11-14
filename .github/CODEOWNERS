@@ -1,0 +1,66 @@
+# Згенеровано з .github/scripts/paths.mjs (SPEC §9). Спільне — @xand0dev.
+/src/contracts/ @xand0dev
+/src/store/ @xand0dev
+/src/app/ @xand0dev
+/src/mocks/ @xand0dev
+/src/main.tsx @xand0dev
+/src/test-setup.ts @xand0dev
+/package.json @xand0dev
+/package-lock.json @xand0dev
+/vite.config.* @xand0dev
+/tsconfig*.json @xand0dev
+/eslint.config.* @xand0dev
+/index.html @xand0dev
+/.github/ @xand0dev
+/CONSTITUTION.md @xand0dev
+/AGENTS.md @xand0dev
+/CLAUDE.md @xand0dev
+/docs/SPEC.md @xand0dev
+/specs/_templates/ @xand0dev
+/LICENSE @xand0dev
+
+# F1 Глобус і вибір місця
+/src/features/globe/ @gonivanko
+/public/data/mars/ @gonivanko
+/pipeline/globe/ @gonivanko
+/specs/F1/ @gonivanko
+
+# F2 3D-рельєф і 2D-план
+/src/features/terrain/ @xand0dev
+/specs/F2/ @xand0dev
+
+# F3 Дані й шари
+/pipeline/ @kingsneverdie17
+/public/data/gale/ @kingsneverdie17
+/src/features/data/ @kingsneverdie17
+/specs/F3/ @kingsneverdie17
+
+# F4 Маршрут A*
+/src/features/route/ @froozy3
+/src/core/ @froozy3
+/specs/F4/ @froozy3
+
+# F5 Бюджет і повернення
+/src/features/budget/ @froozy3
+/src/core/ @froozy3
+/specs/F5/ @froozy3
+
+# F6 Наукові цілі й фото
+/src/features/science/ @Bulka0801
+/public/data/gale/targets* @Bulka0801
+/public/data/gale/photos/ @Bulka0801
+/specs/F6/ @Bulka0801
+
+# F7 UI, HUD, дизайн-токени
+/src/features/hud/ @oljyaaa
+/src/ui/ @oljyaaa
+/specs/F7/ @oljyaaa
+
+# F8 Демо й сабміт
+/docs/demo/ @xand0dev
+/docs/submission/ @xand0dev
+/README.md @xand0dev
+/specs/F8/ @xand0dev
+
+# Перевизначення (останнє правило перемагає)
+/pipeline/globe/ @gonivanko

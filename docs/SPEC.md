@@ -55,7 +55,7 @@
 
 ## 5. Архітектура
 
-**Стек:** Vite + React 19 + TypeScript (strict) + three / @react-three/fiber / drei + Zustand. Тести: Vitest + Testing Library + jsdom. Лінт: ESLint (flat, typescript-eslint). Node ≥20. Статичний сайт, `base: './'`, без backend і ключів. Ліцензія Apache-2.0.
+**Стек:** Vite + React 19 + TypeScript (strict) + three / @react-three/fiber / drei + Zustand. Тести: Vitest + Testing Library + jsdom. Лінт: ESLint (flat, typescript-eslint). Node 22.22+ / 24.15+ / 26+ (вимога jsdom), CI — Node 24. Статичний сайт, `base: './'`, без backend і ключів. Ліцензія Apache-2.0.
 
 **Дані** готуються офлайн: Python + GDAL у Docker (`pipeline/`) один раз вивантажує bbox з Mars Trek і MMGIS і кладе файли в `public/data/gale/`. Під час демо застосунок не ходить у мережу.
 
@@ -82,7 +82,7 @@ F3 loadRegion → setRegionData({ region, grid, targets }) ──► useMission 
 ### 5.1 Структура репо
 
 ```text
-CONSTITUTION.md, AGENTS.md, README.md, LICENSE      (корінь)
+CONSTITUTION.md, AGENTS.md, CLAUDE.md, README.md, LICENSE      (корінь)
 specs/F<N>/spec.md
 src/contracts/          типи + чисте ядро координат (planning.ts)       — спільне
 src/store/useMission.ts єдиний store                                     — спільне
@@ -116,7 +116,9 @@ docs/{SPEC.md,AI_LOG.md,SOURCES.md,demo/,submission/}
 ### 5.3 Спільні файли
 
 Будь-який PR, що їх чіпає, **не мерджиться автоматично**, а чекає на рев'ю @xand0dev:
-`src/contracts/**`, `src/store/**`, `src/app/**`, `src/mocks/**`, `package.json`, `package-lock.json`, `vite.config.*`, `tsconfig*.json`, `eslint.config.*`, `index.html`, `.github/**`, `CONSTITUTION.md`, `AGENTS.md`, `docs/SPEC.md`, `specs/_templates/**`.
+`src/contracts/**`, `src/store/**`, `src/app/**`, `src/mocks/**`, `src/main.tsx`, `src/test-setup.ts`, `package.json`, `package-lock.json`, `vite.config.*`, `tsconfig*.json`, `eslint.config.*`, `index.html`, `.github/**`, `CONSTITUTION.md`, `AGENTS.md`, `CLAUDE.md`, `LICENSE`, `docs/SPEC.md`, `specs/_templates/**`.
+
+**Будь-який шлях, якого немає в таблиці §9, теж спільний.** Машинна версія карти — `.github/scripts/paths.mjs`; з неї працюють guard і CODEOWNERS.
 
 **Не вважаються спільними:**
 - `docs/AI_LOG.md` і `docs/SOURCES.md`. У них заздалегідь є розділи `## F1`…`## F8`, і кожен дописує рядки лише у свій розділ.
@@ -236,7 +238,7 @@ export interface MissionState {
 }
 ```
 
-`src/contracts/planning.ts` — чисте ядро координат без React і стану: `cellIndex(row, col)`, `cellCenter(row, col)`, `xyToCell(xy)`, `lonLatToXY(region, lonLat)`, `toR3F(xy, h)`, `isBlocked(grid, i)`, `validateGrid(grid)`.
+`src/contracts/planning.ts` — чисте ядро координат без React і стану: `cellIndex(grid, row, col)`, `inGrid(grid, row, col)`, `cellCenter(grid, row, col)`, `xyToCell(grid, xy)`, `lonLatToXY(region, lonLat)`, `toR3F(xy, h)`, `isNoDataValue(h, noData?)`, `isBlocked(grid, i, maxSlopeDeg?)`, `validateGrid(grid)`, `dataUrl(path)` (через Vite `BASE_URL`).
 
 ### 6.0 Файли даних
 
@@ -378,7 +380,7 @@ export interface MissionState {
 | F7 UI, HUD, дизайн-токени | Оля | oljyaaa | `feat/F7` | `src/features/hud/**`, `src/ui/**` | site, plan, budget, reach, time, limits, targets, selectedTargetIds | `setTime`, `replaceTarget` |
 | F8 Демо й сабміт | Олександр | xand0dev | `feat/F8` | `docs/demo/**`, `docs/submission/**`, `README.md` | — | — |
 
-Кожній фічі F1–F8 (і F0) також дозволено: `specs/F<N>/**`, свій розділ у `docs/AI_LOG.md` і `docs/SOURCES.md`.
+Кожній фічі F1–F8 (і F0) також дозволено: `specs/F<N>/**`, свій розділ у `docs/AI_LOG.md` і `docs/SOURCES.md`. **Тести лежать поруч із кодом** у своїй папці (`*.test.ts(x)`).
 
 Додатково:
 - **Настя:** QA на `main` (Pages) у вікна інтеграції, `docs/SOURCES.md`, рев'ю F2/F7 у браузері.
@@ -458,12 +460,12 @@ Pipeline у Docker вивантажує bbox (§8), рахує схил, walkabl
 
 - **SDD:** spec фічі → тести з AC (red) → мінімальний код (green). Власник сам затверджує свій `specs/F<N>/spec.md`. Зміна поведінки починається зі spec.
 - **Агенти** генерують код; люди пишуть spec і перевіряють AC у браузері. Підписів агентів у комітах і PR немає. Кожна AI-сесія — рядок у своєму розділі `docs/AI_LOG.md`: дата, хто, агент і модель, задача, файли, перевірка, PR.
-- **Гілки:** `feat/F<N>`. На фічу — **один відкритий PR одночасно**: поки працюєш, PR у draft; на контрольній точці (сб 14:00, сб 21:00, нд 12:00) переводиш у «Ready» → automerge squash. Після мержу продовжуєш у свіжій `feat/F<N>` від `main` новим PR.
+- **Гілки:** `feat/F<N>` або `feat/F<N>-<суфікс>`. На фічу — **один відкритий PR одночасно**: поки працюєш, PR у draft; на контрольній точці (сб 14:00, сб 21:00, нд 12:00) переводиш у «Ready» → automerge squash. Після мержу продовжуєш у свіжій `feat/F<N>` від `main` новим PR.
 - **Перевірки:** `npm run check` = `lint && typecheck && test --run && build`.
 - **CI** (`.github/workflows/ci.yml`, без secrets, права read-only):
   - `check` — `npm ci` + `npm run check`;
   - `guard` — порівнює змінені файли з дозволеними шляхами гілки (§9): чужа папка → fail; спільні файли (§5.3) або гілка не `feat/F<N>` → мітка `shared`.
-- **Automerge** (`automerge.yml`, окремий workflow з правами `pull-requests: write`, `contents: write`): якщо PR не draft, `check` і `guard` зелені й мітки `shared` немає → `gh pr merge --auto --squash`. PR з міткою `shared` мерджить @xand0dev після перегляду. Мерж має запускати deploy Pages (перевіряється F0-AC5).
+- **Automerge** (`automerge.yml`): запускається з коду `main` після завершення CI на PR (`workflow_run`). Мерджить squash-ом, якщо CI зелений саме для поточного head, PR не draft, гілка `feat/F<N>` і guard не бачить спільних файлів. Інакше ставить мітку `shared` — такий PR мерджить @xand0dev. Після мержу явно запускає `deploy.yml`: мерж токеном workflow не породжує подію push (перевіряється F0-AC5).
 - **Захист `main`:** required checks `check` і `guard`, без force-push. CODEOWNERS: спільні файли → @xand0dev, папки фіч → власники.
 - **Deploy:** push у `main` → GitHub Pages. Це і є preview для QA.
 - **Інтеграція:** прогін сценарію демо на Pages у контрольних точках таймлайну (QA — Настя).
