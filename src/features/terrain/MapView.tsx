@@ -375,7 +375,7 @@ export function MapView({ globe }: MapViewProps) {
             {(['impassable', 'hazard', 'note', 'plan'] as const).map((k) => (
               <li key={k}>
                 <MarkGlyphIcon kind={k} size={16} label="" />
-                <span>{k === 'impassable' ? 'Impassable (route avoids)' : k === 'hazard' ? 'Hazard (route costs more)' : k === 'note' ? 'Note' : 'Plan'}</span>
+                <span>{k === 'impassable' ? 'Blocked (route never goes)' : k === 'hazard' ? 'Hazard (route goes around)' : k === 'note' ? 'Note' : 'Plan'}</span>
               </li>
             ))}
           </ul>

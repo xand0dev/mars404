@@ -21,3 +21,10 @@
 .ui-panel:has(> .terrain-stage) { display: flex; flex-direction: column; }
 .ui-panel:has(> .terrain-stage) > .terrain-marks { order: 1; margin: 10px 0 0; }
 .ui-panel:has(> .terrain-stage) > .terrain-legend-eva { order: 2; }
+/* Вид мітки — сегментований перемикач зі знаками; підказка пояснює, що станеться з маршрутом. */
+.terrain-marks__kinds { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.terrain-marks__kind { display: inline-flex; align-items: center; gap: 6px; border-color: transparent; background: transparent; padding: 0 12px; }
+.terrain-marks__kind[aria-pressed='true'] { background: var(--surface-3); border-color: var(--border); box-shadow: none; }
+.terrain-marks__kind--impassable[aria-pressed='true'] { border-color: var(--danger); }
+.terrain-marks__kind--hazard[aria-pressed='true'] { border-color: var(--warn); }
+.terrain-marks__hint { flex-basis: 100%; margin: 0; font-size: var(--fs-small); color: var(--text-muted); }

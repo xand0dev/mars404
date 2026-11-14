@@ -9,8 +9,16 @@ export const DEFAULT_MARK_RADIUS_M = 20;
 
 export const MARK_KINDS: readonly AnnotationKind[] = ['impassable', 'hazard', 'note', 'plan'];
 
+/** Що робить кожен вид мітки — підказка під перемикачем (людина не мусить знати SPEC). */
+export const MARK_HINT: Record<AnnotationKind, string> = {
+  impassable: `The route never goes within ${DEFAULT_MARK_RADIUS_M} m of it (cliff, deep sand).`,
+  hazard: `The route goes around it if it can (${DEFAULT_MARK_RADIUS_M} m): loose rock, slippery slope.`,
+  note: 'Only a note on the map. The route does not change.',
+  plan: 'A planned stop or task. The route does not change.',
+};
+
 export const MARK_LABEL: Record<AnnotationKind, string> = {
-  impassable: 'Impassable',
+  impassable: 'Blocked',
   hazard: 'Hazard',
   note: 'Note',
   plan: 'Plan',

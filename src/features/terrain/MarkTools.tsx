@@ -1,6 +1,6 @@
 // Панель «Add mark» (F2-AC8, SPEC §7.12): вид мітки, текст, режим кліку по карті й шлях з клавіатури.
 import type { AnnotationKind } from '../../contracts';
-import { MARK_KINDS, MARK_LABEL } from './lib/marks';
+import { MARK_HINT, MARK_KINDS, MARK_LABEL } from './lib/marks';
 import { MarkGlyphIcon } from './MarkGlyph';
 import { useMarkTool } from './markStore';
 
@@ -16,17 +16,16 @@ export function MarkTools({ onMarkSegment }: MarkToolsProps) {
       <button type="button" aria-pressed={adding} onClick={() => setAdding(!adding)}>
         {adding ? 'Adding marks: click the map' : 'Add mark'}
       </button>
-      <label className="terrain-marks__field">
-        <span>Kind</span>
-        <select id="mark-kind" value={kind} onChange={(e) => setKind(e.target.value as AnnotationKind)}>
-          {MARK_KINDS.map((k) => (
-            <option key={k} value={k}>
-              {MARK_LABEL[k]}
-            </option>
-          ))}
-        </select>
-      </label>
-      <MarkGlyphIcon kind={kind} />
+      {/* Вид мітки — кнопки зі знаком і назвою, під ними — що мітка робить з маршрутом. */}
+      <div className="terrain-marks__kinds" role="group" aria-label="Mark kind">
+        {MARK_KINDS.map((k: AnnotationKind) => (
+          <button key={k} type="button" className={`terrain-marks__kind terrain-marks__kind--${k}`} aria-pressed={kind === k} onClick={() => setKind(k)}>
+            <MarkGlyphIcon kind={k} size={16} label="" />
+            {MARK_LABEL[k]}
+          </button>
+        ))}
+      </div>
+      <p className="terrain-marks__hint">{MARK_HINT[kind]}</p>
       <label className="terrain-marks__field">
         <span>Note</span>
         <input id="mark-text" type="text" value={text} maxLength={80} placeholder="soft sand trap" onChange={(e) => setText(e.target.value)} />

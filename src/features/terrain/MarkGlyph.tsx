@@ -28,7 +28,7 @@ function Glyph({ kind }: { kind: AnnotationKind }) {
 
 /** Знак у власному <svg> (панель, легенда). */
 export function MarkGlyphIcon({ kind, size = 20, label }: { kind: AnnotationKind; size?: number; label?: string }) {
-  const name = label ?? `${MARK_LABEL[kind]} mark`;
+  const name = label ?? `${MARK_LABEL[kind]} mark`; // label="" — декоративний знак (aria-hidden)
   return (
     <svg width={size} height={size} viewBox="-12 -12 24 24" {...(name ? { role: 'img', 'aria-label': name } : { 'aria-hidden': true })} focusable="false" style={{ flex: 'none', overflow: 'visible' }}>
       <Glyph kind={kind} />

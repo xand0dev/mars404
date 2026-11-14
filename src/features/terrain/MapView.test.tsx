@@ -288,7 +288,7 @@ describe('Мітки екіпажу на карті (F2-AC8, SPEC §7.12) і EVA
     act(() => useMission.getState().setAnnotations([mark('m1', 'impassable', [645, 635]), mark('m2', 'note', [-50, 10])]));
     const plan = screen.getByRole('img', { name: /2D plan/ });
     expect(plan.querySelectorAll('[data-kind="mark"]')).toHaveLength(1);
-    expect(within(plan).getByRole('img', { name: 'Impassable mark: soft sand' })).toBeInTheDocument();
+    expect(within(plan).getByRole('img', { name: 'Blocked mark: soft sand' })).toBeInTheDocument();
     expect(screen.getByText('1 crew mark on map')).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Crew mark legend' })).toBeInTheDocument();
   });
@@ -307,7 +307,9 @@ describe('Мітки екіпажу на карті (F2-AC8, SPEC §7.12) і EVA
     gale();
     const plan = planThrough(mockGrid, [[64, 64], [64, 70]]);
     act(() => useMission.setState({ plan, selectedSegment: 0 }));
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Kind' }), 'hazard');
+    await user.click(screen.getByRole('button', { name: 'Hazard' }));
+    expect(screen.getByRole('button', { name: 'Hazard' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/route goes around it/)).toBeInTheDocument();
     await user.type(screen.getByRole('textbox', { name: 'Note' }), 'loose rock');
     await user.click(screen.getByRole('button', { name: 'Mark selected segment' }));
     const [m] = useMission.getState().annotations;
