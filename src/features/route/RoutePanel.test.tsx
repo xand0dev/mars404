@@ -72,4 +72,22 @@ describe('RoutePanel', () => {
     const details = screen.getByTestId('segment-details');
     for (const unit of [' m', '°', ' s', ' g O₂', ' Wh', 'dose no data']) expect(details).toHaveTextContent(unit);
   });
+
+  it('таблиця — одна зупинка Tab, далі стрілки (сотні відрізків не забивають клавіатуру)', async () => {
+    store().toggleTarget('mock-a');
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
+    await screen.findByText(/route found/i);
+
+    const rowButtons = screen.getAllByRole('button', { name: /^Select segment \d+$/ });
+    expect(rowButtons.filter((b) => b.tabIndex === 0)).toHaveLength(1);
+
+    rowButtons[0]!.focus();
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(store().selectedSegment).toBe(2);
+    expect(screen.getByRole('button', { name: 'Select segment 3' })).toHaveFocus();
+
+    await userEvent.keyboard('{End}');
+    expect(store().selectedSegment).toBe(rowButtons.length - 1);
+  });
 });
