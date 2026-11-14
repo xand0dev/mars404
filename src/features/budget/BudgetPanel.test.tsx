@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { emptyPlan } from '../../core';
-import { mockModel } from '../../mocks';
+import { emptyPlan, planRoute } from '../../core';
+import { mockBase, mockGrid, mockModel, mockTargets } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { BudgetEngine } from './BudgetEngine';
 import { BudgetPanel } from './BudgetPanel';
@@ -121,5 +121,29 @@ describe('BudgetEngine + BudgetPanel', () => {
     act(() => store().setPlan(emptyPlan('pending', 1)));
     const status = screen.getAllByRole('status').find((el) => /calculating/i.test(el.textContent ?? ''))!;
     expect(status).toHaveTextContent('⏳');
+  });
+
+  it('F5-AC5: BudgetEngine публікує reach.abort для чинного плану; «O₂ −40%» не покращує', async () => {
+    renderBudget();
+    const target = mockTargets.find((t) => t.id === 'mock-c')!;
+    const plan = planRoute({ grid: mockGrid, model: mockModel, start: mockBase, waypoints: [target.coordinates], base: mockBase, requestId: 1 });
+    act(() => store().toggleTarget('mock-c'));
+    act(() => store().setPlan(plan));
+
+    const normal = store().reach?.abort;
+    expect(normal?.segments).toHaveLength(plan.segments.length);
+
+    await userEvent.click(screen.getByRole('button', { name: 'O₂ −40%' }));
+    const reduced = store().reach?.abort;
+    expect(reduced?.segments.filter((s) => s.ok).length).toBeLessThanOrEqual(normal!.segments.filter((s) => s.ok).length);
+    reduced?.segments.forEach((s, i) => {
+      if (s.ok) expect(normal!.segments[i]!.ok).toBe(true);
+    });
+  });
+
+  it('F5-AC5: без чинного плану reach.abort = null', () => {
+    renderBudget();
+    expect(store().reach).not.toBeNull();
+    expect(store().reach?.abort).toBeNull();
   });
 });
