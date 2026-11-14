@@ -14,8 +14,9 @@
   --radius: 10px;
   --gap: 12px;
   --touch: 40px;
-  --fs-hero: clamp(2rem, 7vw, 3rem);
+  --fs-hero: clamp(2.25rem, 5vw, 3.5rem);
   --fs-title: 1.2rem;
+  --fs-label: 0.78rem;
   --fs-body: 1rem;
   --fs-small: 0.85rem;
   --deficit-bg: #4a1414;
@@ -25,6 +26,13 @@
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
+  --mock-bg: #5a3a12;
+  --mock-text: #ffd38a;
+  --border: #4a3d36;
+  --shadow: 0 1px 0 #00000040;
+  /* Розкладка Shell: висоту верхньої смуги Shell вимірює й переписує на .shell */
+  --topbar-h: 0px;
+  --side-w: clamp(340px, 27vw, 460px);
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
@@ -32,18 +40,32 @@
 html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
 body { overflow-x: hidden; overflow-wrap: anywhere; }
 button, input, select { font: inherit; min-height: var(--touch); min-width: var(--touch); }
-input { background: var(--surface-2); color: var(--text); border: 1px solid #4a3d36; border-radius: 8px; padding: 0 10px; }
-button { background: var(--surface-2); color: var(--text); border: 1px solid #4a3d36; border-radius: 8px; padding: 0 12px; cursor: pointer; }
+input { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; }
+button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; cursor: pointer; }
 button[aria-pressed='true'] { border-color: var(--accent); }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
-.ui-panel { background: var(--surface); border-radius: var(--radius); padding: var(--gap); min-width: 0; }
-.ui-panel > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.ui-panel h2 { font-size: 1rem; margin: 0; }
-.ui-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; }
-.ui-badge--mock { background: #5a3a12; color: #ffd38a; font-weight: 700; }
+.ui-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-3) var(--space-4) var(--space-4); min-width: 0; }
+/* Заголовок панелі: однаковий у всіх фічах — дрібний uppercase-лейбл ліворуч, бейджі праворуч в одну лінію. */
+.ui-panel > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-2); min-height: 28px; margin-bottom: var(--space-3); }
+.ui-panel h2 { font-size: var(--fs-label); line-height: 1.2; margin: 0; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--text); }
+.ui-panel__badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+/* Панель, що згортається (права колонка Shell): уся смуга заголовка — кнопка. */
+.ui-panel--collapsible { padding: 0; }
+.ui-panel--collapsible > header { margin: 0; padding: var(--space-1) var(--space-3) var(--space-1) 0; }
+.ui-panel--collapsible h2 { flex: 1 1 auto; min-width: 0; }
+.ui-panel__toggle { width: 100%; display: flex; align-items: center; gap: var(--space-2); background: transparent; border: none; border-radius: var(--radius); padding: 0 var(--space-3); min-height: 44px; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; text-align: left; }
+.ui-panel__toggle::before { content: '▸'; color: var(--text-muted); font-size: 0.9rem; flex: none; }
+.ui-panel__toggle[aria-expanded='true']::before { content: '▾'; }
+.ui-panel__toggle:hover { color: var(--accent); }
+.ui-panel__body { padding: 0 var(--space-4) var(--space-4); }
+.ui-panel--collapsed > .ui-panel__body { display: none; }
+/* Бейджі: одна форма (pill) і висота; стан — словом, колір лише доповнює. */
+.ui-badge { display: inline-flex; align-items: center; min-height: 20px; font-size: 0.72rem; line-height: 1; padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+.ui-badge--mock { background: var(--mock-bg); color: var(--mock-text); font-weight: 700; }
+.ui-badge--owner { background: transparent; border-color: var(--line); font-weight: 500; }
 .ui-note { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; }
 .ui-note--ok { color: var(--ok); } .ui-note--warn { color: var(--warn); } .ui-note--danger { color: var(--danger); } .ui-note--info { color: var(--info); } .ui-note--pending { color: var(--info); }
 .ui-note--deficit { color: var(--danger); background: var(--deficit-bg); border-radius: 8px; padding: 6px 8px; }
