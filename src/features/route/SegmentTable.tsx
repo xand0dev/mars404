@@ -1,6 +1,7 @@
 import type { KeyboardEvent } from 'react';
 import type { RoutePlan } from '../../contracts';
 import { STATUS_ICON } from '../../ui';
+import { Disclosure } from '../../ui';
 import { formatRisks, NO_RETURN_RISK } from './segment-risk';
 import { formatDistance, formatDose, formatEnergy, formatO2, formatSeconds, formatSlope } from './format';
 
@@ -39,6 +40,8 @@ export function SegmentTable({ plan, risks, selectedSegment, onSelect }: Segment
     event.currentTarget.closest('tbody')?.querySelectorAll('button')[next]?.focus();
   };
 
+  const noReturnCount = plan.segments.filter((_s, k) => noReturn(k)).length;
+
   return (
     <>
       {selected && (
@@ -48,6 +51,8 @@ export function SegmentTable({ plan, risks, selectedSegment, onSelect }: Segment
           {' · risk: '}{formatRisks(riskOf(selectedSegment!))}
         </p>
       )}
+      {/* 100+ відрізків по 10 м — таблиця згорнута, щоб не займати екран (#79); вибір — і з профілю висоти. */}
+      <Disclosure summary={`Segments (${plan.segments.length} · ${noReturnCount} no return)`}>
       <div className="route-table">
         <table>
           <caption>Route segments · ↑/↓ to move, Home/End to jump</caption>
@@ -90,6 +95,7 @@ export function SegmentTable({ plan, risks, selectedSegment, onSelect }: Segment
           </tbody>
         </table>
       </div>
+      </Disclosure>
     </>
   );
 }

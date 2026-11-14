@@ -1,10 +1,11 @@
 // F4: маршрут A* (SPEC §7.3). Пише в store лише setPlan, setWaypoints, setSelectedSegment.
 import { useEffect, useMemo, useState } from 'react';
-import type { Annotation, ModelParams, RoutePlan, Target, XY } from '../../contracts';
+import type { Annotation, RoutePlan, Target, XY } from '../../contracts';
 import { applyAnnotations } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
+import { ModelCoefficientsNote } from './ModelCoefficients';
 import { describeFailure, formatDistance, formatDose, formatEnergy, formatMinutes, formatO2, pointLabels } from './format';
 import { createDefaultRunner, createRouteClient, type RouteClient } from './route-client';
 import { segmentRisks } from './segment-risk';
@@ -25,13 +26,6 @@ const sameXY = (a: XY, b: XY) => a[0] === b[0] && a[1] === b[1];
 
 function waypointNames(waypoints: XY[], targets: Target[]): string[] {
   return waypoints.map((p, k) => targets.find((t) => sameXY(t.coordinates, p))?.name ?? `Point ${k + 1}`);
-}
-
-/** Коефіцієнти без перевіреного джерела — показуємо чесно (SPEC §7.6). */
-function unverifiedCoefficients(model: ModelParams): string[] {
-  return Object.entries(model.evidence)
-    .filter(([, source]) => source.status !== 'verified')
-    .map(([key, source]) => `${key} (${source.status === 'mock' ? 'MOCK' : source.status})`);
 }
 
 export function RoutePanel() {
@@ -66,7 +60,6 @@ export function RoutePanel() {
 
   const names = waypointNames(waypoints, targets);
   const labels = pointLabels(names);
-  const unverified = unverifiedCoefficients(model);
   const canBuild = waypoints.length > 0 && base !== null;
 
   const build = () => {
@@ -93,9 +86,7 @@ export function RoutePanel() {
           )}
         </>
       )}
-      {unverified.length > 0 && (
-        <StatusNote level="warn">Model coefficients without verified source: {unverified.join(', ')}. Model, not certified navigation.</StatusNote>
-      )}
+      <ModelCoefficientsNote model={model} />
     </Panel>
   );
 }
