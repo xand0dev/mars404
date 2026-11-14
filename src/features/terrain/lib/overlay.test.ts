@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { mockGrid } from '../../../mocks';
 import { classifyCells } from './cells';
 import { BLOCKED_RGB, HALO_RGB, NODATA_RGB, buildOverlay } from './overlay';
 import { displayHeights } from './geometry';
@@ -51,6 +52,25 @@ describe('F2-AC2 накладка 3D: blocked / NoData / ореол', () => {
     const { classes } = classifyCells(grid, { noData: RAW_NODATA });
     const out = buildOverlay(grid, classes, {});
     expect(texel(out.data, grid, 0)[3]).toBe(0);
+  });
+
+  it('ореол читається на ґрунті: контур непрозорий, всередині напівпрозорий, але не сірий', () => {
+    const grid = mockGrid;
+    const { classes } = classifyCells(grid, { maxSlopeDeg: 25 });
+    const mask = new Uint8Array(grid.width * grid.height);
+    for (let r = 30; r <= 34; r++) for (let c = 30; c <= 34; c++) mask[r * grid.width + c] = 1;
+    const out = buildOverlay(grid, classes, { mask });
+    const edge = texel(out.data, grid, 30 * grid.width + 30);
+    const inner = texel(out.data, grid, 32 * grid.width + 32);
+    expect(edge).toEqual([...HALO_RGB, 255]);
+    expect(inner.slice(0, 3)).toEqual([...HALO_RGB]);
+    expect(inner[3]).toBeGreaterThanOrEqual(130);
+    expect(inner[3]).toBeLessThan(255);
+    // Змішування з найсвітлішим відтінком ґрунту лишається блакитним, а не сірим.
+    const a = (inner[3] as number) / 255;
+    const ground = [226, 178, 120];
+    const mixed = HALO_RGB.map((v, k) => v * a + (ground[k] as number) * (1 - a));
+    expect((mixed[2] as number) - (mixed[0] as number)).toBeGreaterThan(40);
   });
 
   it('маска невідповідної довжини → без ореолу і з попередженням', () => {

@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import type { PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { StatusNote } from '../../ui';
 import { CELL } from './lib/cells';
-import { CSS } from './lib/overlay';
+import { CSS, HALO, HALO_FILL_ALPHA, haloCells } from './lib/overlay';
 import { cellsPath, planPoint, polyline, selectedSegmentLine, type PlanReason } from './lib/plan2d';
 import { segmentMarker } from './lib/segment';
 
@@ -49,11 +49,11 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
-  const haloD = useMemo(() => {
-    if (!mask || mask.length !== classes.length) return '';
-    const halo = new Uint8Array(classes.length);
-    for (let i = 0; i < halo.length; i++) halo[i] = mask[i] === 1 && classes[i] === CELL.walkable ? 1 : 0;
-    return cellsPath(w, halo, (c) => c === 1);
+  // Та сама логіка, що й у 3D: ореол лише на прохідних, край — непрозорий контур.
+  const [haloFillD, haloEdgeD] = useMemo(() => {
+    const halo = haloCells(w, classes, mask);
+    if (!halo) return ['', ''];
+    return [cellsPath(w, halo, (c) => c === HALO.fill), cellsPath(w, halo, (c) => c === HALO.edge)];
   }, [w, classes, mask]);
   const raster = useMemo(() => rasterUrl(w, h, rasterRGBA), [w, h, rasterRGBA]);
   const seg = selectedSegmentLine(grid, plan, selectedSegment);
@@ -87,7 +87,8 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         {layerUrls.map((l) => (
           <image key={l.id} data-layer={l.id} href={l.url} width={w} height={h} preserveAspectRatio="none" opacity={0.6} />
         ))}
-        {haloD && <path d={haloD} fill={CSS.halo} opacity={0.45} data-kind="halo" />}
+        {haloFillD && <path d={haloFillD} fill={CSS.halo} opacity={HALO_FILL_ALPHA / 255} data-kind="halo" />}
+        {haloEdgeD && <path d={haloEdgeD} fill={CSS.halo} data-kind="halo-edge" />}
         {blockedD && <path d={blockedD} fill={CSS.blocked} data-kind="blocked" />}
         {noDataD && <path d={noDataD} fill={CSS.noData} data-kind="nodata" />}
         {traverse.map((l, k) => (

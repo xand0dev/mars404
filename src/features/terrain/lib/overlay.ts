@@ -8,8 +8,31 @@ type RGB = readonly [number, number, number];
 export const BLOCKED_RGB: RGB = [74, 78, 105];
 /** NoData: майже чорний. */
 export const NODATA_RGB: RGB = [16, 16, 20];
-/** Ореол досяжності (reach.mask). */
-export const HALO_RGB: RGB = [64, 196, 255];
+/** Ореол досяжності (reach.mask): насичений блакитний, щоб поверх коричневого ґрунту не сірів. */
+export const HALO_RGB: RGB = [0, 190, 255];
+/** Непрозорість ореолу всередині зони; на краю — 255 (контур). */
+export const HALO_FILL_ALPHA = 150;
+
+/** 0 — не ореол, 1 — ореол, 2 — край ореолу (сусід по 4-зв'язності не в ореолі або поза сіткою). */
+export const HALO = { none: 0, fill: 1, edge: 2 } as const;
+
+/** Ореол лише на прохідних клітинках; край — для контуру. Маска невідповідної довжини → null. */
+export function haloCells(width: number, classes: Uint8Array, mask: Uint8Array | null | undefined): Uint8Array | null {
+  if (!mask || mask.length !== classes.length) return null;
+  const n = classes.length;
+  const height = Math.floor(n / width);
+  const isIn = (i: number) => mask[i] === 1 && classes[i] === CELL.walkable;
+  const out = new Uint8Array(n);
+  for (let r = 0; r < height; r++) {
+    for (let c = 0; c < width; c++) {
+      const i = r * width + c;
+      if (!isIn(i)) continue;
+      const edge = r === 0 || c === 0 || r === height - 1 || c === width - 1 || !isIn(i - 1) || !isIn(i + 1) || !isIn(i - width) || !isIn(i + width);
+      out[i] = edge ? HALO.edge : HALO.fill;
+    }
+  }
+  return out;
+}
 
 const RAMP: RGB[] = [
   [92, 52, 34],
@@ -59,11 +82,8 @@ export function buildOverlay(grid: PlanningGrid, classes: Uint8Array, { heights,
   const { width, height } = grid;
   const n = width * height;
   const warnings: string[] = [];
-  let useMask = mask;
-  if (mask && mask.length !== n) {
-    warnings.push(`reach.mask has ${mask.length} cells, grid has ${n}: halo hidden`);
-    useMask = undefined;
-  }
+  if (mask && mask.length !== n) warnings.push(`reach.mask has ${mask.length} cells, grid has ${n}: halo hidden`);
+  const halo = haloCells(width, classes, mask);
   let lo = Infinity;
   let hi = -Infinity;
   if (heights) {
@@ -76,7 +96,7 @@ export function buildOverlay(grid: PlanningGrid, classes: Uint8Array, { heights,
   }
   const span = hi > lo ? hi - lo : 1;
   const data = new Uint8Array(n * 4);
-  let haloCells = 0;
+  let haloCount = 0;
   for (let r = 0; r < height; r++) {
     for (let c = 0; c < width; c++) {
       const i = r * width + c;
@@ -86,16 +106,16 @@ export function buildOverlay(grid: PlanningGrid, classes: Uint8Array, { heights,
       let alpha = 255;
       if (cls === CELL.blocked) rgb = BLOCKED_RGB;
       else if (cls === CELL.noData) rgb = NODATA_RGB;
-      else if (useMask && useMask[i] === 1) {
+      else if (halo && halo[i] !== HALO.none) {
         rgb = HALO_RGB;
-        // Напівпрозорий: рельєф/текстуру під ореолом видно.
-        alpha = 110;
-        haloCells++;
+        // Усередині напівпрозорий (рельєф/текстуру видно), на краю — непрозорий контур.
+        alpha = halo[i] === HALO.edge ? 255 : HALO_FILL_ALPHA;
+        haloCount++;
       } else if (heights) rgb = rampColor(((heights[i] as number) - lo) / span);
       else alpha = 0;
       if (rgb) data.set(rgb, t);
       data[t + 3] = rgb ? alpha : 0;
     }
   }
-  return { data, haloCells, warnings };
+  return { data, haloCells: haloCount, warnings };
 }
