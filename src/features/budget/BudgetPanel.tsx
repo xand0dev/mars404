@@ -1,5 +1,5 @@
 // F5: шкали ресурсів, «Return in N min», сценарій «O₂ −40%» (SPEC §7.4). Числа — лише з reach (BudgetEngine).
-import type { ReachabilityResult, Resources, Target } from '../../contracts';
+import type { ReachabilityResult, ResourceKey, Resources, Target } from '../../contracts';
 import { REACH_WARNINGS, reserveOf } from '../../core';
 import { mockLimits } from '../../mocks';
 import { useMission } from '../../store/useMission';
@@ -8,6 +8,8 @@ import './budget.css';
 
 /** Сценарій SPEC §3: O₂ −40% від базових лімітів. */
 const O2_SCENARIO_FACTOR = 0.6;
+
+const RESOURCE_NAMES: Record<ResourceKey, string> = { time: 'time', o2: 'O₂', energy: 'energy', dose: 'dose' };
 
 const STATUS_WARNINGS: readonly string[] = Object.values(REACH_WARNINGS);
 const HEADLINE_WARNINGS: readonly string[] = [REACH_WARNINGS.buildRoute, REACH_WARNINGS.noPathBack];
@@ -29,7 +31,9 @@ function BudgetStatus({ reach }: { reach: ReachabilityResult | null }) {
     return <StatusNote level="danger" live="alert">Invalid model parameters: {fields}. Return not assessed.</StatusNote>;
   }
   if (reach.deficits.length > 0) {
-    return <StatusNote level="danger" live="alert">Deficit: {reach.deficits.join(', ')} — below reserve, change the plan or return.</StatusNote>;
+    // Єдиний alert дефіциту — у HUD (F7-AC2), тут — status, щоб читалка не оголошувала двічі.
+    const names = reach.deficits.map((key) => RESOURCE_NAMES[key]).join(', ');
+    return <StatusNote level="danger" live="status">Deficit: {names} — below reserve, change the plan or return.</StatusNote>;
   }
   if (reach.returnInS === null) return <StatusNote level="info" live="status">Return not assessed without a valid route.</StatusNote>;
   if (reach.status === 'incomplete') {
