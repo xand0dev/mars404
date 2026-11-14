@@ -10,6 +10,7 @@ import { describeFailure, formatDistance, formatDose, formatEnergy, formatMinute
 import { createDefaultRunner, createRouteClient, type RouteClient } from './route-client';
 import { segmentRisks } from './segment-risk';
 import { SegmentTable } from './SegmentTable';
+import { TraversePlan } from './TraversePlan';
 import { ViewFromHere } from './ViewFromHere';
 import { WaypointOrder } from './WaypointOrder';
 import './route.css';
@@ -79,6 +80,7 @@ export function RoutePanel() {
       <CrewMarksNote annotations={annotations} />
       {plan?.status === 'ok' && plan.segments.length > 0 && (
         <>
+          <TraversePlan plan={plan} labels={labels} abort={abort} />
           <ElevationProfile plan={plan} grid={grid} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           <SegmentTable plan={plan} risks={segmentRisks({ plan, grid, annotations, abort, noData })} selectedSegment={selectedSegment} onSelect={setSelectedSegment} />
           {selectedSegment !== null && plan.segments[selectedSegment] && (
