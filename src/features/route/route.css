@@ -88,7 +88,7 @@ body:has(.shell--glove):has(.eva-dock--route) .route-build { display: none; }
 /* Пульт як навігатор: де я на маршруті — номер, повзунок під великий палець, хвилини й O₂ від старту. */
 .eva-dock__where { margin: 0; display: flex; align-items: baseline; gap: var(--space-2, 8px); min-width: 0; }
 .eva-dock__where strong { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
-.eva-dock__scrub { width: 100%; height: 28px; margin: 0; accent-color: var(--accent); cursor: pointer; touch-action: none; }
+.eva-dock__scrub { width: 100%; height: 40px; margin: 0; accent-color: var(--accent); cursor: pointer; touch-action: none; }
 .eva-dock__scrub::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--surface-3, #222); }
 .eva-dock__scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--text); border: 3px solid var(--accent); }
 .eva-dock__scrub::-moz-range-track { height: 8px; border-radius: 4px; background: var(--surface-3, #222); }
