@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Call, Fix, StationCall } from '../../contracts/gonogo';
 import { useMission } from '../../store/useMission';
 import { STATUS_ICON, type StatusLevel } from '../../ui';
+import { useGlove } from './glove';
 import { useGoNoGo } from './useGoNoGo';
 
 /** Утримування для підтвердження CAUTION (SPEC §7.10). */
@@ -25,6 +26,7 @@ export interface GoNoGoPanelProps {
 
 export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
   const g = useGoNoGo();
+  const glove = useGlove();
   const targets = useMission((s) => s.targets);
   const [record, setRecord] = useState<Confirmation | null>(null);
   const name = (id: string) => targets.find((t) => t.id === id)?.name ?? id;
@@ -39,6 +41,13 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
   };
 
   const before = !g.during;
+  const stations = (
+    <ul className="gonogo__stations" aria-label="Station calls">
+      {g.stations.map((s) => (
+        <Station key={s.id} s={s} name={name} />
+      ))}
+    </ul>
+  );
   const firstHold = g.stations.find((s) => s.call === 'hold');
 
   return (
@@ -81,11 +90,14 @@ export function GoNoGoPanel({ onStart }: GoNoGoPanelProps) {
         </p>
       )}
 
-      <ul className="gonogo__stations" aria-label="Station calls">
-        {g.stations.map((s) => (
-          <Station key={s.id} s={s} name={name} />
-        ))}
-      </ul>
+      {glove ? (
+        <details className="gonogo__more">
+          <summary>Stations ({g.stations.length})</summary>
+          {stations}
+        </details>
+      ) : (
+        stations
+      )}
     </section>
   );
 }

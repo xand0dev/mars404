@@ -54,3 +54,13 @@
   .gonogo__station { grid-template-columns: 3.2em minmax(0, 1fr); }
   .gonogo__reason, .gonogo__fix, .gonogo__fixbtn { grid-column: 2; }
 }
+
+/* Glove mode: «Return in» і вердикт — зверху HUD */
+.shell--glove .hud { display: flex; flex-direction: column; align-items: stretch; }
+.shell--glove .hud > * { order: 3; }
+.shell--glove .hud__return { order: 0; }
+.shell--glove .gonogo { order: 1; border-top: none; padding-top: 0; }
+.shell--glove .hud__status { order: 2; }
+.shell--glove .gonogo__verdict { font-size: 1.6rem; }
+.gonogo__more > summary { list-style: none; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: var(--surface-2); cursor: pointer; }
+.gonogo__more > summary::-webkit-details-marker { display: none; }

@@ -86,6 +86,7 @@
 | 2026-11-14 | Оля | Claude Code | T9 (#45, F7-AC8): EVA-символіка `EvaSign` / `EvaSignShape` / `EvaLegend` у `src/ui`; план етапу 2 у spec | `src/ui/**`, `specs/F7/**` | `npm run check` зелений (430 тестів); знаки відрендерено в Chromium | #53 |
 | 2026-11-14 | Оля | Claude Code | T11–T12 (#33, F7-AC6): «Point of no return» / «Return possible along the whole route» у HUD, аварійний запас з «assumption» | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (440 тестів); Chromium 400/1440 на справжній сітці Gale і F4/F5: «O₂ −40%» → «Point of no return in 2 min», без гор. скролу й помилок | #55 |
 | 2026-11-14 | Оля | Claude Code | T13–T14 (#44, F7-AC7): GO / NO-GO у HUD — вердикт, 8 станцій, дії виправлення, утримування 1,5 с для CAUTION, «Return to base now» під час виходу | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (468 тестів); Chromium 400/1440 на справжній сітці й F4/F5: HOLD → GO · CAUTION → утримування мишею і Space → NO-GO з одним alert, без гор. скролу й помилок | #55 |
+| 2026-11-14 | Оля | Claude Code | T16–T21 (#61, F7-AC9): Glove mode — перемикач у `Shell`, стан у `localStorage`, цілі ≥ 64 px, «More panels» і згорнуті станції, «Return in» і вердикт зверху | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений; Chromium 400×740 і 1024×768: усі видимі кнопки й поля ≥ 64 px (і з розгорнутими панелями), вердикт і «Return in» на першому екрані, без гор. скролу, режим переживає перезавантаження | — |
 
 
 ## F8
