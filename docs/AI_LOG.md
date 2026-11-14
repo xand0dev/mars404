@@ -99,6 +99,7 @@
 | 2026-11-14 | Оля | Claude Code | T13–T14 (#44, F7-AC7): GO / NO-GO у HUD — вердикт, 8 станцій, дії виправлення, утримування 1,5 с для CAUTION, «Return to base now» під час виходу | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений (468 тестів); Chromium 400/1440 на справжній сітці й F4/F5: HOLD → GO · CAUTION → утримування мишею і Space → NO-GO з одним alert, без гор. скролу й помилок | #55 |
 | 2026-11-14 | Оля | Claude Code | T16–T21 (#61, F7-AC9): Glove mode — перемикач у `Shell`, стан у `localStorage`, цілі ≥ 64 px, «More panels» і згорнуті станції, «Return in» і вердикт зверху | `src/features/hud/**`, `specs/F7/**` | `npm run check` зелений; Chromium 400×740 і 1024×768: усі видимі кнопки й поля ≥ 64 px (і з розгорнутими панелями), вердикт і «Return in» на першому екрані, без гор. скролу, режим переживає перезавантаження | #68 |
 | 2026-11-14 | Оля | Claude Code | Виправлення компонування HUD: не липкий, «Return in» + статус ліворуч і «Elapsed» праворуч, GO / NO-GO рядком на всю ширину, станції — сіткою плашок (9 в рядок на 1440 px, 3 колонки на 400 px) | `src/features/hud/**` | `npm run check` зелений (486 тестів); Chromium: висота HUD 527 → 317 px (1440), 823 → 771 px (400), без гор. скролу; Glove mode і GO / NO-GO перевірено повторно | #68 |
+| 2026-11-14 | Оля | Claude Code | Дизайн-система в `src/ui`: `EvidenceBadge`, `ItemRow`, `Disclosure`, `DataTable`, токени відступів, `README.md` з правилами | `src/ui/**` | `npm run check` зелений (529 тестів) | — |
 
 
 ## F8
