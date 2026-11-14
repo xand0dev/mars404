@@ -114,3 +114,9 @@ body:has(.shell--step-route) .eva-dock__build:not(:disabled) {
 @media (prefers-reduced-motion: reduce) {
   body:has(.shell--step-route) .eva-dock__build:not(:disabled) { animation: none; }
 }
+
+/* Точка неповернення на повзунку: трек червоніє з неї до кінця — «звідси назад уже не дійти» видно ще до Play. */
+.eva-dock__scrub[style*='--ponr']::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--surface-3, #222) 0 var(--ponr), rgb(255 42 42 / 0.55) var(--ponr) 100%); }
+.eva-dock__scrub[style*='--ponr']::-moz-range-track { background: linear-gradient(to right, var(--surface-3, #222) 0 var(--ponr), rgb(255 42 42 / 0.55) var(--ponr) 100%); }
+.eva-pnr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2, 8px); }
+.eva-pnr__show { margin-left: auto; min-height: 40px; color: var(--danger); border-color: var(--danger); }

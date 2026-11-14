@@ -1,5 +1,5 @@
 // Пульт EVA, половина F4: крок по відрізках і «Build route» біля нижнього краю планшета; у шторці — коротко про маршрут; підшторка — знімок відрізка.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { AbortPlan, RoutePlan, Segment, TargetPhoto } from '../../contracts';
 import { STATUS_ICON, formatMinutes } from '../../ui';
@@ -52,6 +52,9 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
     return sums;
   }, [plan]);
   const abortOk = abort && plan && abort.segments.length === plan.segments.length ? abort.segments : null;
+  // Перший відрізок без повернення (SPEC §7.8) — позначка на повзунку й «Show on map».
+  const firstNoReturn = abortOk ? abortOk.findIndex((s) => !s.ok) : -1;
+  const ponrShare = firstNoReturn >= 0 && plan && plan.segments.length > 1 ? (firstNoReturn / (plan.segments.length - 1)) * 100 : null;
 
   // Play: крок за кроком до кінця маршруту; карта (F2) підсвічує обраний відрізок.
   const isPlaying = playing && ready;
@@ -131,7 +134,7 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
         <section className="eva-dock__details" aria-label="Route details">
           {ready ? (
             <>
-              <NoReturnLine plan={plan} abort={abort} />
+              <NoReturnLine plan={plan} abort={abort} onShow={firstNoReturn >= 0 ? () => step(firstNoReturn) : null} />
               <ul className="eva-legs">
                 {legSummaries(plan, labels, abort).map((leg, k) => (
                   <li key={`${k}-${leg.from}`}>
@@ -188,7 +191,8 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
                     )}
                   </p>
                   <input type="range" className="eva-dock__scrub" aria-label="Position on route" min={1} max={plan.segments.length}
-                    value={(selectedSegment ?? -1) + 1 || 1} onChange={(event) => step(Number(event.target.value) - 1)} />
+                    value={(selectedSegment ?? -1) + 1 || 1} onChange={(event) => step(Number(event.target.value) - 1)}
+                    style={ponrShare === null ? undefined : ({ '--ponr': `${ponrShare}%` } as CSSProperties)} />
                   <span>
                     {current
                       ? `${Math.floor(totals[selectedSegment!]!.time / 60)} min in · ${totals[selectedSegment!]!.o2.toFixed(1)} g O₂ used · ${formatRisks(risks[selectedSegment!] ?? [])} · ${photo ? `photo ${Math.round(photo.distanceM)} m` : 'no photo within 300 m'}`
@@ -210,7 +214,7 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
 }
 
 /** Точка неповернення одним рядком (SPEC §7.8) — те саме reach.abort, що в HUD. */
-function NoReturnLine({ plan, abort }: { plan: RoutePlan; abort: AbortPlan | null }) {
+function NoReturnLine({ plan, abort, onShow }: { plan: RoutePlan; abort: AbortPlan | null; onShow: (() => void) | null }) {
   if (!abort || abort.segments.length !== plan.segments.length) return null;
   if (abort.pointOfNoReturnS === null) {
     return <p className="eva-pnr eva-pnr--ok"><span aria-hidden="true">{STATUS_ICON.ok} </span>Return possible all the way</p>;
@@ -220,6 +224,11 @@ function NoReturnLine({ plan, abort }: { plan: RoutePlan; abort: AbortPlan | nul
     <p className="eva-pnr eva-pnr--danger">
       <span aria-hidden="true">{STATUS_ICON.deficit} </span>
       <strong>No return after {formatMinutes(abort.pointOfNoReturnS)} min</strong> · from segment {first + 1}
+      {onShow && (
+        <button type="button" className="eva-pnr__show" aria-label="Show point of no return on map" onClick={onShow}>
+          Show on map
+        </button>
+      )}
     </p>
   );
 }
