@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Segment, SurfacePhoto, Target, TargetPhoto, XY } from '../../contracts';
 import { mockTargets } from '../../mocks';
-import { findNearestPhoto, photoCandidates, photoCandidatesFromTargets, segmentMidpoint, VIEW_RADIUS_M } from './surface-photo';
+import { findNearestPhoto, locationAccuracyNote, photoCameraName, photoCandidates, photoCandidatesFromTargets, segmentMidpoint, sourceLinkLabel, VIEW_RADIUS_M } from './surface-photo';
 
 const segment = (from: XY, to: XY): Segment => ({ from, to, dist: 0, slope: 0, time: 0, o2: 0, energy: 0, dose: null });
 
@@ -67,5 +67,27 @@ describe('surface-photo · F4-AC6 кандидати з photos (SPEC §7.9)', ()
   it('найближчий серед photos', () => {
     const candidates = photoCandidates([surfacePhoto('far', [250, 0]), surfacePhoto('near', [60, 0])], []);
     expect(findNearestPhoto(segment([0, 0], [100, 0]), candidates)?.candidate.photo.url).toBe('photos/near.jpg');
+  });
+});
+
+describe('surface-photo · підпис з даних джерела (SPEC §7.9)', () => {
+  it('камера з даних: NAV_LEFT_B (Curiosity) і NAVCAM_LEFT (Spirit, PDS) — Navcam; інша — як у джерелі; без камери — Surface photo', () => {
+    expect(photoCameraName('NAV_LEFT_B')).toBe('Navcam');
+    expect(photoCameraName('NAVCAM_LEFT')).toBe('Navcam');
+    expect(photoCameraName('PANCAM')).toBe('PANCAM');
+    expect(photoCameraName(undefined)).toBe('Surface photo');
+  });
+
+  it('посилання на домен NASA — «NASA source», інший домен або сміття — «Source»', () => {
+    expect(sourceLinkLabel('https://mars.nasa.gov/raw_images/886246')).toBe('NASA source');
+    expect(sourceLinkLabel('https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0738/edr/x.img')).toBe('NASA source');
+    expect(sourceLinkLabel('https://nasa.gov.example.com/x')).toBe('Source');
+    expect(sourceLinkLabel('not a url')).toBe('Source');
+  });
+
+  it('точність місця: rover-stop — зупинка ровера; approximate і target — assumption', () => {
+    expect(locationAccuracyNote('rover-stop')).toBe('Location: rover stop, not the exact camera spot.');
+    expect(locationAccuracyNote('approximate')).toBe('Location: approximate rover site — assumption.');
+    expect(locationAccuracyNote('target')).toBe('Location: science target coordinates — assumption.');
   });
 });

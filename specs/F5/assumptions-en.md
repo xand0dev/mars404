@@ -1,0 +1,44 @@
+# Model assumptions (Validity field)
+
+MARS::404 plans walking EVAs on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled "assumption". The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
+
+- **Terrain grid.** Routes are planned on a 256 × 256 grid of 10 m cells (2.56 km × 2.56 km), built from NASA Mars Trek HiRISE 1 m stereo elevation models (`Gale_DEM_SMG_1m`, `DEM_1m_ColumbiaHills`). Each cell height is the mean of the valid 1 m pixels inside it. Anything smaller than 10 m (single boulders, small craters) is not resolved.
+- **Slope and no-go cells.** Slope is computed at the native 1 m and each cell keeps its steepest value (Horn 3×3, maximum per cell). Cells steeper than **25°** are blocked, and so are steps between cells steeper than 25°. NoData cells are always blocked and are never treated as safe. The 25° limit is an **assumption**.
+- **Walking speed.** Flat-ground speed is **1.0 m/s (3.6 km/h)**, taken from the Apollo emergency walk-back rate ("3.6 km/hr for periods of up to an hour"; E. M. Jones, *Working on the Moon*, LA-UR-89-3858). This is measured on the Moon at 1/6 g and transferred to Mars (0.38 g), so it is an **assumption**.
+- **Slope penalty.** Walking time is stretched on slopes in both directions: × (1 + **2** × tan(slope)) uphill and × (1 + **0.5** × tan(slope)) downhill. A 10 m step that climbs 1 m takes about 20% longer than flat ground. Both factors are **assumptions** with no published source.
+- **Soil (loose vs firm).** Night-time THEMIS infrared brightness (Mars Odyssey, ~100 m pixels) is used as a rough proxy for thermal inertia. The darkest (loosest) ground adds up to **+40%** walking time, scaling linearly to 0% at the middle of the layer's range. This is an **assumption**: the IR value is an 8-bit display brightness, not a calibrated temperature, and the cap of 40% is deliberately below the 1.6–2.5× energy cost of walking on sand reported by Lejeune et al. (1998).
+- **Hazard.** Each cell has a hazard index = min(1, slope / 25°) × 0.5. Route cost = time × (1 + **0.5** × hazard), so the planner prefers gentler ground. Hazard changes only which route is chosen; it does not change time, O₂ or energy. Both the formula and the weight are **assumptions**.
+- **Oxygen use while walking.** **0.031 g/s (~113 g/h)**, from Apollo data: "Oxygen use was about 0.16 lb/hr per 1000 BTU/hr" and "1560 BTU/hr at 3.5 km/hr" (Jones, LA-UR-89-3858). This is an **assumption** (Apollo suits on the Moon, transferred to Mars). Sanity checks: the NASA resting average of 0.84 kg/person-day (≈ 0.0097 g/s) and the Apollo whole-EVA average of 234 kcal/h (≈ 0.019 g/s, T. P. Moore, NASA). Walking should be above both, and it is. O₂ is charged per second (O₂ = time × 0.031 g/s), so standing at science stops costs O₂ at the same walking rate, which is conservative.
+- **O₂ available for one EVA.** **140 g** is an **assumption**: one hour of walking at the Apollo rate after the 20% reserve (0.031 × 3600 / 0.8 ≈ 140 g). Real suits carry far more. The small number is chosen so the "O₂ −40%" scenario visibly changes the plan.
+- **EVA time limit.** **1 hour (3600 s)** for the demo, an **assumption**. For comparison, an ISS EMU EVA lasts up to 7 hours (NASA, NTRS 20140009556).
+- **Emergency O₂ for the walk home.** The abort map and the point of no return keep **56 g** of O₂ untouched on the way back: "a minimum of 30 minutes of emergency O2" from the EMU Secondary Oxygen Package (NASA, NTRS 20140009556), × 0.031 g/s = 55.8 g. The 30-minute figure is verified. The grams are an **assumption**, because the suit is an ISS EMU and the rate comes from Apollo.
+- **Safety reserve.** **20%** of every limit (time, O₂, energy and dose when known) is kept back and never planned into. **Assumption.**
+- **Suit energy.** **0.05 Wh per metre walked** (50 Wh/km) against a **600 Wh** battery. Energy is used only by moving, not while standing still. Both numbers are **assumptions**; no source is given.
+- **Radiation dose is unknown.** The model does not have a per-second dose rate or a per-EVA dose limit (both are null). Every result is therefore marked **"incomplete — return not fully assessed"**, and the app never shows an unknown dose as zero. We do not have a radiation map of the terrain, so we do not stretch a single point measurement across the map.
+- **Earth and Moon data used for Mars.** Speed, O₂ rate and the emergency reserve come from Apollo (Moon, 1/6 g) and ISS (EMU) experience. No Mars EVA data exists. Mars gravity (0.38 g), Mars suits and dust will change these numbers.
+
+## What the model does NOT do
+
+- It is **not certified navigation**. The app says so on screen ("Model, not certified navigation") and counts how many coefficients still lack a verified source.
+- It has **no real-time telemetry, weather or dust storms**. Terrain, limits and coefficients are static, and the planning only uses data downloaded in advance.
+- It models **walking only**. There is no rover, and no radiation dose estimate per route.
+
+## Where each number lives
+
+| Assumption | Value | File (repo) |
+|---|---|---|
+| Grid 256², 10 m, mean of 1 m DEM | `grid.width/height = 256`, `metersPerPixel = 10`, layer `terrain.method` | `public/data/gale/region.json`, `public/data/columbia-hills/region.json`; `docs/SOURCES.md ## F3` (`trek-gale-dem-1m`, `trek-columbia-hills-dem-1m`) |
+| Slope: Horn 3×3 at 1 m, max per cell | layer `slope.method` | `region.json` (both); `docs/SPEC.md §8` |
+| Max slope 25°, blocked cells, NoData | `model.maxSlopeDeg = 25` | `region.json`; `src/contracts/planning.ts` (`isBlocked`); `src/core/edge.ts` (`edgeBetween`, `createWalkGraph`); `docs/SPEC.md §7.2`; `docs/SOURCES.md ## F5` (`assumption-max-slope`) |
+| Speed 1.0 m/s | `model.speedMps = 1.0`, evidence `jones-apollo-walk` | `region.json`; `docs/SOURCES.md ## F5` (`jones-apollo-walk`) |
+| Slope factors 2 / 0.5 | `model.uphillFactor`, `model.downhillFactor` | `region.json`; `src/core/edge.ts`; `docs/SPEC.md §7.3`; `docs/SOURCES.md ## F5` (`assumption-slope-factors`) |
+| Soil +40%, THEMIS night DN 156–205.5 | `SOIL_MAX_SLOWDOWN = 0.4`, `SOIL_DN` | `src/contracts/planning.ts` (`soilFromNightDN`); `src/features/data/soil.ts`, `src/features/data/loadRegion.ts`; `src/core/edge.ts` |
+| Hazard = min(1, slope/25) × 0.5, weight 0.5 | `hazardFromSlope`, `model.hazardWeight = 0.5` | `region.json`; `src/core/edge.ts`; `docs/SOURCES.md ## F3` (`hazard-from-slope`), `## F5` (`assumption-hazard`) |
+| O₂ 0.031 g/s | `model.o2GPerS = 0.031` | `region.json`; `src/core/budget.ts` (`computeBudget`); `docs/SPEC.md §7.3, §7.6`; `docs/SOURCES.md ## F5` (`jones-apollo-walk`, `nasa-o2-daily`, `apollo-eva-metabolic`, `nasa-o2-kcal`) |
+| O₂ limit 140 g, time limit 3600 s | `limits.o2 = 140`, `limits.time = 3600`, `limitsEvidence` | `region.json`; `docs/SPEC.md §7.6`; `docs/SOURCES.md ## F3` (`limit-o2-assumption`, `limit-time-assumption`), `## F5` (`assumption-limits`) |
+| Emergency O₂ 56 g (30 min EMU SOP) | `model.emergencyO2G = 56`, evidence `emu-sop-30min` | `region.json`; `src/core/abort.ts` (`assessAbort`); `docs/SPEC.md §7.8`; `docs/SOURCES.md ## F5` (`emu-sop-30min`) |
+| Reserve 20% | `model.reserveFraction = 0.2` | `region.json`; `src/core/budget.ts` (`reserveOf`); `docs/SPEC.md §7.4`; `docs/SOURCES.md ## F5` (`assumption-reserve`) |
+| Energy 0.05 Wh/m, 600 Wh, motion only | `model.energyWhPerM = 0.05`, `limits.energy = 600` | `region.json`; `src/core/budget.ts` (`computeBudget`: energy does not decrease with elapsed time); `docs/SOURCES.md ## F5` (`assumption-energy`) |
+| Dose unknown → incomplete | `model.doseUSvPerS = null`, `limits.dose = null` | `region.json`; `src/core/budget.ts` (`budgetStatus`); `docs/SPEC.md §7.4, §7.6`; `docs/SOURCES.md ## F3` (`limit-dose-assumption`) |
+| "Model, not certified navigation" | UI string | `src/features/route/ModelCoefficients.tsx` |
+| No weather or telemetry, walking only (rover out of MVP) | scope table | `docs/SPEC.md §4` |

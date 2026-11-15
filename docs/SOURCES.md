@@ -135,6 +135,9 @@ Short form for the «NASA data» field:
 | jpl-jezero-ellipse | Дельта, landing ellipse і preview-фото Jezero | https://www.jpl.nasa.gov/images/pia24350-perseverance-rover-landing-ellipse-in-jezero-crater/ | ESA/DLR/FU-Berlin/NASA/JPL-Caltech | 2026-11-15 | verified | PIA24350; ellipse 7.7 × 6.6 км; фото 1200×750 |
 | iau-gazetteer-3854 | Центр Meridiani Planum для preview-картки | https://planetarynames.wr.usgs.gov/Feature/3854 | IAU WGPSN / USGS Astrogeology | 2026-11-15 | verified | Центр 0.20°, 357.50°E; planetocentric +East |
 | nasa-meridiani-water | Opportunity, hematite, layered sandstone і preview-фото | https://science.nasa.gov/resource/meridiani-planum-2/ | NASA/JPL-Caltech/Arizona State University | 2026-11-15 | verified | До 20% гематиту на поверхні; фото кадровано до 1200×750 |
+| photojournal-pia02055 | Фото Home Plate для цілі Columbia Hills: шаруваті породи, Spirit Pancam, sol 774 | https://photojournal.jpl.nasa.gov/catalog/PIA02055 | NASA/JPL-Caltech/Cornell | 2026-11-15 | verified | Майже true color; JPEG 1021×1024, 200 КБ, без змін; вид з краю Home Plate, не точна точка цілі |
+| photojournal-pia13175 | Фото Comanche для цілі Columbia Hills: карбонатне відслонення, Spirit Pancam, sol 689 | https://photojournal.jpl.nasa.gov/catalog/PIA13175 | NASA/JPL-Caltech/Cornell University | 2026-11-15 | verified | False color (753/535/432 нм); JPEG 907×678, 114 КБ, без змін |
+| photojournal-pia12473 | Фото Troy для цілі Columbia Hills: колії Spirit у м'якому піску, Navcam, sol 2092 | https://photojournal.jpl.nasa.gov/catalog/PIA12473 | NASA/JPL-Caltech | 2026-11-15 | verified | Grayscale; JPEG 1024×1024, 251 КБ, без змін; фото з місця, де ровер застряг |
 
 ## F7
 

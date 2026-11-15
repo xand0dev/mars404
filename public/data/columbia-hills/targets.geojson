@@ -67,7 +67,14 @@
         ],
         "status": "verified",
         "locationAccuracy": "verified",
-        "photo": null
+        "photo": {
+          "url": "./data/columbia-hills/photos/comanche-sol689.jpg",
+          "alt": "Spirit Pancam view of the carbonate-rich Comanche outcrop, false color (PIA13175)",
+          "sourceUrl": "https://photojournal.jpl.nasa.gov/catalog/PIA13175",
+          "credit": "NASA/JPL-Caltech/Cornell University",
+          "sol": 689,
+          "status": "verified"
+        }
       }
     },
     {
@@ -90,7 +97,14 @@
         ],
         "status": "verified",
         "locationAccuracy": "verified",
-        "photo": null
+        "photo": {
+          "url": "./data/columbia-hills/photos/home-plate-sol774.jpg",
+          "alt": "Spirit Pancam view of complex layered rocks at the edge of Home Plate, approximately true color (PIA02055)",
+          "sourceUrl": "https://photojournal.jpl.nasa.gov/catalog/PIA02055",
+          "credit": "NASA/JPL-Caltech/Cornell",
+          "sol": 774,
+          "status": "verified"
+        }
       }
     },
     {
@@ -136,7 +150,14 @@
         ],
         "status": "verified",
         "locationAccuracy": "verified",
-        "photo": null
+        "photo": {
+          "url": "./data/columbia-hills/photos/troy-sol2092.jpg",
+          "alt": "Spirit Navcam view of its own wheel tracks leading into the soft sand at Troy, where the rover became embedded (PIA12473)",
+          "sourceUrl": "https://photojournal.jpl.nasa.gov/catalog/PIA12473",
+          "credit": "NASA/JPL-Caltech",
+          "sol": 2092,
+          "status": "verified"
+        }
       }
     }
   ]
