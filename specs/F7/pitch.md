@@ -1,11 +1,11 @@
-# Пітч MARS::404 — структура слайдів (Оля, з F8)
+# Пітч MARS//404 — структура слайдів (Оля, з F8)
 
 Джерело: `docs/SPEC.md` §1–4, §7.6, §8, §11. Слайди англійською (≤7), нотатки — українською.
 Готово до **нд 18:00**. `[TBD]` — підставити реальне значення з релізу; без джерела не вигадуємо.
 
 | # | Заголовок (EN) | На слайді | Візуал | Нотатки для мовця |
 |---|---|---|---|---|
-| 1 | **MARS::404 — know when to turn back** | Tablet HUD for a walking EVA on Mount Sharp, Gale crater. Three questions: *Where for science? How to get there? When to turn back?* | Скриншот HUD з великим «Return in N min» | Хук за 10 с: на Марсі найнебезпечніше — не дійти, а не повернутися. |
+| 1 | **MARS//404 — know when to turn back** | Tablet HUD for a walking EVA on Mount Sharp, Gale crater. Three questions: *Where for science? How to get there? When to turn back?* | Скриншот HUD з великим «Return in N min» | Хук за 10 с: на Марсі найнебезпечніше — не дійти, а не повернутися. |
 | 2 | **The problem** | Astronaut picks 1–3 targets before / during an EVA; the crew checks the plan in the habitat; O₂, energy, time and dose run out on the way **back**. | Схема: база → цілі → база, запас тане | Користувачі з §2. Наголос: повернення — частина плану, а не «потім». |
 | 3 | **Demo · 30 s** | Globe → Gale → 3D terrain → layers → target with Curiosity photo → Build route → «O₂ −40%» → halo shrinks → Return in N → Replace target | Відео ≤30 с з англ. субтитрами (F8) або 4 кадри | Сценарій §3. Якщо відео не грає — 4 скриншоти з релізу. N — `[TBD]` з релізу. |
 | 4 | **Real NASA data, traceable** | Mars Trek Gale DEM 1 m · HiRISE mosaic · THEMIS day/night IR · derived slope · Curiosity traverse (MMGIS) · surface photos (raw images API). Every layer: source, product ID, credit. Works offline. | Шари поруч + рядок credit | §8. bbox і к-сть цілей — `[TBD]` (рішення F3/F6 сб 14:00). Credit — з `docs/SOURCES.md`. |

@@ -1,6 +1,6 @@
-# MARS::404 — специфікація продукту
+# MARS//404 — специфікація продукту
 
-> NASA Space Apps Challenge 2026 · челендж **Interplanetary Survival Guide: Martian Map** · команда MARS::404.
+> NASA Space Apps Challenge 2026 · челендж **Interplanetary Survival Guide: Martian Map** · команда MARS//404.
 > Хакатон: сб 14.11 – нд 15.11.2026, час Europe/Kyiv. Сабміт — нд 22:30 (крайній строк 23:59).
 > Цей файл — єдине джерело правди. Каркас, specs фіч, issues і код генеруються з нього. Кодова база пишеться з нуля на хакатоні.
 

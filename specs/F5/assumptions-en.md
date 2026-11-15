@@ -1,6 +1,6 @@
 # Model assumptions (Validity field)
 
-MARS::404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled "assumption". The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
+MARS//404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled "assumption". The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
 
 - **Terrain grid.** Routes are planned on a 256 × 256 grid of 10 m cells (2.56 km × 2.56 km), built from NASA Mars Trek HiRISE 1 m stereo elevation models (`Gale_DEM_SMG_1m`, `DEM_1m_ColumbiaHills`). Each cell height is the mean of the valid 1 m pixels inside it. Anything smaller than 10 m (single boulders, small craters) is not resolved.
 - **Slope and no-go cells.** Slope is computed at the native 1 m and each cell keeps its steepest value (Horn 3×3, maximum per cell). Cells steeper than **25°** are blocked, and so are steps between cells steeper than 25°. NoData cells are always blocked and are never treated as safe. The 25° limit is an **assumption**.

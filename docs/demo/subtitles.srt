@@ -1,6 +1,6 @@
 1
 00:00:00,000 --> 00:00:02,000
-We're team MARS::404.
+We're team MARS//404.
 
 2
 00:00:02,000 --> 00:00:05,000
@@ -9,7 +9,7 @@ On Mars, when do you turn back?
 
 3
 00:00:05,000 --> 00:00:08,000
-MARS::404 — know when to turn back.
+MARS//404 — know when to turn back.
 
 4
 00:00:08,000 --> 00:00:10,500

@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DataTable, Disclosure, EvidenceBadge, ItemRow } from './system';
 
-// Дизайн-система MARS::404 (src/ui/README.md): спільні будівельні блоки для всіх панелей.
+// Дизайн-система MARS//404 (src/ui/README.md): спільні будівельні блоки для всіх панелей.
 describe('EvidenceBadge — статус джерела словом, колір лише доповнює (SPEC §7.6)', () => {
   it.each([
     ['verified', 'verified'],

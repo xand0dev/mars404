@@ -83,7 +83,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
         <header className="shell__bar">
           <div className="shell__brand">
             <h1 className="shell__title">
-              MARS::404 · {site ? SITE_LABEL[site] : 'Mars'} {overview ? 'terrain overview' : 'EVA planner'}
+              MARS//404 · {site ? SITE_LABEL[site] : 'Mars'} {overview ? 'terrain overview' : 'EVA planner'}
             </h1>
             <p className="shell__disclaimer">Demonstration model, not certified navigation.</p>
           </div>
@@ -150,7 +150,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
             <span className="tablet__key tablet__key--2" aria-hidden="true" />
             <span className="tablet__cam" aria-hidden="true" />
             <span className="tablet__mark" aria-hidden="true">
-              EVA-PAD · MARS::404
+              EVA-PAD · MARS//404
             </span>
             <div className="tablet__screen">{shell}</div>
           </div>

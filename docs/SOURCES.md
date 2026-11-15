@@ -71,7 +71,7 @@
 
 ## F6`, глобус Viking — `## F1`.
 
-| Dataset | Mission / instrument | Where in MARS::404 | Source (NASA Mars Trek unless noted) | Credit | Licence / terms |
+| Dataset | Mission / instrument | Where in MARS//404 | Source (NASA Mars Trek unless noted) | Credit | Licence / terms |
 |---|---|---|---|---|---|
 | Gale DEM 1 m (`Gale_DEM_SMG_1m`) | MRO HiRISE stereo | Gale EVA site: terrain, slope, walkability, route planning, 3D mesh (2.5 m) | https://trek.nasa.gov/mars/trekarcgis/rest/services/Gale_DEM_SMG_1m/ImageServer | NASA/JPL/University of Arizona, NASA Mars Trek | NASA media usage guidelines¹ |
 | HiRISE orthomosaic of the Curiosity area (`curiosity_hirise_mosaic`) | MRO HiRISE | Gale: optical layer and 3D texture (4096²) | https://trek.nasa.gov/mars/trekarcgis/rest/services/curiosity_hirise_mosaic/ImageServer | NASA/JPL/University of Arizona, NASA Mars Trek | NASA media usage guidelines¹ |

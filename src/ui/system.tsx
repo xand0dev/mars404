@@ -1,4 +1,4 @@
-// Дизайн-система MARS::404 (F7). Правила — src/ui/README.md. Пропи лише додаються.
+// Дизайн-система MARS//404 (F7). Правила — src/ui/README.md. Пропи лише додаються.
 import type { ReactNode } from 'react';
 import type { Evidence } from '../contracts';
 
