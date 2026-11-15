@@ -3,6 +3,13 @@
 Власник: Іван (@gonivanko) · гілка `feat/F1` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## Мітки на район (15.11, гілка `feat/F1-marks-per-site`)
+Баг: мітки зберігались одним списком без району — «Blocked» з Gale зʼявлялась на тих самих координатах у Columbia Hills і змінювала там маршрут.
+- Ключ на район: `mars404.annotations.v1.<siteId>`. Старий ключ без району — мітки Gale: один раз переноситься в ключ Gale (наявний не перезаписує) і видаляється.
+- `usePersistAnnotations`: при зміні `site` — зберегти мітки попереднього району, `setAnnotations(мітки нового)` (`site = null` — `[]`); кожна зміна пишеться лише в ключ поточного району. Store не змінюємо.
+- Export / Import — для поточного району (`toAnnotationsFile(site)`, `parseAnnotationsFile(text, site)`). Overview — панель схована (#129), ключ порожній.
+- Тести: `storage.test.ts`, `NotesPanel.test.tsx` («мітки привʼязані до району»), E2E `e2e/sites.spec.ts`.
+
 ## #105 · Режими точок: EVA / Overview / Card (15.11)
 Контракт — #103 (`SITE_IDS`, `isSiteId()`, `Region.kind`). Гілка `feat/F1-sites`, PR #128.
 

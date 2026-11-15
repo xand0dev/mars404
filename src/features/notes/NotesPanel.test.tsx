@@ -1,10 +1,10 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Annotation, AnnotationsFile, Region } from '../../contracts';
 import { resetMission, useMission } from '../../store/useMission';
 import { NotesPanel } from './NotesPanel';
-import { STORAGE_KEY } from './storage';
+import { LEGACY_STORAGE_KEY, storageKey } from './storage';
 
 const st = () => useMission.getState();
 const old: Annotation = { id: 'old-1', kind: 'impassable', coordinates: [5, 5], radiusM: 20, text: 'soft sand trap', createdAt: '2026-11-13T09:30:00.000Z', origin: 'this-eva' };
@@ -76,7 +76,7 @@ describe('F1-AC6 · переживають перезавантаження', ()
     openGale();
     const { unmount } = render(<NotesPanel />);
     await addMark(user, 'note', 'good panorama spot');
-    expect(localStorage.getItem(STORAGE_KEY)).toContain('good panorama spot');
+    expect(localStorage.getItem(storageKey('gale'))).toContain('good panorama spot');
     unmount();
     st().setAnnotations([]); // «перезавантаження»: store порожній
     render(<NotesPanel />);
@@ -164,5 +164,63 @@ describe('#105 · overview', () => {
     render(<NotesPanel />);
     expect(screen.getByText(/Overview — terrain only/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Export marks/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('мітки привʼязані до району (ключ на район)', () => {
+  it('Given мітка Blocked на Gale; When відкрили Columbia Hills; Then annotations = []; When повернулись на Gale; Then мітка є', async () => {
+    const user = userEvent.setup();
+    openGale();
+    render(<NotesPanel />);
+    await addMark(user, 'impassable', 'sand trap');
+    expect(st().annotations).toHaveLength(1);
+
+    st().setSite(null);
+    expect(st().annotations).toEqual([]);
+    st().setSite('columbia-hills');
+    expect(st().annotations).toEqual([]);
+
+    st().setSite(null);
+    st().setSite('gale');
+    expect(st().annotations.map((m) => [m.kind, m.text])).toEqual([['impassable', 'sand trap']]);
+  });
+
+  it('Given мітка на Columbia Hills; When прямо перейшли на Gale і назад; Then мітки не змішуються', async () => {
+    const user = userEvent.setup();
+    openGale();
+    render(<NotesPanel />);
+    await addMark(user, 'hazard', 'gale rocks');
+    act(() => st().setSite('columbia-hills'));
+    await addMark(user, 'note', 'spirit view');
+    expect(st().annotations.map((m) => m.text)).toEqual(['spirit view']);
+    act(() => st().setSite('gale'));
+    expect(st().annotations.map((m) => m.text)).toEqual(['gale rocks']);
+    act(() => st().setSite('columbia-hills'));
+    expect(st().annotations.map((m) => m.text)).toEqual(['spirit view']);
+    expect(localStorage.getItem(storageKey('gale'))).not.toContain('spirit view');
+  });
+
+  it('Given старий ключ без району; When відкрито Gale; Then його мітки на Gale, а не в Columbia Hills', () => {
+    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify([old]));
+    render(<NotesPanel />);
+    st().setSite('columbia-hills');
+    expect(st().annotations).toEqual([]);
+    st().setSite('gale');
+    expect(st().annotations.map((m) => m.id)).toEqual(['old-1']);
+  });
+
+  it('Export на Columbia Hills — файл site = columbia-hills лише з її мітками', async () => {
+    let blob: Blob | undefined;
+    Object.assign(URL, { createObjectURL: vi.fn((b: Blob) => ((blob = b), 'blob:m')), revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const user = userEvent.setup();
+    localStorage.setItem(storageKey('gale'), JSON.stringify([old]));
+    render(<NotesPanel />);
+    act(() => st().setSite('columbia-hills'));
+    await addMark(user, 'note', 'spirit view');
+    await user.click(screen.getByRole('button', { name: 'Export marks' }));
+    const file = JSON.parse(await blob!.text()) as AnnotationsFile;
+    expect(file.site).toBe('columbia-hills');
+    expect(file.annotations.map((m) => m.text)).toEqual(['spirit view']);
   });
 });

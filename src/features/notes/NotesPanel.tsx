@@ -24,16 +24,24 @@ function formatTime(iso: string): string {
   return Number.isNaN(t) ? iso : `${new Date(t).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 }
 
-/** Відновлення після перезавантаження і запис кожної зміни в localStorage. */
+/**
+ * Мітки на район: при зміні site — зберегти мітки попереднього району й завантажити мітки нового
+ * (site = null — порожньо); кожна зміна пишеться лише в ключ поточного району.
+ */
 function usePersistAnnotations() {
   useEffect(() => {
-    const { annotations, setAnnotations } = useMission.getState();
-    if (annotations.length === 0) {
-      const stored = loadStoredAnnotations();
+    const { site, annotations, setAnnotations } = useMission.getState();
+    if (site !== null && annotations.length === 0) {
+      const stored = loadStoredAnnotations(site);
       if (stored.length > 0) setAnnotations(stored);
     }
     return useMission.subscribe((s, prev) => {
-      if (s.annotations !== prev.annotations) saveStoredAnnotations(s.annotations);
+      if (s.site !== prev.site) {
+        if (prev.site !== null) saveStoredAnnotations(prev.site, prev.annotations);
+        s.setAnnotations(s.site === null ? [] : loadStoredAnnotations(s.site));
+        return;
+      }
+      if (s.site !== null && s.annotations !== prev.annotations) saveStoredAnnotations(s.site, s.annotations);
     });
   }, []);
 }
