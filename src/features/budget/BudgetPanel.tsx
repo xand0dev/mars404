@@ -133,7 +133,7 @@ export function BudgetPanel() {
     return (
       <div className="life-resource" data-resource={key}>
         <div className="life-resource__row">
-          <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={reserve[key]} need={planned?.[key] ?? null}
+          <Gauge label={label} value={budget[key]} max={max} unit={unit} reserve={key === 'dose' ? null : reserve[key]} need={planned?.[key] ?? null}
             deficit={reach?.deficits.includes(key) ?? false} />
           <span className={`life-word life-word--${state.tone}`} data-testid={`resource-status-${key}`}>{state.word}</span>
         </div>
