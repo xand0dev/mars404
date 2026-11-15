@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Annotation, RoutePlan, Segment, Target, XY } from '../../contracts';
 import { applyAnnotations } from '../../contracts/planning';
+import { modelFor, type TravelMode } from '../../core';
 import { useMission } from '../../store/useMission';
 import { Disclosure, Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
@@ -13,6 +14,7 @@ import { RouteDock } from './RouteDock';
 import { SegmentTable } from './SegmentTable';
 import { findNearestPhoto, photoCandidates } from './surface-photo';
 import { TraversePlan } from './TraversePlan';
+import { RoverNote, TravelModeToggle } from './TravelMode';
 import { ViewFromHere } from './ViewFromHere';
 import { WaypointOrder } from './WaypointOrder';
 import './route.css';
@@ -51,6 +53,9 @@ export function RoutePanel() {
   const setSelectedSegment = useMission((s) => s.setSelectedSegment);
   // Після першого «Build route» план перебудовується на кожну зміну входів (SPEC §6.1).
   const [autoRebuild, setAutoRebuild] = useState(false);
+  // Пішки чи на ровері: маршрут — моделлю режиму, повернення (ореол, Abort map) — пішохідною моделлю зі store (walkback).
+  const [travelMode, setTravelMode] = useState<TravelMode>('walk');
+  const planModel = useMemo(() => modelFor(travelMode, model), [travelMode, model]);
 
   useEffect(() => {
     if (!autoRebuild) return;
@@ -58,8 +63,8 @@ export function RoutePanel() {
       useMission.getState().setPlan(null);
       return;
     }
-    getRouteClient().request({ grid: planningGrid, model, start: position ?? base, waypoints, base, noData });
-  }, [autoRebuild, planningGrid, model, waypoints, base, position, noData]);
+    getRouteClient().request({ grid: planningGrid, model: planModel, start: position ?? base, waypoints, base, noData });
+  }, [autoRebuild, planningGrid, planModel, waypoints, base, position, noData]);
 
   const names = waypointNames(waypoints, targets);
   const labels = pointLabels(names);
@@ -73,7 +78,7 @@ export function RoutePanel() {
   };
 
   const build = () => {
-    if (autoRebuild && base) getRouteClient().request({ grid: planningGrid, model, start: position ?? base, waypoints, base, noData });
+    if (autoRebuild && base) getRouteClient().request({ grid: planningGrid, model: planModel, start: position ?? base, waypoints, base, noData });
     setAutoRebuild(true);
   };
 
@@ -86,10 +91,12 @@ export function RoutePanel() {
           <WaypointOrder waypoints={waypoints} names={names} onReorder={setWaypoints} />
         </Disclosure>
       )}
+      <TravelModeToggle mode={travelMode} onChange={setTravelMode} className="route-mode route-mode--panel" />
       <button type="button" className="route-build" disabled={!canBuild} aria-busy={plan?.status === 'pending'} onClick={build}>
         Build route
       </button>
       <RouteStatus plan={plan} labels={labels} hasWaypoints={waypoints.length > 0} />
+      {travelMode === 'rover' && <RoverNote plan={plan} />}
       <CrewMarksNote annotations={annotations} />
       {plan?.status === 'ok' && plan.segments.length > 0 && (
         <>
@@ -103,7 +110,7 @@ export function RoutePanel() {
       )}
       <ModelCoefficientsNote model={model} />
       {site !== null && (
-        <RouteDock plan={plan} selectedSegment={selectedSegment} onSelect={setSelectedSegment} onBuild={build} canBuild={canBuild} risks={risks} labels={labels} abort={abort} photoFor={photoFor} />
+        <RouteDock plan={plan} selectedSegment={selectedSegment} onSelect={setSelectedSegment} onBuild={build} canBuild={canBuild} travelMode={travelMode} onTravelModeChange={setTravelMode} risks={risks} labels={labels} abort={abort} photoFor={photoFor} />
       )}
     </Panel>
   );
