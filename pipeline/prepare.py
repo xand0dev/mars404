@@ -40,6 +40,9 @@ MAX_SLOPE_DEG = 25
 # Hillshade texture для районів без ортомозаїки (Columbia Hills): класичне сонце з північного заходу.
 HILLSHADE_AZ = 315
 HILLSHADE_ALT = 45
+# Лінійний stretch hillshade p2–p98 → 64…192 (лише вигляд; ширше не влазить у 8 МБ району): сирий hillshade плаского Gusev — 133…216 з медіаною 181,
+# у 3D після тонування виходив майже білим. Висоти, схил і планування від цього не залежать.
+HILLSHADE_STRETCH = (2, 98, 64, 192)
 # Тексти легенд THEMIS: лише те, що сказано в описі продукту Trek.
 THERMAL = {
     'night': dict(id='thermal', name='Thermal IR night (THEMIS)', low='cooler at night (lower thermal inertia)', high='warmer at night (higher thermal inertia)'),
@@ -127,6 +130,14 @@ def hillshade(dem, w, h, res, azimuth=315.0, altitude=45.0):
             asp = math.atan2(dy, -dx)
             out[mid + c] = max(0.0, cz * math.cos(sl) + sz * math.sin(sl) * math.cos(az - asp))
     return out
+
+
+def stretch_gray(values, p_lo, p_hi, out_lo, out_hi):
+    """0…1 → байти: лінійно [p_lo-й, p_hi-й перцентиль валідних] → [out_lo, out_hi] з обрізанням; NoData → 0."""
+    good = sorted(v for v in values if not _invalid(v))
+    a, b = good[len(good) * p_lo // 100], good[min(len(good) - 1, len(good) * p_hi // 100)]
+    k = (out_hi - out_lo) / (b - a) if b > a else 0.0
+    return bytes(0 if _invalid(v) else max(0, min(255, round(out_lo + (v - a) * k))) for v in values)
 
 
 def reachable(walk, slope, W, H, start, max_slope):
@@ -394,7 +405,7 @@ def build(cache, region='gale', out=None):
                 f['dem.tif']['url'], rc['dem'], trek_credit, at('dem.tif')),
             src('hillshade-from-dem', 'Hillshade derived from the 1 m DEM', 'assumption',
                 f'No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth {HILLSHADE_AZ} deg, altitude {HILLSHADE_ALT} deg, '
-                f'Horn 3x3 at 1 m), area-weighted mean to {cfg.TEXTURE_PX}². Shading of the DEM, not a photograph.'),
+                f'Horn 3x3 at 1 m), area-weighted mean to {cfg.TEXTURE_PX}², linear stretch p{HILLSHADE_STRETCH[0]}–p{HILLSHADE_STRETCH[1]} to {HILLSHADE_STRETCH[2]}–{HILLSHADE_STRETCH[3]}. Shading of the DEM, not a photograph.'),
             src('trek-spirit-path', 'Spirit traverse (Mars Trek)', 'verified', 'spirit_path polylines (lon/lat) clipped to bbox; elevation taken from elevation.f32 (10 m cell mean).',
                 f['spirit_path.json']['url'], 'spirit_path', 'NASA/JPL-Caltech, Mars Trek', at('spirit_path.json')),
             src('trek-spirit-waypoints', 'Spirit waypoints (Mars Trek)', 'verified', 'Husband Hill and Home Plate set the bbox centre; waypoints inside the bbox check the base.',
@@ -403,7 +414,7 @@ def build(cache, region='gale', out=None):
         shade = hillshade(dem, nw, nh, cfg.NATIVE_M, HILLSHADE_AZ, HILLSHADE_ALT)
         tex = box_resample(shade, nw, nh, cfg.TEXTURE_PX, cfg.TEXTURE_PX)
         extra_out = {}
-        texture_bytes = png.encode_gray(cfg.TEXTURE_PX, cfg.TEXTURE_PX, bytes(0 if _invalid(v) else min(255, round(v * 255)) for v in tex))
+        texture_bytes = png.encode_gray(cfg.TEXTURE_PX, cfg.TEXTURE_PX, stretch_gray(tex, *HILLSHADE_STRETCH))
     sources = [
         *region_sources,
         *thermal_sources,
@@ -426,7 +437,7 @@ def build(cache, region='gale', out=None):
                         [dict(value=1, label='rover path', color='#e8b84a')])
     else:
         optical = layer('optical', 'Hillshade (derived from DEM)', 'optical', texture, [dem_id, 'hillshade-from-dem'], 'relative shading', cfg.NATIVE_M,
-                        f'hillshade at 1 m (sun {HILLSHADE_AZ} deg / {HILLSHADE_ALT} deg), area-weighted mean to {cfg.TEXTURE_PX}²; not an image',
+                        f'hillshade at 1 m (sun {HILLSHADE_AZ} deg / {HILLSHADE_ALT} deg), area-weighted mean to {cfg.TEXTURE_PX}², contrast stretch p{HILLSHADE_STRETCH[0]}–p{HILLSHADE_STRETCH[1]}; not an image',
                         [dict(value=0, label='slope facing away from the sun', color='#000000'), dict(value=255, label='slope facing the sun', color='#ffffff')])
         mission = layer('traverse', 'Spirit traverse', 'mission', 'traverse.geojson', ['trek-spirit-path'], 'path', None, 'clip to bbox; elevation from grid',
                         [dict(value=1, label='rover path', color='#e8b84a')])
