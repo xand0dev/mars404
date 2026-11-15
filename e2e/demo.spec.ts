@@ -133,7 +133,8 @@ test('glove mode: великі цілі, вердикт і «Return in» у пе
     );
   expect(await small('body'), 'у glove mode усі цілі на глобусі ≥ 64 px').toEqual([]);
   // HUD є лише в районі: Gale з «More panels» → Location.
-  await page.locator('details.shell__more > summary').click();
+  // На глобусі шухляда вже відкрита (крок вибору району).
+  if (!(await page.locator('details.shell__more').evaluate((d) => (d as HTMLDetailsElement).open))) await page.locator('details.shell__more > summary').click();
   const loc = page.getByRole('button', { name: 'Location', exact: true });
   if ((await loc.count()) > 0 && (await loc.getAttribute('aria-expanded')) === 'false') await loc.click();
   await page.getByRole('button', { name: 'Gale / Mount Sharp' }).click();

@@ -69,14 +69,14 @@ describe('F7-AC9 · перемикач Glove mode', () => {
 describe('F7-AC9 · у режимі другорядне згорнуто, головне — зверху', () => {
   beforeEach(() => localStorage.setItem(GLOVE_KEY, '1'));
 
-  it('план і стан — у закритому «More panels», який можна розгорнути', () => {
+  it('план і стан — у «More panels»; на глобусі відкрито (вибір району), згортається', () => {
     page();
     const more = screen.getByText('More panels').closest('details') as HTMLDetailsElement;
-    expect(more.open).toBe(false);
+    expect(more.open).toBe(true);
     expect(within(more).getByRole('region', { name: 'Layers', hidden: true })).toBeInTheDocument();
     expect(within(more).getByRole('region', { name: 'Route', hidden: true })).toBeInTheDocument();
     fireEvent.click(screen.getByText('More panels'));
-    expect(more.open).toBe(true);
+    expect(more.open).toBe(false);
   });
 
   it('рельєф лишається розгорнутим', () => {
