@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Annotation, AnnotationsFile } from '../../contracts';
+import type { Annotation, AnnotationsFile, Region } from '../../contracts';
 import { resetMission, useMission } from '../../store/useMission';
 import { NotesPanel } from './NotesPanel';
 import { STORAGE_KEY } from './storage';
@@ -154,5 +154,15 @@ describe('F1-AC6 · імпорт', () => {
     await user.upload(screen.getByLabelText('Import marks'), fileOf('{"schemaVersion":1,"site":"gale","annotations":[{"id":"x"}]}'));
     expect(await screen.findByRole('alert')).toHaveTextContent(/Import failed/);
     expect(st().annotations).toBe(before);
+  });
+});
+
+describe('#105 · overview', () => {
+  it('Given відкрито overview-район; Then форми міток немає, лише підказка', () => {
+    st().setSite('olympus-mons');
+    useMission.setState({ region: { kind: 'overview' } as Region });
+    render(<NotesPanel />);
+    expect(screen.getByText(/Overview — terrain only/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Export marks/ })).not.toBeInTheDocument();
   });
 });

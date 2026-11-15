@@ -1,6 +1,7 @@
 // «Crew map notes» — жива карта (SPEC §7.12, F1-AC6): список міток, збереження в браузері, експорт / імпорт JSON.
 import { useEffect, useId, useState, type ChangeEvent, type FormEvent } from 'react';
 import type { Annotation, AnnotationKind, SiteId } from '../../contracts';
+import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { ANNOTATION_KINDS, mergeImported, parseAnnotationsFile, toAnnotationsFile } from './annotationsFile';
@@ -40,9 +41,17 @@ function usePersistAnnotations() {
 export function NotesPanel() {
   usePersistAnnotations();
   const site = useMission((s) => s.site);
+  // #105: на overview (клітинка 2400 м) EVA-мітки не мають сенсу — лише підказка.
+  const overview = useMission((s) => regionKind(s.region) === 'overview');
   return (
     <Panel title="Crew map notes" featureId="F1" owner="Іван" id="notes">
-      {site !== null ? <NotesBody site={site} /> : <p className="ui-stub">Open Gale / Mount Sharp or another site to add and share crew marks.</p>}
+      {site === null ? (
+        <p className="ui-stub">Open Gale / Mount Sharp or another EVA site to add and share crew marks.</p>
+      ) : overview ? (
+        <p className="ui-stub">Overview — terrain only. Crew marks are for EVA sites.</p>
+      ) : (
+        <NotesBody site={site} />
+      )}
     </Panel>
   );
 }
