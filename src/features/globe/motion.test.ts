@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Euler, Vector3 } from 'three';
-import { FLY_MS, lerpRotation, prefersReducedMotion, rotationToFace } from './motion';
+import { FLY_MS, lerpRotation, prefersReducedMotion, rotationToFace, transitionScale } from './motion';
 import { latLonToSphere } from './geo';
 import { SITES } from './sites';
 
@@ -48,5 +48,22 @@ describe('lerpRotation — проміжні кути анімації', () => {
   it('Given t поза [0, 1]; Then обрізається', () => {
     expect(lerpRotation([0, 0, 0], [1, 1, 1], 2)[0]).toBeCloseTo(1, 9);
     expect(lerpRotation([0, 0, 0], [1, 1, 1], -1)[0]).toBe(0);
+  });
+});
+
+describe('#150 · zoom-in після повороту до точки', () => {
+  it('Given перша половина переходу; Then масштаб не змінюється, щоб спершу завершити поворот', () => {
+    expect(transitionScale(0)).toBe(1);
+    expect(transitionScale(0.5)).toBe(1);
+  });
+
+  it('Given друга половина переходу; Then глобус плавно наближається до поверхні', () => {
+    expect(transitionScale(0.75)).toBeGreaterThan(1);
+    expect(transitionScale(1)).toBeGreaterThan(transitionScale(0.75));
+  });
+
+  it('Given progress поза межами; Then значення обрізається', () => {
+    expect(transitionScale(-1)).toBe(1);
+    expect(transitionScale(2)).toBe(transitionScale(1));
   });
 });

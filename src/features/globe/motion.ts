@@ -3,6 +3,20 @@ const DEG = Math.PI / 180;
 
 /** Тривалість анімації повороту, мс. Це UI-параметр, не фізична константа. */
 export const FLY_MS = 1200;
+/** Коротке розкриття нового району після затемнення; UI-параметр. */
+export const CROSSFADE_OUT_MS = 180;
+
+/**
+ * #150: спершу глобус повертається до маркера, потім наближається до поверхні.
+ * 2.2× — лише візуальний UI-zoom перед затемненням, не масштаб даних.
+ */
+export function transitionScale(progress: number): number {
+  const t = Math.min(1, Math.max(0, progress));
+  if (t <= 0.5) return 1;
+  const zoom = (t - 0.5) / 0.5;
+  const eased = zoom * zoom * (3 - 2 * zoom);
+  return 1 + eased * 1.2;
+}
 
 /** true, якщо користувач просить менше руху. Без matchMedia (jsdom) — false. */
 export function prefersReducedMotion(): boolean {
