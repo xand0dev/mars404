@@ -42,4 +42,6 @@ export const walkPose = {
   groundAt: null as ((xy: XY) => number | null) | null,
   /** Темп вище за біг — прискорене відтворення (ноги не встигають) */
   fastForward: false,
+  /** Маршрутом їде марсохід — камера Follow відходить далі й вище, щоб він не закривав вид */
+  rover: false,
 };

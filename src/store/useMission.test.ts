@@ -127,4 +127,12 @@ describe('useMission · правила SPEC §6.1 (F0-AC4)', () => {
     st().setTime(42);
     expect(st().time).toBe(42);
   });
+
+  it('travelMode: за замовчуванням walk, setTravelMode перемикає, resetMission повертає walk', () => {
+    expect(st().travelMode).toBe('walk');
+    st().setTravelMode('rover');
+    expect(st().travelMode).toBe('rover');
+    resetMission();
+    expect(st().travelMode).toBe('walk');
+  });
 });
