@@ -14,7 +14,7 @@
 5–8 цілей у bbox із зупинок Curiosity. Для кожної: назва, «why go» з посиланням NASA/JPL, фото Navcam з raw images API, credit і sol. `targets.geojson` і `photos/` лежать локально. Список цілей і картка.
 
 ## Дозволені шляхи
-`src/features/science/**`, `src/features/prep/**`, `public/data/gale/targets*`, `public/data/gale/photos/**`; плюс `specs/F6/**`, розділ `## F6` у `docs/AI_LOG.md` і `docs/SOURCES.md`. Тести — поруч із кодом.
+`src/features/science/**`, `src/features/prep/**`, `public/data/*/targets*`, `public/data/*/photos/**`, `public/data/sites/**`; плюс `specs/F6/**`, розділ `## F6` у `docs/AI_LOG.md` і `docs/SOURCES.md`. Тести — поруч із кодом. Перелік узгоджено з `.github/scripts/paths.mjs`.
 
 ## Store
 - Читає: site, targets, selectedTargetIds, reach, grid, plan, photos, checklist
@@ -45,6 +45,7 @@
 - **T11 — Перевірка й докази.** `npm run check`, браузер 400/1440 px, стиснені JPEG/WebP-скріни в `specs/F6/screenshots/**`, рядок AI_LOG і draft PR з AC → доказ. `Ready for review` не ставити.
 - **T12 — Список на дизайн-системі (#78).** Red-тестом зафіксувати `ui-list` / `ItemRow`, доступні назви кнопок, класи точності та стани EVA-знака; перевести `TargetsPanel` на компоненти й класи `src/ui` без власних кольорів і відступів. Перевірити 400/768/1440 px без горизонтального скролу, `npm run check`, додати стиснені скріншоти й відкрити draft PR з AC → доказ.
 - **T13 — Контент прев'ю-карток локацій (#111).** Red-тестом зафіксувати формат 6 JSON-карток та `index.json`, координати з реєстру точок глобуса, обмеження тексту, 3–5 фактів із чинними `sourceId`, JPEG 1200×750 до 250 КБ і загальні ліміти. Додати лише перевірені фото й факти з NASA / JPL / USGS / IAU / ESA / PDS, джерела в `## F6` `docs/SOURCES.md`, виконати `npm run check` і відкрити draft PR із таблицею доказів.
+- **T14 — Порожні цілі overview.** Red-validator має вимагати порожній GeoJSON `FeatureCollection` для Olympus Mons і Valles Marineris. Додати обидва `targets.geojson`, щоб DataLoader отримував 200 з `features: []` замість очікуваного fallback після 404.
 
 ## Відкриті питання
 | Питання | Хто | Коли | План Б |
