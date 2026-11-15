@@ -206,3 +206,4 @@ input[type='radio'] { accent-color: var(--accent); padding: 0; }
 /* У списках головна дія рядка — контурна: десять помаранчевих заливок поспіль кричать, а не ведуть. */
 .ui-row .ui-btn--primary { background: transparent; color: #ff5c5c; border-color: rgb(255 42 42 / 0.6); box-shadow: none; }
 .ui-row .ui-btn--primary:hover:not(:disabled) { background: rgb(255 42 42 / 0.12); border-color: var(--accent); }
+.ui-badge--owner { display: none; } /* підписи «F2 · Ім'я» — лише для розробки, у релізі прибрано */
