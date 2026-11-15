@@ -7,26 +7,35 @@ Gale crater, Mars. Every spacewalk has one question:
 when do I have to turn back?
 
 3
-00:00:08,000 --> 00:00:12,000
-Pick targets on real NASA terrain. Return in 24 minutes.
+00:00:08,000 --> 00:00:11,000
+Real NASA layers: HiRISE, THEMIS heat, slope.
+Steep ground is blocked.
 
 4
-00:00:12,000 --> 00:00:16,000
-Rehearse the walk: time, oxygen and energy, minute by minute.
+00:00:11,000 --> 00:00:13,500
+Targets are real outcrops on Curiosity's path.
 
 5
-00:00:16,000 --> 00:00:20,000
-Oxygen down 40%? It finds the point of no return
-and swaps in a closer target.
+00:00:13,500 --> 00:00:16,000
+Route on foot. Return in 24 minutes.
 
 6
-00:00:20,000 --> 00:00:24,000
-No GPS on Mars: beacons guide the way back.
+00:00:16,000 --> 00:00:18,500
+Rehearse the walk: time, oxygen and energy.
 
 7
-00:00:24,000 --> 00:00:28,000
-Same tool, second site: Spirit's Columbia Hills.
+00:00:18,500 --> 00:00:22,500
+Oxygen down 40%? Point of no return,
+then a closer target.
 
 8
+00:00:22,500 --> 00:00:25,000
+No GPS on Mars: beacons guide the way back.
+
+9
+00:00:25,000 --> 00:00:28,000
+Second site: Spirit's Columbia Hills. And the whole planet.
+
+10
 00:00:28,000 --> 00:00:30,000
 MARS::404 — know when to turn back.

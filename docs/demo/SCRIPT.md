@@ -8,20 +8,22 @@
 | Час | Блок | Що в кадрі | Субтитр (EN) |
 |---|---|---|---|
 | 0:00–0:08 | Інтро (готове) | Від першої особи: шолом, Gale, планшет у рукавиці. Видимий напис **«AI-generated footage»** у кадрі | Gale crater, Mars. Every spacewalk has one question: when do I have to turn back? |
-| 0:08–0:12 | Gale → маршрут | Location → «Gale / Mount Sharp» → Targets: **Add Brantôme**, **Add Mont Mercou** → **Build route** → HUD **«Return in 24 min»**, **GO · CAUTION** | Pick targets on real NASA terrain. Return in 24 minutes. |
-| 0:12–0:16 | Прогулянка | **▶ Walk the route**, камера **Follow** (третя особа), швидкість ×60. Лічильник EVA time іде | Rehearse the walk: time, oxygen and energy, minute by minute. |
-| 0:16–0:20 | «O₂ −40%» → Replace | **Окремий дубль** (див. «Кадр Replace»): Mont Mercou + Champeaux → What if: **O₂ −40%** → **NO-GO**, **Deficit: O₂**, **«Point of no return in 7 min»**, червоні відрізки → **«Replace Champeaux with Brantôme»** → **«Return in 12 min»**, **GO · CAUTION** | Oxygen down 40%? It finds the point of no return and swaps in a closer target. |
-| 0:20–0:24 | Навігація без GPS | Панель **Navigation**: **98 % of the route with a precise position**, **Beacons: Base + 3**, список маяків | No GPS on Mars: beacons guide the way back. |
-| 0:24–0:28 | Другий район | Location → **Columbia Hills (Gusev)**: рельєф HiRISE, шлях Spirit; Add **Comanche Outcrop** + **Home Plate** → Build route → **«Return in 8 min»**, **GO · CAUTION** | Same tool, second site: Spirit's Columbia Hills. |
+| 0:08–0:11 | Шари карти | Location → «Gale / Mount Sharp» → шари зверху (панель **Map layers**, #151; без неї — панель **Layers**): **Optical (HiRISE)** → **Thermal IR night (THEMIS)** → **Slope (derived)**; легенда в кадрі | Real NASA layers: HiRISE, THEMIS heat, slope. Steep ground is blocked. |
+| 0:11–0:13.5 | Геологічна ціль | Targets → **Open Mont Mercou**: фото Curiosity, «why go» (вершина ≈6-метрового уступу: хімія, мінералогія, шаруватість порід), credit | Targets are real outcrops on Curiosity's path. |
+| 0:13.5–0:16 | Маршрут | **Add Brantôme**, **Add Mont Mercou** → **Build route** → HUD **«Return in 24 min»**, **GO · CAUTION** | Route on foot. Return in 24 minutes. |
+| 0:16–0:18.5 | Прогулянка | **▶ Walk the route**, камера **Follow**, швидкість ×60 | Rehearse the walk: time, oxygen and energy. |
+| 0:18.5–0:22.5 | «O₂ −40%» → Replace | **Окремий дубль** (див. «Кадр Replace»): Mont Mercou + Champeaux → **O₂ −40%** → **NO-GO**, **Point of no return in 7 min**, червоні відрізки → **«Replace Champeaux with Brantôme»** → **«Return in 12 min»**, **GO · CAUTION** | Oxygen down 40%? Point of no return, then a closer target. |
+| 0:22.5–0:25 | Навігація без GPS | Панель **Navigation**: **98 % of the route with a precise position**, **Beacons: Base + 3** | No GPS on Mars: beacons guide the way back. |
+| 0:25–0:28 | Масштаб | **Columbia Hills (Gusev)**: Comanche Outcrop + Home Plate → **«Return in 8 min»**; 1 с — **Olympus Mons** (рельєф) | Second site: Spirit's Columbia Hills. And the whole planet. |
 | 0:28–0:30 | Титр | **MARS::404 — know when to turn back** · Team MARS::404 · Challenge: Martian Map | — (лише титр) |
 
-## Кадр Replace (0:16–0:20)
+## Кадр Replace (0:18.5–0:22.5)
 З **Brantôme + Mont Mercou** після «O₂ −40%» план живий (Return in 12 min, Point of no return in 8 min), тому кнопки Replace **немає**. Для цього кадру — окремий дубль:
 1. Gale → **Add Mont Mercou**, **Add Champeaux** → **Build route** (Return in 11 min, GO · CAUTION — цю частину не показуємо або 0,5 с).
 2. What if: **O₂ −40%** → **Return in 0 min**, **NO-GO**, **Deficit: O₂**, **Point of no return in 7 min**, червоні відрізки.
 3. **Replace Champeaux with Brantôme** → маршрут перебудовано на Brantôme + Mont Mercou (1092.1 m) → **Return in 12 min**, **GO · CAUTION**.
 
-Після заміни маршрут збігається з кадром 0:08–0:12, тож склейка логічна: «план, який рятує модель, — це той самий маршрут».
+Після заміни маршрут збігається з кадром 0:13.5–0:16, тож склейка логічна: «план, який рятує модель, — це той самий маршрут».
 
 ## Числа (перевірено в браузері на `main` 9a88ecd, нд 15.11)
 
@@ -45,6 +47,6 @@
 - Відео ≤30 с → YouTube (unlisted); резервна копія — у пакеті сабміту (офлайн, F8-AC2).
 
 ## План Б
-- Columbia Hills не в релізі до freeze 15:00 → кадр 0:24–0:28 замінюємо на картку «Columbia Hills — coming soon» або віддаємо час кадрам 0:08–0:20.
+- Columbia Hills не в релізі до freeze 15:00 → кадр 0:25–0:28 замінюємо на картку «Columbia Hills — coming soon» або віддаємо час кадрам 0:08–0:22.5.
 - Прогулянка гальмує на ноутбуці запису → знімаємо з камерою Top; субтитр той самий.
 - 3D недоступне → 2D-план (`?2d`), субтитри ті самі.
