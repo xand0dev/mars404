@@ -57,13 +57,16 @@ export function RoutePanel() {
   const [travelMode, setTravelMode] = useState<TravelMode>('walk');
   const planModel = useMemo(() => modelFor(travelMode, model), [travelMode, model]);
 
+  const requestPlan = (start: XY, end: XY) => getRouteClient().request({ grid: planningGrid, model: planModel, start, waypoints, base: end, noData });
+
   useEffect(() => {
     if (!autoRebuild) return;
     if (waypoints.length === 0 || !base) {
       useMission.getState().setPlan(null);
       return;
     }
-    getRouteClient().request({ grid: planningGrid, model: planModel, start: position ?? base, waypoints, base, noData });
+    requestPlan(position ?? base, base);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- requestPlan замикає ті самі входи, що в списку
   }, [autoRebuild, planningGrid, planModel, waypoints, base, position, noData]);
 
   const names = waypointNames(waypoints, targets);
@@ -78,7 +81,7 @@ export function RoutePanel() {
   };
 
   const build = () => {
-    if (autoRebuild && base) getRouteClient().request({ grid: planningGrid, model: planModel, start: position ?? base, waypoints, base, noData });
+    if (autoRebuild && base) requestPlan(position ?? base, base);
     setAutoRebuild(true);
   };
 
