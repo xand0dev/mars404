@@ -8,8 +8,10 @@ columbia-hills — #101 крок 4: квадрат 2.56 км з центром �
 «Husband Hill» (175.52469, −14.59210) і «Home Plate» (175.53130, −14.60612), перевірено 14.11.
 DEM_1m_ColumbiaHills: pixelSize 1.7e-5° ≈ 1.01 м, extent 175.4437…175.5607 E, −14.6817…−14.4953.
 
-olympus-mons, valles-marineris — overview (kind 'overview'); пакет будує overview.py (Іван, #113),
-prepare.py їх не обробляє. Центри — IAU Gazetteer, як у src/features/globe/sites.ts.
+olympus-mons, valles-marineris — overview (kind 'overview', #113): пакет будує overview.py, не prepare.py.
+Центри — IAU Gazetteer, як у src/features/globe/sites.ts. Сітка 256×256 по 2400 м (614 км), а не по 200 м (51 км):
+кальдера Olympus Mons сама ≈ 80 км, а Coprates Chasma (центр Valles за IAU) ≈ 100 км завширшки — у 51 км не видно
+ні гори, ні обох бортів каньйону. Viking MDIM 232 м на 2048² дає ≈ 300 м/піксель — близько до нативної.
 """
 import sys
 from pathlib import Path
@@ -24,11 +26,18 @@ NATIVE_PX = CELLS * MPP // NATIVE_M
 TEXTURE_PX = 2048
 TEXTURE_HD_PX = 4096  # hirise_4096.jpg для 3D (Gale, #117)
 RENDER_PX = 1024     # elevation_render.f32: 1024² по 2.5 м (#101 крок 2), лише для 3D
+# Overview (#113): MOLA + HRSC 200 м і Viking MDIM 232 м (Trek, перевірено 15.11: ImageServer відповідає 200).
+MOLA = 'Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw'
+VIKING = 'Mars_Viking_MDIM21_ClrMosaic_global_232m'
+OVERVIEW_MPP = 2400
+OVERVIEW_DEM_PX = 1024      # DEM 1024² по 600 м (білінійно, Trek) → сітка 256² по 2400 м середнім 4×4
+OVERVIEW_TEXTURE_PX = 2048
+OVERVIEW_JPEG_Q = 80        # compressionQuality exportImage: texture.jpg ≤ 1,5 МБ (#113)
 
 
-def _bbox(center):
+def _bbox(center, mpp=MPP):
     # Округлено до 6 знаків — так само, як у запиті exportImage.
-    return tuple(round(v, 6) for v in trek.bbox_around(*center, CELLS * MPP))
+    return tuple(round(v, 6) for v in trek.bbox_around(*center, CELLS * mpp))
 
 
 HUSBAND_HILL = (175.52469, -14.5921)
@@ -47,13 +56,21 @@ REGIONS = {
         name='Gusev · Columbia Hills (Spirit, Husband Hill – Home Plate)',
         centerNote='midpoint of Trek spirit_waypoints Husband Hill and Home Plate',
     ),
-    'olympus-mons': dict(kind='overview', center=(226.0 - 360, 18.4)),
-    'valles-marineris': dict(kind='overview', center=(300.8 - 360, -13.74)),
+    'olympus-mons': dict(
+        kind='overview', center=(226.0 - 360, 18.4), mpp=OVERVIEW_MPP, dem=MOLA, texture=VIKING,
+        name='Olympus Mons (overview, 614 km)', centerNote='IAU Gazetteer centre of Olympus Mons',
+    ),
+    'valles-marineris': dict(
+        kind='overview', center=(300.8 - 360, -13.74), mpp=OVERVIEW_MPP, dem=MOLA, texture=VIKING,
+        name='Valles Marineris · Coprates Chasma (overview, 614 km)', centerNote='IAU Gazetteer centre of Valles Marineris',
+    ),
 }
 for _r in REGIONS.values():
-    _r['bbox'] = _bbox(_r['center'])
+    _r.setdefault('mpp', MPP)
+    _r['bbox'] = _bbox(_r['center'], _r['mpp'])
 
 EVA = [k for k, v in REGIONS.items() if v['kind'] == 'eva']
+OVERVIEW = [k for k, v in REGIONS.items() if v['kind'] == 'overview']
 
 # Сумісність зі старими імпортами (Gale).
 CENTER = REGIONS['gale']['center']

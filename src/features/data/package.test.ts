@@ -49,13 +49,16 @@ describe('F3-AC1: пакет Gale', () => {
     const z = f32(await file(r.files.hazard));
     const walk = await file(r.files.walkable);
     let noData = 0;
+    // Порушення збираємо в масив і перевіряємо один раз: 65 536 × expect падало на тайм-ауті під навантаженням.
+    const bad: string[] = [];
     h.forEach((v, i) => {
       if (isNoDataValue(v, r.noData)) {
         noData++;
-        expect(walk[i]).toBe(0);
-      } else expect(walk[i] === 0 || walk[i] === 1).toBe(true);
-      expect(z[i]! >= 0 && z[i]! <= 1).toBe(true);
+        if (walk[i] !== 0) bad.push(`walkable[${i}] = ${walk[i]} on NoData`);
+      } else if (walk[i] !== 0 && walk[i] !== 1) bad.push(`walkable[${i}] = ${walk[i]}`);
+      if (!(z[i]! >= 0 && z[i]! <= 1)) bad.push(`hazard[${i}] = ${z[i]}`);
     });
+    expect(bad.slice(0, 5)).toEqual([]);
     expect(noData / h.length).toBeLessThan(0.05);
   });
 

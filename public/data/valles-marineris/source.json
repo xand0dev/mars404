@@ -1,0 +1,57 @@
+{
+  "accessedAt": "2026-11-15",
+  "bbox": [
+    -64.535328,
+    -18.92265,
+    -53.864672,
+    -8.55735
+  ],
+  "center": [
+    -59.19999999999999,
+    -13.74
+  ],
+  "inputs": {
+    "dem.tif": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer/exportImage?bbox=-64.535328%2C-18.922650%2C-53.864672%2C-8.557350&bboxSR=104905&imageSR=104905&size=1024%2C1024&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image",
+      "bytes": 4195660,
+      "sha256": "f2462042cc6f61d36552a41ef2c714134686293005e40cc14872adc981deb88c",
+      "accessedAt": "2026-11-15"
+    },
+    "texture.jpg": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_Viking_MDIM21_ClrMosaic_global_232m/ImageServer/exportImage?bbox=-64.535328%2C-18.922650%2C-53.864672%2C-8.557350&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image&compressionQuality=80",
+      "bytes": 753488,
+      "sha256": "551c90d81df716bed674736abc1e2a39b89feeb45aaccd2e2414cdb8d4241c30",
+      "accessedAt": "2026-11-15"
+    }
+  },
+  "native": {
+    "width": 1024,
+    "height": 1024,
+    "mpp": 600.0,
+    "sourceMpp": 200,
+    "tiffNoData": null,
+    "noDataFraction": 0.0,
+    "elevMinM": -5781.399,
+    "elevMaxM": 6356.655
+  },
+  "grid": {
+    "noDataCells": 0,
+    "slopeP50": 3.6,
+    "slopeP95": 29.82,
+    "cellsOver25": 7171
+  },
+  "render": {
+    "width": 512,
+    "height": 512,
+    "metersPerPixel": 1200.0,
+    "method": "mean of valid 600 m pixels, 2x2 per cell; 3D only",
+    "noDataCells": 0,
+    "elevMinM": -5752.858,
+    "elevMaxM": 6354.58
+  },
+  "hazardFromSlope": {
+    "kind": "slope-linear",
+    "slopeDegAtMax": 25,
+    "maxHazard": 0.5
+  }
+}
