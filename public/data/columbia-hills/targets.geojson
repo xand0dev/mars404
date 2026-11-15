@@ -7,8 +7,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          175.5246892,
-          -14.5920973
+          175.52477,
+          -14.59194
         ]
       },
       "properties": {
@@ -21,6 +21,7 @@
         ],
         "status": "verified",
         "locationAccuracy": "verified",
+        "note": "Moved 10 m north to the nearest walkable approach cell; the summit cell is 27° and exceeds the 25° model limit.",
         "photo": null
       }
     },
