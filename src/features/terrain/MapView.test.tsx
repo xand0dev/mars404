@@ -211,7 +211,7 @@ describe('T12: траверс марсохода (region.files.traverse)', () =>
 });
 
 describe('План Б: ?2d — підпис без «3D unavailable»', () => {
-  it('Plan2D з причиною forced пише, що 2D обрано свідомо', () => {
+  it('Plan2D з причиною forced (кнопка «2D» або ?2d) — без попередження «3D unavailable»', () => {
     const grid = smallGrid();
     render(
       <Plan2D
@@ -232,8 +232,8 @@ describe('План Б: ?2d — підпис без «3D unavailable»', () => {
         base={null}
       />,
     );
-    expect(screen.getByText(/2D plan requested with \?2d/)).toBeInTheDocument();
     expect(screen.queryByText(/3D unavailable/)).toBeNull();
+    expect(screen.queryByText(/\?2d/)).toBeNull();
   });
 });
 

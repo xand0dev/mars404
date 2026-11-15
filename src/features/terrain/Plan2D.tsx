@@ -117,11 +117,8 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
 
   return (
     <div className="terrain-plan2d">
-      {reason.code === 'forced' ? (
-        <StatusNote level="info" live="status">
-          {reason.text}. Remove ?2d from the address for 3D.
-        </StatusNote>
-      ) : (
+      {/* 2D обрали самі (кнопка «2D» або ?2d) — без пояснень; попередження лише коли 3D не вийшло. */}
+      {reason.code === 'forced' ? null : (
         <StatusNote level="warn" live="status">
           3D unavailable: {reason.text}. Showing 2D plan.
         </StatusNote>

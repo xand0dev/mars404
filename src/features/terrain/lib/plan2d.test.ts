@@ -23,7 +23,7 @@ describe('План Б: примусовий 2D через ?2d (SPEC §12, низ
   it('WebGL є, але ?2d → 2D з причиною forced', () => {
     const r = planReason({ ...ok, forced: true });
     expect(r?.code).toBe('forced');
-    expect(r?.text).toMatch(/\?2d/);
+    expect(r?.text).toBe('2D map');
   });
   it('справжня причина (немає WebGL, втрата контексту, невалідна сітка) важливіша за ?2d', () => {
     expect(planReason({ ...ok, webgl: false, forced: true })?.code).toBe('no-webgl');
