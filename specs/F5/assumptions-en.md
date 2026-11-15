@@ -1,6 +1,6 @@
 # Model assumptions (Validity field)
 
-MARS::404 plans walking EVAs on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled "assumption". The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
+MARS::404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled "assumption". The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
 
 - **Terrain grid.** Routes are planned on a 256 × 256 grid of 10 m cells (2.56 km × 2.56 km), built from NASA Mars Trek HiRISE 1 m stereo elevation models (`Gale_DEM_SMG_1m`, `DEM_1m_ColumbiaHills`). Each cell height is the mean of the valid 1 m pixels inside it. Anything smaller than 10 m (single boulders, small craters) is not resolved.
 - **Slope and no-go cells.** Slope is computed at the native 1 m and each cell keeps its steepest value (Horn 3×3, maximum per cell). Cells steeper than **25°** are blocked, and so are steps between cells steeper than 25°. NoData cells are always blocked and are never treated as safe. The 25° limit is an **assumption**.
@@ -13,15 +13,15 @@ MARS::404 plans walking EVAs on real HiRISE terrain. The walk and life-support m
 - **EVA time limit.** **1 hour (3600 s)** for the demo, an **assumption**. For comparison, an ISS EMU EVA lasts up to 7 hours (NASA, NTRS 20140009556).
 - **Emergency O₂ for the walk home.** The abort map and the point of no return keep **56 g** of O₂ untouched on the way back: "a minimum of 30 minutes of emergency O2" from the EMU Secondary Oxygen Package (NASA, NTRS 20140009556), × 0.031 g/s = 55.8 g. The 30-minute figure is verified. The grams are an **assumption**, because the suit is an ISS EMU and the rate comes from Apollo.
 - **Safety reserve.** **20%** of every limit (time, O₂, energy and dose when known) is kept back and never planned into. **Assumption.**
-- **Suit energy.** **0.05 Wh per metre walked** (50 Wh/km) against a **600 Wh** battery. Energy is used only by moving, not while standing still. Both numbers are **assumptions**; no source is given.
-- **Radiation dose is unknown.** The model does not have a per-second dose rate or a per-EVA dose limit (both are null). Every result is therefore marked **"incomplete — return not fully assessed"**, and the app never shows an unknown dose as zero. We do not have a radiation map of the terrain, so we do not stretch a single point measurement across the map.
+- **Suit energy.** **0.05 Wh per metre walked** (50 Wh/km), an **assumption** with no published source. The limit is the ISS EMU battery: "20.5 V and 45 Ah" = **922 Wh** (NASA, NTRS 20050217305) — verified, but it is an ISS suit, not a Mars suit. Energy is used only by moving, not while standing still; a real suit draws power all the time (~130 W), so this part is optimistic.
+- **Radiation dose.** Surface dose rate **0.0078 µSv/s** (0.67 mSv per day), measured by Curiosity's RAD instrument at Gale (NASA/JPL, Hassler et al. 2014) — verified for Gale; for Columbia Hills the same rate is an **assumption** (no surface measurement there). NASA has no per-EVA dose limit, so the app compares the dose with the **600 mSv career limit** (NASA-STD-3001) only for scale. A typical demo route adds about 11 µSv.
 - **Earth and Moon data used for Mars.** Speed, O₂ rate and the emergency reserve come from Apollo (Moon, 1/6 g) and ISS (EMU) experience. No Mars EVA data exists. Mars gravity (0.38 g), Mars suits and dust will change these numbers.
 
 ## What the model does NOT do
 
 - It is **not certified navigation**. The app says so on screen ("Model, not certified navigation") and counts how many coefficients still lack a verified source.
 - It has **no real-time telemetry, weather or dust storms**. Terrain, limits and coefficients are static, and the planning only uses data downloaded in advance.
-- It models **walking only**. There is no rover, and no radiation dose estimate per route.
+- The **rover** option is simplified: Apollo LRV numbers (2.5 m/s, crew O₂ 0.011 g/s while riding, 0.132 Wh/m of an 8.7 kWh battery) are moved from the Moon to Mars as **assumptions**, the rover drives the same route as the walker (no parking, same slope limit), and the walk home from any point is always checked **on foot** (walkback rule). Dose is a single site-wide rate, not a radiation map.
 
 ## Where each number lives
 
@@ -38,7 +38,7 @@ MARS::404 plans walking EVAs on real HiRISE terrain. The walk and life-support m
 | O₂ limit 140 g, time limit 3600 s | `limits.o2 = 140`, `limits.time = 3600`, `limitsEvidence` | `region.json`; `docs/SPEC.md §7.6`; `docs/SOURCES.md ## F3` (`limit-o2-assumption`, `limit-time-assumption`), `## F5` (`assumption-limits`) |
 | Emergency O₂ 56 g (30 min EMU SOP) | `model.emergencyO2G = 56`, evidence `emu-sop-30min` | `region.json`; `src/core/abort.ts` (`assessAbort`); `docs/SPEC.md §7.8`; `docs/SOURCES.md ## F5` (`emu-sop-30min`) |
 | Reserve 20% | `model.reserveFraction = 0.2` | `region.json`; `src/core/budget.ts` (`reserveOf`); `docs/SPEC.md §7.4`; `docs/SOURCES.md ## F5` (`assumption-reserve`) |
-| Energy 0.05 Wh/m, 600 Wh, motion only | `model.energyWhPerM = 0.05`, `limits.energy = 600` | `region.json`; `src/core/budget.ts` (`computeBudget`: energy does not decrease with elapsed time); `docs/SOURCES.md ## F5` (`assumption-energy`) |
-| Dose unknown → incomplete | `model.doseUSvPerS = null`, `limits.dose = null` | `region.json`; `src/core/budget.ts` (`budgetStatus`); `docs/SPEC.md §7.4, §7.6`; `docs/SOURCES.md ## F3` (`limit-dose-assumption`) |
+| Energy 0.05 Wh/m, battery 922 Wh (EMU), motion only | `model.energyWhPerM = 0.05`, `limits.energy = 922`, evidence `emu-battery` | `region.json`; `pipeline/prepare.py` (`LIMIT_ENERGY_WH`); `src/core/budget.ts` (`computeBudget`); `docs/SOURCES.md ## F5` (`emu-battery`) |
+| Dose 0.0078 µSv/s (RAD, Gale), career limit 600 mSv | `model.doseUSvPerS = 0.0078`, `limits.dose = 600000` | `region.json`; `pipeline/prepare.py` (`DOSE_USV_PER_S`, `LIMIT_DOSE_USV`); `docs/SOURCES.md ## F5` (`msl-rad-gale`, `nasa-std-3001-career`) |
 | "Model, not certified navigation" | UI string | `src/features/route/ModelCoefficients.tsx` |
-| No weather or telemetry, walking only (rover out of MVP) | scope table | `docs/SPEC.md §4` |
+| No weather or telemetry; rover = Apollo LRV assumptions, walkback on foot | scope table; `ROVER`, `riderModel` | `docs/SPEC.md §4`; `src/core/rover.ts`; `specs/F4/rover.md` |
