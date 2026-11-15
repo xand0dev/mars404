@@ -63,6 +63,7 @@
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | #134: курсор Add mark — pin із «+» (кінчик = точка мітки), not-allowed поза рельєфом / сіткою, звичайний поза режимом; запасний crosshair | src/features/terrain/{MapView,TerrainScene,Plan2D}.tsx, lib/markCursor.ts (+test), terrain.css | npm run check; обчислений cursor у Chrome: auto → pin → not-allowed → auto | feat/F2-mark-cursor |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | «Remove all marks (N)» у Crew map notes з підтвердженням — мітки живуть лише в браузері (localStorage), прибрати тестові одним кліком | src/features/notes/NotesPanel.tsx (+ тест) | npm run check; npm run e2e | release/clear-marks |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | #145: кільце контексту опускається під районом на 60 м (замість 12) — більше не вилазить над дном Columbia Hills; на overview без штрихування «Blocked» | src/features/terrain/{Environment,MapView}.tsx, lib/context.ts (+test) | npm run check; кадри до / після: Columbia Hills і Valles Marineris, вид Top | feat/F2-context-drop |
+| 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Реліз: favicon (SVG) — прибрано 404 favicon.ico з консолі на кожному екрані | index.html, public/favicon.svg | npm run check; релізний прогін на Pages | feat/F0-favicon |
 
 ## F3
 
