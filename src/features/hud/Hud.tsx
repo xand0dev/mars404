@@ -45,6 +45,26 @@ export function Hud() {
     elapsedRef.current?.focus();
   };
 
+  if (v.kind === 'overview') {
+    // Overview: виходу тут не плануємо — без «Return in», GO / NO-GO і ресурсів; чесно кажемо, що це лише рельєф.
+    return (
+      <Panel title="HUD" featureId="F7" owner="Оля" mock={v.mock}>
+        <div className="hud hud--overview">
+          <p className="hud__return">
+            <strong>Terrain overview</strong>
+          </p>
+          <div className="hud__info">
+            <div className="hud__status">
+              <StatusNote level={v.level} live={v.live}>
+                <strong>{v.message}</strong> <span className="hud__next-label">Next:</span> <span className="hud__next">{v.next}</span>
+              </StatusNote>
+            </div>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+
   return (
     <Panel title="HUD" featureId="F7" owner="Оля" mock={v.mock}>
       {/* Смуга HUD (T26): «Return in» · вердикт GO / NO-GO · статус і точка неповернення · «Elapsed» і залишки; під ними — станції. */}

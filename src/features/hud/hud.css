@@ -134,3 +134,6 @@
   .gonogo__chip { padding: 4px 8px; }
   .gonogo__id { font-size: 0.74rem; }
 }
+
+/* Overview: замість «Return in N min» — спокійний підпис, без героїчного червоного числа. */
+.hud--overview .hud__return strong { font-size: 1.6rem; color: var(--text); text-shadow: none; letter-spacing: -0.02em; white-space: normal; }

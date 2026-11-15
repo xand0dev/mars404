@@ -36,6 +36,14 @@ const base: HudInput = {
 const st = (extra: Partial<HudInput>) => hudState({ ...base, ...extra });
 
 describe('F7-AC4 · стани HUD: пояснення + наступна дія', () => {
+  it('overview: Olympus Mons — лише рельєф, без «Return in», підказка відкрити EVA-район', () => {
+    const region = { id: 'olympus-mons', kind: 'overview', status: 'verified' } as Region;
+    const v = st({ site: 'olympus-mons', region, selectedTargetIds: [], plan: null });
+    expect(v.kind).toBe('overview');
+    expect(v.minutes).toBe('—');
+    expect(v.next).toMatch(/Gale/);
+  });
+
   it('empty: місце не обрано', () => {
     const v = st({ site: null, selectedTargetIds: [], plan: null, reach: null });
     expect(v.kind).toBe('empty');

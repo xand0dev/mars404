@@ -1,10 +1,11 @@
 // Стан HUD (F7) — чиста функція зі store. Числа не рахує: N бере з reach (F5, SPEC §5.2, §7.4).
 import type { MissionState, Resources, RouteFailure } from '../../contracts';
+import { regionKind } from '../../contracts/planning';
 import { formatMinutes, type StatusLevel } from '../../ui';
 
 export type HudInput = Pick<MissionState, 'site' | 'region' | 'targets' | 'selectedTargetIds' | 'plan' | 'reach' | 'budget'>;
 
-export type HudKind = 'empty' | 'no-plan' | 'pending' | 'invalid' | 'no-path' | 'deficit' | 'incomplete' | 'estimated';
+export type HudKind = 'overview' | 'empty' | 'no-plan' | 'pending' | 'invalid' | 'no-path' | 'deficit' | 'incomplete' | 'estimated';
 
 export interface HudSwap {
   dropId: string;
@@ -74,6 +75,15 @@ export function hudState(s: HudInput): HudView {
 
   if (s.site === null) {
     return view({ kind: 'empty', level: 'info', message: 'No site selected.', next: 'Choose “Gale / Mount Sharp” in the Location panel.' });
+  }
+
+  if (s.region?.id === s.site && regionKind(s.region) === 'overview') {
+    return view({
+      kind: 'overview',
+      level: 'info',
+      message: 'Overview — terrain only, no EVA planning here.',
+      next: 'Open “Gale / Mount Sharp” or “Columbia Hills (Gusev)” to plan a walk.',
+    });
   }
 
   const { plan, reach } = s;

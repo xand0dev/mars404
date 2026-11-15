@@ -54,3 +54,12 @@ test('глобус → Columbia Hills → маршрут: Comanche Outcrop + Hom
   await expect(page.getByTestId('gonogo-verdict')).toHaveText(/GO|NO-GO/);
   await expect(page.getByRole('list', { name: 'Route legs' })).toContainText('Home Plate');
 });
+
+test('глобус → Olympus Mons: лише рельєф, без планування виходу', async ({ page }) => {
+  await chooseSite(page, 'Olympus Mons');
+  await expect(page.getByRole('region', { name: 'Olympus Mons terrain' })).toBeVisible();
+  await expect(page.locator('.shell__title')).toHaveText(/Olympus Mons terrain overview/);
+  await expect(page.locator('.hud__status')).toContainText('terrain only');
+  await expect(page.getByRole('button', { name: 'Build route' })).toHaveCount(0);
+  await expect(page.getByTestId('gonogo-verdict')).toHaveCount(0);
+});
