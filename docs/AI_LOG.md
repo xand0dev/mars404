@@ -89,6 +89,7 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F4 #98: пульт EVA для планшета (половина Route) — ◀ Play ▶, повзунок по маршруту, зведення по точці (хв від старту, O₂ використано, return OK / no return from here), «Build route» (на екрані завжди одна); у шторці — точка неповернення, ноги, обраний відрізок з мініатюрою; підшторка знімка Navcam з ◀ ▶; порядок цілей згорнуто | src/features/route/** | npm run check (631); Chromium 1024×768 і 400×800 (3D і 2D): маркер «Segment N · leg K» іде за повзунком і Play; e2e-селектори #100 — одна видима «Build route» на 1440 / 1280 / 400 і в Glove mode | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F4: точка неповернення в пульті — повзунок червоніє з неї до кінця, «Show on map» у шторці обирає її відрізок (маркер карти стрибає туди) | src/features/route/** | npm run check (645) | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | Спека `specs/F4/rover.md`: марсохід у маршруті — джерела LRV (8.7 kWh, 20.1 км, 7.6 км), walkback 10 км і O₂ на ровері (Jones), модель walk / drive, walkback limit, зміни контракту, задачі V1–V8 | specs/F4/** | цитати звірено (NSSDC, LA-UR-89-3858) | — |
+| 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | F4 rover V1: джерела LRV (швидкість 9.2–16 км/год, схил 25°, 1.87 Ah/км, 8.7 kWh), walkback 9.5 км (SP-4204, SEV fact sheet), Mars DRA 5.0 (~15 км walkback, ровери 3–10 км/год); прибрано непідтверджене «SEV 40°» | specs/F4/rover.md | цитати дослівно зі сторінок NASA / Wayback-копій ALSJ; OCR LRV handbook — candidate | — |
 
 ## F5
 
