@@ -285,6 +285,7 @@ export function MapView({ globe }: MapViewProps) {
         counts={cells.counts}
         overview={overview}
         rasterRGBA={raster2D ?? (heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null)}
+        photoUrl={textureUrl}
         mask={mask ?? null}
         layerUrls={layerUrls}
         gridLayers={gridLayers2D}
