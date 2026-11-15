@@ -1,6 +1,7 @@
 # Submission — MARS::404 (NASA Space Apps 2026)
 
 > Тексти для форми Space Apps, англійською. Форму заповнює й відправляє Олександр (чернетка 20:00, фінал 21:00).
+> Назви розділів = поля форми з Project Submission Guide (spaceappschallenge.org, 13.11.2026). Усе — англійською; посилання — публічні, без входу (перевірити в приватному вікні).
 > Правило: жодного числа чи твердження, якого немає в продукті, `docs/SOURCES.md` або `specs/F5/assumptions-en.md`.
 > `COMING SOON` — чекаємо текст / посилання від людини в дужках. Перед відправкою — прибрати цей блок і всі `COMING SOON`.
 
@@ -20,16 +21,19 @@ Interplanetary Survival Guide: Martian Map
 | Vlad | @froozy3 | route planner, resource and return model |
 | Nastia | @Bulka0801 | science targets and photos, QA, sources |
 
-## Links
+## Link to Project Demo
+Video ≤ 30 s with English subtitles (YouTube unlisted, no login): COMING SOON (Oleksandr).
+Backup: slide deck, 7 slides in English (Google Slides / PDF, public link): COMING SOON (Olia).
+Only one demo counts; anything over 30 s or 7 slides is not eligible for Global Judging.
+
+## Link to Final Project
 - Live app (no login): https://xand0dev.github.io/mars404/
 - Source code (Apache-2.0): https://github.com/xand0dev/mars404
-- Demo video (≤30 s, English subtitles, YouTube unlisted): COMING SOON (Oleksandr)
-- Slides (≤7, PDF): COMING SOON (Olia, after screenshots from Ivan)
 
-## High-level summary
+## High-Level Project Summary
 On Mars an astronaut on foot has no GPS and no live help from Earth, and the same oxygen, energy and time must last the way back. MARS::404 is a tablet planner for walking spacewalks that answers one question: when do I have to turn back? Built on real NASA terrain of Gale crater (Curiosity) and the Columbia Hills (Spirit), it plans a walking route around steep and unknown ground, counts down “Return in N min”, marks the point of no return, gives a GO / NO-GO before the walk starts and, when oxygen drops, suggests a closer target. It works offline, finds the position without GPS from beacons, and is honest about its limits: every model number shows its source or the word “assumption”.
 
-## Detailed project description
+## Detailed Project Description
 
 ### What it does
 - **Pick a site on a 3D Mars globe.** Two detailed walking sites — Gale crater / Mount Sharp (Curiosity) and the Columbia Hills (Spirit) — plus terrain overviews of Olympus Mons and Valles Marineris.
@@ -51,7 +55,7 @@ COMING SOON (Oleksandr, ~19:00).
 ### Tools, languages, hardware and software
 COMING SOON (Oleksandr, ~19:00).
 
-## NASA data
+## NASA Data
 Text from Maksym (`docs/SOURCES.md`, “NASA data for the Space Apps form”, #127):
 
 > Terrain and imagery from NASA Mars Trek: HiRISE 1 m elevation models of Gale crater (Curiosity) and the Columbia Hills (Spirit), the HiRISE orthomosaic of the Curiosity area, THEMIS day and night infrared mosaics (Mars Odyssey), the MOLA + HRSC 200 m global elevation model and the Viking MDIM 2.1 colour mosaic. Rover traverses and stops from NASA/JPL-Caltech (MSL MMGIS, Mars Trek Spirit layers) and Curiosity raw images. All data is cropped and resampled offline by our reproducible pipeline; every layer in the app shows its source and resolution.
@@ -71,8 +75,8 @@ Text from Maksym (`docs/SOURCES.md`, “NASA data for the Space Apps form”, #1
 
 Full list with product IDs, dates and licences: `docs/SOURCES.md`.
 
-## Space agency partner and other data
-- **ESA / DLR / FU Berlin** — HRSC (Mars Express) in the MOLA + HRSC blended elevation model; CC BY-SA 3.0 IGO.
+## Space Agency Partner Data and Other References
+- **ESA (2026 Space Agency Partner)** — HRSC on Mars Express (ESA / DLR / FU Berlin) in the MOLA + HRSC blended 200 m elevation model: 61 km terrain ring around Gale and Columbia Hills, Olympus Mons and Valles Marineris overviews; CC BY-SA 3.0 IGO.
 - **Astronaut 3D model** — Quaternius (CC0), https://poly.pizza/m/3hC2i0CTuO; **walk animation** — Adobe Mixamo motion capture.
 - Apollo and ISS suit references used for model coefficients — see “Validity” below.
 
@@ -91,12 +95,14 @@ Text from Vlad (`specs/F5/assumptions-en.md`, #139), short form for the form fie
 
 Full text with sources and the file where each number lives: `specs/F5/assumptions-en.md`.
 
-## Use of artificial intelligence
+## Use of Super Intelligence (SI)
+Yes. SI tools were used as accelerators, not to come up with the idea; people chose the challenge, wrote the specification and decided what to merge.
+
 - **Code.** We used AI coding agents — mostly Claude Code (Anthropic), plus Codex (OpenAI) — to write code, tests and documentation from human-written specifications (`docs/SPEC.md`, per-feature acceptance criteria). People wrote the specs, reviewed every change in the browser and on CI (`npm run check`, Playwright E2E), and decided what to merge. Every AI session is logged in `docs/AI_LOG.md`: date, person, tool, task, files, how it was checked, PR.
 - **Data and science values.** No AI-generated data, images or numbers are presented as NASA data. All terrain, imagery, rover paths and photos come from NASA / USGS / ESA sources listed above; model coefficients carry a source or the label “assumption”.
-- **Video.** The first 8 seconds of the demo video (first-person intro on Mars) are AI-generated footage and carry a visible “AI-generated footage” label in the frame. Tool: COMING SOON (Oleksandr — also add a row to `docs/AI_LOG.md`). All product shots are screen recordings of the live app.
+- **Video.** The first 8 seconds of the demo video (first-person intro on Mars) are AI-generated footage and carry a visible “AI-generated footage” label in the frame. Tool: COMING SOON (Oleksandr — also add a row to `docs/AI_LOG.md`). All product shots are screen recordings of the live app. No NASA logos, flags or mission identifiers are used in generated content, and no images of people under 18.
 
-## References
+### References
 - E. M. Jones, *Working on the Moon*, LA-UR-89-3858 — Apollo walking speed and O₂ use.
 - NASA NTRS 20140009556 — EMU: 30 minutes of emergency O₂, EVA up to 7 hours.
 - Lejeune et al. (1998) — energy cost of walking on sand (soil slowdown cap).
