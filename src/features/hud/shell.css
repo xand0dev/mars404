@@ -70,6 +70,9 @@
 
 /* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px; лише HUD і карта, решта — у «More panels». */
 .shell--glove { --touch: 64px; font-size: 1.1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'bar' 'hud' 'map' 'more'; }
+/* Крок вибору району: шухляда з Location над картою, щоб на планшеті її було видно без прокрутки. */
+.shell.shell--glove.shell--step-site { grid-template-areas: 'bar' 'hud' 'more' 'map'; }
+.shell.shell--glove.shell--step-site:has(> .shell__hud:empty) { grid-template-areas: 'bar' 'more' 'map'; }
 .shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
 .shell--glove input[type='number'] { width: 12rem; }
 .shell__more { grid-area: more; }

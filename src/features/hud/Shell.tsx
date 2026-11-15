@@ -113,7 +113,8 @@ export function Shell({ hud, map, side, status }: ShellProps) {
           {map}
         </main>
         {glove ? (
-          <details className="shell__more">
+          // На кроці вибору району HUD порожній, тож список локацій відкритий одразу (на сенсорному планшеті закрита шухляда під картою — глухий кут).
+          <details className="shell__more" key={step} open={step === 'site' || undefined}>
             <summary>More panels</summary>
             <div className="shell__more-body">
               {plan}
