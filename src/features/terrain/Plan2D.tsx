@@ -43,6 +43,8 @@ export interface Plan2DProps {
   onPick?: ((xy: XY) => void) | null;
   /** Add mark: курсор над сіткою (true) чи поза нею (false) — для pin / not-allowed (#134) */
   onPickHover?: (valid: boolean) => void;
+  /** Знімок району (HiRISE / Viking) — підкладка 2D-карти; є — замість кольорів класів клітинок */
+  photoUrl?: string | null;
   /** Навігація без GPS: маяки, відрізки на інерціалці, контрольні точки */
   nav?: { beacons: { xy: XY; label: string }[]; drift: XY[][]; checkpoints: XY[] } | null;
 }
@@ -67,7 +69,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null, overview = false }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null, overview = false, photoUrl = null }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -129,7 +131,15 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
       <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg" onClick={onClick} onMouseMove={onMove} onMouseLeave={onPick && onPickHover ? () => onPickHover(false) : undefined}>
         <title>{label}</title>
         <rect width={w} height={h} fill="#7a4a2c" />
-        {raster && <image href={raster} width={w} height={h} preserveAspectRatio="none" style={{ imageRendering: 'pixelated' }} />}
+        {photoUrl ? (
+          <g data-kind="photo">
+            <image href={photoUrl} width={w} height={h} preserveAspectRatio="none" />
+            {/* Знімок сірий — легкий марсіанський тон, як у 3D. */}
+            <rect width={w} height={h} fill="#c0662f" opacity={0.3} style={{ mixBlendMode: 'multiply' }} />
+          </g>
+        ) : (
+          raster && <image href={raster} width={w} height={h} preserveAspectRatio="none" style={{ imageRendering: 'pixelated' }} />
+        )}
         {layerUrls.map((l) => (
           <image key={l.id} data-layer={l.id} href={l.url} width={w} height={h} preserveAspectRatio="none" opacity={0.6} />
         ))}
@@ -137,9 +147,9 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
           (l) =>
             l.href && <image key={l.id} data-layer={l.id} href={l.href} width={w} height={h} preserveAspectRatio="none" opacity={0.6} style={{ imageRendering: 'pixelated' }} />,
         )}
-        {haloFillD && <path d={haloFillD} fill={CSS.halo} opacity={HALO_FILL_ALPHA / 255} data-kind="halo" />}
+        {haloFillD && <path d={haloFillD} fill={CSS.halo} opacity={photoUrl ? 0.1 : HALO_FILL_ALPHA / 255} data-kind="halo" />}
         {haloEdgeD && <path d={haloEdgeD} fill={CSS.halo} data-kind="halo-edge" />}
-        {blockedD && !overview && <path d={blockedD} fill={CSS.blocked} data-kind="blocked" />}
+        {blockedD && !overview && <path d={blockedD} fill={CSS.blocked} opacity={photoUrl ? 0.4 : 1} data-kind="blocked" />}
         {noDataD && <path d={noDataD} fill={CSS.noData} data-kind="nodata" />}
         {traverse.map((l, k) => (
           <polyline
@@ -190,8 +200,8 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
           return (
             <g key={t.id} data-kind="target" data-selected={sel}>
               <EvaSignShape kind="target" state={!inReach(t.coordinates) ? 'outside' : sel ? 'selected' : 'unselected'} x={x} y={y} size={sign} label={`${t.name}${!inReach(t.coordinates) ? ', outside reachable area' : sel ? ', selected' : ''}`} />
-              {(sel || targets.length <= 2) && (
-              <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400}>
+              {(sel || photoUrl || targets.length <= 2) && (
+              <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * (sel ? 2.4 : 1.9)} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400} opacity={sel ? 1 : 0.85}>
                 {text}
               </text>
               )}
