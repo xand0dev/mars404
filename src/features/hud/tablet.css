@@ -10,7 +10,7 @@
 @media (min-width: 1200px) and (min-height: 700px) and (pointer: fine), (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
   body:has(.tablet) {
     --tab-bezel: 40px;
-    --tab-walk: 150px;
+    --tab-walk: 60px;
     --tab-w: min(calc(100vw - 170px), calc((100vh - 90px) * 1.6));
     --tab-h: calc(var(--tab-w) / 1.6);
     --tab-left: calc((100vw - var(--tab-w)) / 2 + var(--tab-bezel));
@@ -70,9 +70,11 @@
   .tablet .shell--glove .map-layers__btn { min-height: 52px; font-size: 0.85rem; }
 
   /* HUD — плитка зліва поверх карти. */
-  .tablet .shell--glove > .shell__hud { position: absolute; z-index: 4; top: calc(var(--tab-bar) + 12px); left: 12px; width: min(360px, 32%); max-height: calc(100% - var(--tab-bar) - var(--eva-dock-h, 104px) - var(--tab-walk) - 90px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; mask-image: linear-gradient(#000 calc(100% - 28px), transparent); }
+  .tablet .shell--glove > .shell__hud { position: absolute; z-index: 4; top: calc(var(--tab-bar) + 12px); left: 12px; width: min(360px, 32%); max-height: calc(100% - var(--tab-bar) - var(--eva-dock-h, 104px) - var(--tab-walk) - 90px); overflow: clip; /* clip, не auto: фокус і scrollIntoView не прокрутять «Return in» з виду */ mask-image: linear-gradient(#000 calc(100% - 28px), transparent); }
   .tablet .shell--glove > .shell__hud > * { background: var(--tab-glass); backdrop-filter: blur(10px); }
   .tablet .shell--glove .gonogo__verdict { font-size: 1.2rem; }
+  /* Ручне поле «Elapsed, s» і рядок «Time left …» у планшеті не потрібні (час іде з прогулянки); до того ж фокус на полі прокручував HUD і ховав «Return in». */
+  .tablet .shell--glove :is(.hud__elapsed, .hud__left) { display: none; }
   .tablet .shell--glove .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   /* Камери — справа зверху; «More panels» — під ними, відкривається шухлядою праворуч. */
@@ -83,13 +85,20 @@
   .tablet .shell--glove > .shell__more > summary { pointer-events: auto; width: fit-content; margin: 0 0 0 auto; background: var(--tab-glass); backdrop-filter: blur(10px); justify-content: center; padding: 0 18px; }
   .tablet .shell--glove > .shell__more > .shell__more-body { pointer-events: auto; grid-template-columns: minmax(0, 1fr); max-height: var(--more-h); overflow-y: auto; overscroll-behavior: contain; padding: 8px; border-radius: 14px; background: rgb(8 8 10 / 0.94); }
 
-  /* Прогулянка — плитка внизу зліва над пультом. */
-  .tablet .shell--glove .walk-panel { position: absolute; z-index: 4; left: 12px; bottom: calc(var(--eva-dock-h, 104px) + 54px); width: min(700px, calc(100% - 500px)); max-height: var(--tab-walk); overflow: hidden; margin: 0; background: var(--tab-glass); backdrop-filter: blur(10px); }
-  .tablet .shell.shell--glove .walk-panel button { min-height: 48px; min-width: 48px; margin: 0; padding: 0 10px; font-size: 0.9rem; }
-  .tablet .shell--glove .walk-panel__row { flex-wrap: nowrap; gap: 6px; }
-  .tablet .shell--glove .walk-panel__speeds { flex-wrap: nowrap; gap: 4px; }
-  .tablet .shell--glove .walk-panel__stats { font-size: 0.8rem; }
-  .tablet .shell--glove .walk-panel__note { display: none; }
+  /* Прогулянка — одна смуга на всю ширину над пультом: кнопки · швидкість · час. Камери — над нею. */
+  .tablet .shell--glove .walk-panel { position: absolute; z-index: 4; left: 12px; right: 12px; bottom: calc(var(--eva-dock-h, 104px) + 54px); width: auto; max-height: none; overflow: hidden; margin: 0; padding: 6px 10px; display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; background: var(--tab-glass); backdrop-filter: blur(10px); }
+  .tablet .shell--glove .walk-panel__row { flex: none; flex-wrap: nowrap; gap: 4px; }
+  .tablet .shell--glove .walk-panel__speeds { flex-wrap: nowrap; gap: 2px; margin-left: 6px; }
+  .tablet .shell.shell--glove .walk-panel button { min-height: 48px; min-width: 40px; margin: 0; padding: 0 9px; font-size: 0.85rem; white-space: nowrap; flex: none; }
+  .tablet .shell--glove .walk-panel__scrub { flex: 1 1 auto; min-width: 120px; font-size: 0.85rem; white-space: nowrap; }
+  .tablet .shell--glove .walk-panel__scrub > span, .tablet .shell--glove .walk-panel__stats { display: none; }
+  .tablet .shell--glove:has(.walk-panel) .terrain-cams { bottom: calc(var(--eva-dock-h, 104px) + 54px + var(--tab-walk) + 10px); }
+
+  /* Пульт у планшеті: підказки під повзунком немає (місця нема), повзунок і лічильник не налазять на On foot / Rover. */
+  body:has(.tablet) .eva-dock__readout { min-width: 0; overflow: hidden; }
+  body:has(.tablet) .eva-dock__readout > span { display: none; }
+  body:has(.tablet) .eva-dock__where { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 0.85rem; }
+  body:has(.tablet) .eva-dock__mode button { justify-content: center; white-space: nowrap; }
 
   /* Глобус (району ще нема, HUD порожній): HUD-плитки нема, шари з лівого краю. */
   .tablet .shell--glove:has(> .shell__hud:empty) .map-layers { left: 12px; }
@@ -109,7 +118,7 @@
 
 /* Сенсорний планшет: без корпусу, екран на весь дисплей. */
 @media (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
-  body:has(.tablet) { --tab-bezel: 0px; --tab-w: 100vw; --tab-h: 100dvh; --tab-left: 0px; --tab-bottom: 0px; --tab-inner-w: 100vw; --tab-walk: 130px; background: #050506; }
+  body:has(.tablet) { --tab-bezel: 0px; --tab-w: 100vw; --tab-h: 100dvh; --tab-left: 0px; --tab-bottom: 0px; --tab-inner-w: 100vw; --tab-walk: 60px; background: #050506; }
   .tablet__bezel { width: 100vw; height: 100dvh; padding: 0; border: none; border-radius: 0; box-shadow: none; background: #050506; }
   .tablet :is(.tablet__bump, .tablet__lug, .tablet__key, .tablet__cam, .tablet__mark) { display: none; }
   .tablet__screen { border: none; border-radius: 0; }
