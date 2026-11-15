@@ -6,7 +6,7 @@ import { SitePanel } from './SitePanel';
 import { resetGlobe, useGlobe } from './globeState';
 import { SITES, type Site } from './sites';
 import { chooseSite } from './choose';
-import { FLY_MS } from './motion';
+import { CROSSFADE_OUT_MS, FLY_MS } from './motion';
 import { ZOOM_MIN, ZOOM_STEP, resetZoom, useZoom } from './zoom';
 
 beforeEach(() => {
@@ -68,7 +68,8 @@ describe('#105 · EVA і Overview з глобуса', () => {
       render(<SitePanel />);
       await user.click(screen.getByRole('button', { name: 'Columbia Hills (Gusev)' }));
       expect(useMission.getState().site).toBeNull();
-      expect(screen.getByText(/Flying to Columbia Hills/)).toBeInTheDocument();
+      expect(screen.getByText(/Entering Columbia Hills/)).toBeInTheDocument();
+      expect(screen.getByTestId('site-transition')).toHaveClass('site-transition');
       act(() => vi.advanceTimersByTime(FLY_MS));
       expect(useMission.getState().site).toBe('columbia-hills');
     } finally {
@@ -198,11 +199,16 @@ describe('F1-AC3 · перехід до Gale: анімація, Skip, reduced mo
     await user.click(galeButton());
     expect(useMission.getState().site).toBeNull();
     expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument();
+    expect(screen.getByText('Entering Gale / Mount Sharp…')).toBeInTheDocument();
+    expect(screen.getByTestId('site-transition')).toBeInTheDocument();
     expect(useGlobe.getState().flying).toBe(true);
     act(() => vi.advanceTimersByTime(FLY_MS));
     expect(useMission.getState().site).toBe('gale');
     expect(useGlobe.getState().flying).toBe(false);
     expect(screen.queryByRole('button', { name: 'Skip' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('site-transition')).toHaveClass('site-transition--reveal');
+    act(() => vi.advanceTimersByTime(CROSSFADE_OUT_MS));
+    expect(screen.queryByTestId('site-transition')).not.toBeInTheDocument();
   });
 
   it('Given увімкнено reduced motion; When обрано Gale; Then район відкривається одразу, без анімації', async () => {
@@ -213,6 +219,7 @@ describe('F1-AC3 · перехід до Gale: анімація, Skip, reduced mo
     expect(useMission.getState().site).toBe('gale');
     expect(useGlobe.getState().flying).toBe(false);
     expect(screen.queryByRole('button', { name: 'Skip' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('site-transition')).not.toBeInTheDocument();
   });
 
   it('Given анімація йде; When «Skip»; Then район одразу, а таймер більше не пише в store', async () => {
@@ -224,6 +231,17 @@ describe('F1-AC3 · перехід до Gale: анімація, Skip, reduced mo
     await user.click(screen.getByRole('button', { name: 'Back to globe' }));
     act(() => vi.advanceTimersByTime(FLY_MS * 2));
     expect(useMission.getState().site).toBeNull();
+  });
+
+  it('Given анімація йде; When Tab до Skip і Enter; Then район відкривається з клавіатури', async () => {
+    const user = setup();
+    render(<SitePanel />);
+    await user.click(galeButton());
+    const skip = screen.getByRole('button', { name: 'Skip' });
+    skip.focus();
+    await user.keyboard('{Enter}');
+    expect(useMission.getState().site).toBe('gale');
+    expect(useGlobe.getState().flying).toBe(false);
   });
 
   it('Given сцени немає (без WebGL); When обрано Gale; Then одразу', async () => {
@@ -242,6 +260,7 @@ describe('F1-AC3 · перехід до Gale: анімація, Skip, reduced mo
     act(() => vi.advanceTimersByTime(FLY_MS * 2));
     expect(useMission.getState().site).toBeNull();
     expect(useGlobe.getState().flying).toBe(false);
+    expect(screen.queryByTestId('site-transition')).not.toBeInTheDocument();
   });
 });
 

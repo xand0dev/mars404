@@ -30,6 +30,13 @@
 - Головна дія повної картки (доповнення): EVA — «Plan an EVA here», Overview — «Explore terrain»; обидві викликають `chooseSite` (той самий переліт / `setSite`). Card — без кнопки. У відкритому районі (`About this site`) кнопки немає. Порядок Tab: credit → кнопка → `Sources (N)`.
 - Відкрите питання: при one-click-перельоті повна картка EVA / Overview у `SitePanel` не показується, тож кнопку видно лише в компоненті (тести). Чи потрібен двокроковий вибір (картка → кнопка → переліт), як в AC #112, — рішення за командою (зачіпає e2e #105).
 
+## #150 · Zoom-in і crossfade до району (15.11)
+
+- One-click flow не змінюється: modelled site запускає поворот до маркера, наближення глобуса й коротке затемнення, після чого чинний таймер викликає `setSite(id)` рівно один раз.
+- Під час переходу видно `Entering <site name>…` і клавіатурно доступний `Skip`.
+- `prefers-reduced-motion` або відсутність WebGL відкриває район одразу без transition UI; Jezero / Meridiani лишаються card-only preview.
+- Тести: фази zoom, transition UI, звичайний перехід, Skip, reduced motion, card-only і відсутність повторного `setSite`.
+
 ## Нові задачі (14.11): Abort map + «View from here»
 План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
 

@@ -7,7 +7,7 @@ import { dataUrl } from '../../contracts/planning';
 import { chooseSite } from './choose';
 import { latLonToSphere } from './geo';
 import { useGlobe } from './globeState';
-import { FLY_MS, lerpRotation, rotationToFace } from './motion';
+import { FLY_MS, lerpRotation, rotationToFace, transitionScale } from './motion';
 import { dragRotation, facesCamera, fitScale, markerActive } from './sceneMath';
 import { GALE_ID, SITES, siteById, type Site } from './sites';
 import { parseTextureMeta, TEXTURE_META_PATH } from './texture';
@@ -95,6 +95,7 @@ function Marker({ site, active }: { site: Site; active: boolean }) {
 }
 
 export function GlobeScene() {
+  const stage = useRef<Group>(null);
   const group = useRef<Group>(null);
   const markers = useRef<Group>(null);
   const { invalidate, camera, size, gl } = useThree();
@@ -125,17 +126,18 @@ export function GlobeScene() {
     return () => style.setProperty('touch-action', prev);
   }, [gl]);
 
-  useEffect(() => {
-    fly.current = null;
-    if (flying) invalidate();
-  }, [flying, invalidate]);
-
   useEffect(() => invalidate(), [map, previewId, invalidate]);
 
   const scale = useMemo(() => {
     const fovDeg = camera instanceof PerspectiveCamera ? camera.fov : 45;
     return fitScale({ fovDeg, distance: camera.position.length(), aspect: size.width / size.height, radius: FIT_R });
   }, [camera, size]);
+
+  useEffect(() => {
+    fly.current = null;
+    if (!flying) stage.current?.scale.setScalar(scale * zoom);
+    invalidate();
+  }, [flying, scale, zoom, invalidate]);
 
   // #80: верхня межа масштабу — сфера лишається перед камерою F2.
   useEffect(() => {
@@ -219,8 +221,10 @@ export function GlobeScene() {
     if (flying) {
       const now = clock.getElapsedTime() * 1000;
       fly.current ??= { from: [g.rotation.x, g.rotation.y, g.rotation.z], start: now };
-      const [x, y, z] = lerpRotation(fly.current.from, faceOf(flyTo), (now - fly.current.start) / FLY_MS);
+      const progress = (now - fly.current.start) / FLY_MS;
+      const [x, y, z] = lerpRotation(fly.current.from, faceOf(flyTo), progress);
       g.rotation.set(x, y, z, 'XYZ');
+      stage.current?.scale.setScalar(scale * zoom * transitionScale(progress));
       invalidate();
     }
     // Маркери зворотного боку й біля краю диска ховаємо (рахується лише в кадрах, які й так малюються).
@@ -259,7 +263,7 @@ export function GlobeScene() {
     <group>
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 3, 5]} intensity={1.2} />
-      <group scale={scale * zoom}>
+      <group ref={stage} scale={scale * zoom}>
         <group ref={group} rotation={START}>
           <mesh ref={sphere} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
             <sphereGeometry args={[1, 64, 32]} />
