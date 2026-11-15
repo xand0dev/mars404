@@ -1,10 +1,9 @@
-// Демо-прогулянка: анімований астронавт (Quaternius, CC0) іде маршрутом з модельною швидкістю F4.
+// Демо-прогулянка: астронавт (модель Quaternius, CC0; рух — мокап Mixamo) іде маршрутом з модельною швидкістю F4.
 // Кліп і його темп — від швидкості над ґрунтом (gaitFor): ступні не ковзають; біля цілей і на паузі — Idle.
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Line, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { AnimationMixer, Box3, Color, Group, LoopRepeat, Vector3, type AnimationAction, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
-import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { RoutePlan, XY } from '../../contracts';
 import { VERTICAL_EXAGGERATION } from '../../contracts';
 import { toR3F } from '../../contracts/planning';
@@ -35,7 +34,10 @@ interface Rig {
 function useRig(): Rig {
   const gltf = useGLTF(modelUrl);
   const rig = useMemo(() => {
-    const model = cloneSkinned(gltf.scene) as Group;
+    // Астронавт на сцені один — беремо сцену моделі без клону (клон SkeletonUtils рве прив'язку 13 skin до кісток).
+    const model = gltf.scene as Group;
+    model.scale.setScalar(1);
+    model.position.set(0, 0, 0);
     model.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (!m.isMesh) return;
@@ -63,11 +65,11 @@ function useRig(): Rig {
     const k = HEIGHT_M / (size.y || 1);
     model.scale.setScalar(k);
     model.position.set(-center.x * k, -box.min.y * k, -center.z * k);
-    const root = new Group();
-    root.add(model);
+    // Без обгортки: у StrictMode useMemo виконується двічі, і друга Group забрала б ту саму сцену з першої.
+    const root = model;
     const mixer = new AnimationMixer(model);
     const actions: Rig['actions'] = {};
-    const durations = { Walk: 1.33, Run: 0.79 };
+    const durations = { Walk: 1.23, Run: 0.73 };
     for (const clip of gltf.animations) {
       const name = clip.name.split('|').pop() as Gait['clip'];
       if (name !== 'Idle' && name !== 'Walk' && name !== 'Run') continue;
@@ -82,9 +84,6 @@ function useRig(): Rig {
     actions.Idle?.setEffectiveWeight(1);
     return { root, mixer, actions, durations };
   }, [gltf]);
-  useEffect(() => () => {
-    rig.mixer.stopAllAction();
-  }, [rig]);
   return rig;
 }
 
@@ -149,6 +148,7 @@ function Figure({ plan, groundAt, lifeSize, onProgress }: AstronautProps & { onP
     for (const name of ['Idle', 'Walk', 'Run'] as const) {
       const a = rig.actions[name];
       if (!a) continue;
+      if (!a.isRunning()) a.play();
       const goal = name === gait.clip ? 1 : 0;
       const cur = weights.current[name];
       const next = cur + (goal - cur) * Math.min(1, dt * 8);

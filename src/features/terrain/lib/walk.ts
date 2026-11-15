@@ -171,11 +171,12 @@ export function slicePath(path: PathIndex, d0: number, d1: number, step = 2): XY
 
 /**
  * Хода моделі: який кліп і з якою швидкістю, щоб ступні не ковзали.
- * Цикл Walk — два кроки по ~0,7 м (assumption, як STRIDE у моделі F4), цикл Run — два кроки по ~1,3 м (assumption).
+ * Кліпи — мокап Mixamo («Walking», «Slow Run», «Breathing Idle»), перенесені на скелет астронавта.
+ * Цикл Walk ≈ 1,6 м (два кроки по ~0,8 м), цикл Slow Run ≈ 2,2 м — assumption для темпу анімації.
  * Вище межі бігу ноги вже не встигають — це прискорене відтворення (fastForward), анімацію обмежуємо.
  */
-export const WALK_CYCLE_M = 1.4;
-export const RUN_CYCLE_M = 2.6;
+export const WALK_CYCLE_M = 1.6;
+export const RUN_CYCLE_M = 2.2;
 export interface Gait {
   clip: 'Idle' | 'Walk' | 'Run';
   timeScale: number;

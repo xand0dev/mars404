@@ -81,8 +81,8 @@ describe('демо-прогулянка (walk)', () => {
   });
 
   it('gaitFor: стоїть — Idle; темп кроку пропорційний швидкості; вище бігу — fast-forward', () => {
-    const walkDur = 1.33;
-    const runDur = 0.79;
+    const walkDur = 1.23;
+    const runDur = 0.73;
     expect(gaitFor(0, walkDur, runDur).clip).toBe('Idle');
     const natural = WALK_CYCLE_M / walkDur;
     const g1 = gaitFor(natural, walkDur, runDur);
