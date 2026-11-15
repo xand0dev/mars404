@@ -199,7 +199,8 @@ export function MapView({ globe }: MapViewProps) {
   const onPickHover = onPick ? setPickValid : undefined;
   const stageCursor = markCursorFor(onPick ? (pickValid ? 'valid' : 'invalid') : 'off');
 
-  const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
+  const chose2D = useCameraMode((s) => s.plan2D);
+  const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D || chose2D });
   const show3D = webgl && !lost && (site === null || reason === null);
   const setView3D = useCameraMode((s) => s.setView3D);
   useEffect(() => setView3D(show3D), [show3D, setView3D]);

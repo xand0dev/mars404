@@ -17,7 +17,7 @@ export function planReason({ webgl, lost, gridErrors, forced = false }: { webgl:
   if (gridErrors.length > 0) return { code: 'invalid-grid', text: `Invalid grid: ${gridErrors.join('; ')}` };
   if (lost) return { code: 'context-lost', text: 'WebGL context lost' };
   if (!webgl) return { code: 'no-webgl', text: 'WebGL unavailable' };
-  if (forced) return { code: 'forced', text: '2D plan requested with ?2d' };
+  if (forced) return { code: 'forced', text: '2D map' };
   return null;
 }
 
