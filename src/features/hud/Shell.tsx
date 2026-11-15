@@ -3,7 +3,8 @@
 // Колонки прокручуються самі, сторінка — ні (≥ 1200 px). Вужче — одна колонка: HUD → карта → план → стан.
 // Панелі в колонках згортаються; відкриті ті, що потрібні для наступного кроку (T24).
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+// На десктопі glove mode — це планшет на зап'ясті: той самий екран у корпусі по центру (tablet.css); на сенсорних — на весь екран.
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SITE_LABEL } from '../../contracts';
 import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
@@ -12,6 +13,7 @@ import { GloveContext, readGlove, writeGlove } from './glove';
 import { Onboarding } from './Onboarding';
 import { readOnboarded, writeOnboarded } from './onboardingStore';
 import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
+import './tablet.css';
 
 export interface ShellProps {
   hud: ReactNode;
@@ -52,6 +54,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
     [step, overrides],
   );
   const current = STEPS.findIndex((s) => s.id === step);
+  const clock = useClock(glove);
 
   // Згортаються лише панелі колонок; HUD і карта — ні.
   const plan = (
@@ -69,8 +72,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
     </PanelGroupContext.Provider>
   );
 
-  return (
-    <GloveContext.Provider value={glove}>
+  const shell = (
       <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}${overview ? ' shell--overview' : ''}`}>
         <header className="shell__bar">
           <div className="shell__brand">
@@ -79,6 +81,11 @@ export function Shell({ hud, map, side, status }: ShellProps) {
             </h1>
             <p className="shell__disclaimer">Demonstration model, not certified navigation.</p>
           </div>
+          {glove && (
+            <p className="shell__clock" aria-label={`Local time ${clock}`}>
+              {clock}
+            </p>
+          )}
           <ol className="shell__steps" aria-label="Demo steps">
             {STEPS.map((s, i) => (
               <li
@@ -120,6 +127,35 @@ export function Shell({ hud, map, side, status }: ShellProps) {
           </>
         )}
       </div>
+  );
+
+  return (
+    <GloveContext.Provider value={glove}>
+      {glove ? (
+        <div className="tablet">
+          <div className="tablet__bezel">
+            <span className="tablet__bump tablet__bump--tl" aria-hidden="true" />
+            <span className="tablet__bump tablet__bump--tr" aria-hidden="true" />
+            <span className="tablet__bump tablet__bump--bl" aria-hidden="true" />
+            <span className="tablet__bump tablet__bump--br" aria-hidden="true" />
+            <div className="tablet__screen">{shell}</div>
+          </div>
+        </div>
+      ) : (
+        shell
+      )}
     </GloveContext.Provider>
   );
+}
+
+/** Годинник у шапці планшета (HH:MM), оновлюється раз на 20 с; поза режимом не тікає. */
+function useClock(on: boolean): string {
+  const fmt = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const [now, setNow] = useState(fmt);
+  useEffect(() => {
+    if (!on) return;
+    const id = setInterval(() => setNow(fmt()), 20_000);
+    return () => clearInterval(id);
+  }, [on]);
+  return now;
 }

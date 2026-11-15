@@ -66,6 +66,7 @@
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Реліз: favicon (SVG) — прибрано 404 favicon.ico з консолі на кожному екрані | index.html, public/favicon.svg | npm run check; релізний прогін на Pages | feat/F0-favicon |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Одна смуга шарів замість двох (#146 над картою + #151 у шапці): лишено смугу поверх карти з легендою й Beacons, іконки — SVG Олі з #151; LayerBar у шапці прибрано | src/features/terrain/MapLayerBar.tsx (+ тест), src/features/hud/{Shell.tsx,Shell.test.tsx,shell.css}, LayerBar* видалено | npm run check (750); npm run e2e 55/55 | release/one-layerbar |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Прогулянка: лінія маршруту попереду не малюється крізь астронавта (тест глибини, біля землі старт за 3 м) | src/features/terrain/Astronaut.tsx | npm run check; кадр Follow ×2 локально | feat/F2-walk-line |
+| 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Glove mode як планшет на зап'ясті: на десктопі — корпус по центру з бамперами, екран прокручується всередині, пульти в межах екрана; альбомна розкладка (HUD зліва, карта справа), шапка-статус із годинником; на сенсорних — як раніше на весь екран | src/features/hud/{Shell.tsx,tablet.css}, specs/F7/screenshots/tablet-mode-1440.png | npm run check; e2e 55 passed (усі glove-тести, 1440 і 1280×720); скрін 1440 | feat/F7-tablet |
 
 ## F3
 
