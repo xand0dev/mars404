@@ -153,7 +153,7 @@ export async function loadRegion(get: GetFile): Promise<RegionLoad> {
   const night = region.layers.find((l) => l.id === 'thermal' && /\.png$/i.test(l.url));
   if (night) {
     try {
-      const soil = await decodeSoil(await get(night.url), width, height);
+      const soil = await decodeSoil(await get(night.url), width, height, night.legend);
       if (soil) grid.soil = soil;
     } catch {
       warnings.push('Ground type (THEMIS) not applied: walking speed ignores sand vs rock');
