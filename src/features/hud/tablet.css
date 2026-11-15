@@ -1,85 +1,119 @@
 /* Glove mode як планшет на зап'ясті (UI для відео й журі).
-   Десктоп із мишею: застосунок у захищеному корпусі по центру, екран прокручується всередині корпусу.
-   Сенсорні пристрої й вузькі вікна: обгортки «зникають» (display: contents) — той самий екран на весь дисплей. */
+   Десктоп із мишею (≥ 1200 × 700): застосунок у захищеному корпусі; екран — як додаток: карта на весь екран,
+   HUD, камери й прогулянка — напівпрозорі плитки поверх карти, сторінка не прокручується.
+   Сенсорний планшет в альбомній (≥ 1000 × 600): той самий екран-додаток на весь дисплей, без корпусу — корпус тут сам пристрій.
+   Телефони, портрет і вузькі вікна: обгортки — display: contents, glove mode як був (на весь екран, з прокруткою). */
 .tablet, .tablet__bezel, .tablet__screen { display: contents; }
-.tablet__bump { display: none; }
-.shell__clock { margin: 0; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text); font-variant-numeric: tabular-nums; }
+.tablet__bump, .tablet__lug, .tablet__key, .tablet__cam, .tablet__mark { display: none; }
+.shell__clock { margin: 0; font-family: var(--font-mono); font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine) {
+@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine), (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
   body:has(.tablet) {
-    --tab-bezel: 22px;
-    --tab-w: min(calc(100vw - 72px), calc((100vh - 72px) * 1.6));
+    --tab-bezel: 40px;
+    --tab-walk: 150px;
+    --tab-w: min(calc(100vw - 170px), calc((100vh - 90px) * 1.6));
     --tab-h: calc(var(--tab-w) / 1.6);
     --tab-left: calc((100vw - var(--tab-w)) / 2 + var(--tab-bezel));
     --tab-bottom: calc((100vh - var(--tab-h)) / 2 + var(--tab-bezel));
     --tab-inner-w: calc(var(--tab-w) - 2 * var(--tab-bezel));
+    --tab-bar: 66px;
+    --tab-glass: rgb(8 8 10 / 0.78);
     overflow: hidden;
-    background: radial-gradient(1200px 700px at 50% 120%, #2a1209 0%, #0a0807 60%);
+    background: radial-gradient(1400px 800px at 50% 115%, #3a1a0c 0%, #120c09 45%, #070605 75%);
   }
   html:has(.tablet) { overflow: hidden; }
   .tablet { display: grid; place-items: center; position: fixed; inset: 0; }
+
+  /* ── Корпус: прогумований графіт, внутрішня рамка, бампери з гвинтами ── */
   .tablet__bezel {
     display: block; position: relative; box-sizing: border-box;
     width: var(--tab-w); height: var(--tab-h); padding: var(--tab-bezel);
-    border-radius: 34px; background: #24211e;
-    border: 3px solid #3d3833;
-    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.9), inset 0 0 0 2px #15130f;
+    border-radius: 44px;
+    background: linear-gradient(160deg, #3a3631 0%, #26231f 45%, #1b1916 100%);
+    border: 2px solid #4a443d;
+    box-shadow: 0 40px 90px -25px rgb(0 0 0 / 0.95), inset 0 2px 0 rgb(255 255 255 / 0.06), inset 0 0 0 10px #211e1b, inset 0 0 0 12px #34302b;
   }
-  .tablet__bump { display: block; position: absolute; width: 58px; height: 58px; background: #3a3530; border: 2px solid #4b4540; border-radius: 16px; }
-  .tablet__bump--tl { left: -10px; top: -10px; }
-  .tablet__bump--tr { right: -10px; top: -10px; }
-  .tablet__bump--bl { left: -10px; bottom: -10px; }
-  .tablet__bump--br { right: -10px; bottom: -10px; }
-  .tablet__screen {
-    display: block; position: relative; z-index: 1; height: 100%; overflow-y: auto; overscroll-behavior: contain;
-    border-radius: 12px; background: var(--bg, #0b0b0d); border: 1px solid #000;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  }
-  .tablet__screen > .shell { min-height: 100%; padding-bottom: calc(var(--eva-dock-h, 104px) + 56px); }
-  /* Шапка — статус-рядок планшета: назва, годинник, кроки, перемикач. */
-  .tablet .shell__bar { position: sticky; top: 0; z-index: 30; background: rgb(11 11 13 / 0.94); backdrop-filter: blur(6px); }
-  .tablet .shell__disclaimer { font-size: 0.6rem; }
-  /* Пульти (портал у body, position: fixed) — у межах екрана планшета, а не вікна. */
+  .tablet__bump { display: block; position: absolute; z-index: 3; width: 66px; height: 66px; border-radius: 20px; background: linear-gradient(150deg, #4a4540, #2c2925); border: 2px solid #58524b; box-shadow: 0 6px 14px rgb(0 0 0 / 0.5); }
+  .tablet__bump::after { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #8d877f, #3a3631 70%); box-shadow: 0 0 0 2px #24211e; }
+  .tablet__bump--tl { left: -26px; top: -26px; } .tablet__bump--tl::after { left: 16px; top: 16px; }
+  .tablet__bump--tr { right: -26px; top: -26px; } .tablet__bump--tr::after { right: 16px; top: 16px; }
+  .tablet__bump--bl { left: -26px; bottom: -26px; } .tablet__bump--bl::after { left: 16px; bottom: 16px; }
+  .tablet__bump--br { right: -26px; bottom: -26px; } .tablet__bump--br::after { right: 16px; bottom: 16px; }
+  /* Кріплення ремінця на зап'ясті — зліва й справа. */
+  .tablet__lug { display: block; position: absolute; z-index: 1; top: 30%; width: 34px; height: 40%; background: linear-gradient(90deg, #2b2824, #3d3934, #2b2824); border: 2px solid #4a443d; }
+  .tablet__lug--l { left: -32px; border-radius: 12px 0 0 12px; border-right: none; }
+  .tablet__lug--r { right: -32px; border-radius: 0 12px 12px 0; border-left: none; }
+  /* Апаратні кнопки зверху, камера, маркування знизу. */
+  .tablet__key { display: block; position: absolute; top: -9px; height: 9px; border-radius: 6px 6px 0 0; background: #4a4540; border: 1px solid #5a544c; border-bottom: none; }
+  .tablet__key--1 { right: 22%; width: 70px; } .tablet__key--2 { right: calc(22% + 90px); width: 46px; }
+  .tablet__cam { display: block; position: absolute; top: 12px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #2c4a66, #05080b 70%); box-shadow: 0 0 0 2px #15130f; }
+  .tablet__mark { display: block; position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--font-mono); letter-spacing: 0.3em; color: #6d665d; white-space: nowrap; }
+
+  /* ── Екран: як додаток, без прокрутки сторінки ── */
+  .tablet__screen { display: block; position: relative; z-index: 2; height: 100%; overflow: hidden; border-radius: 14px; background: #050506; border: 2px solid #000; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04); }
+  .tablet .shell.shell--glove { position: absolute; inset: 0; display: block; padding: 0; font-size: 1rem; }
+
+  /* Статус-рядок зверху. */
+  .tablet .shell--glove > .shell__bar { position: absolute; z-index: 6; inset: 0 0 auto 0; height: var(--tab-bar); display: flex; flex-wrap: nowrap; align-items: center; gap: 14px; padding: 0 14px; margin: 0; background: linear-gradient(rgb(5 5 6 / 0.92), rgb(5 5 6 / 0.7)); border-bottom: 1px solid rgb(255 255 255 / 0.06); }
+  .tablet .shell--glove .shell__brand { flex: 1 1 auto; min-width: 0; }
+  .tablet .shell--glove .shell__title { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tablet .shell--glove :is(.shell__disclaimer, .shell__help) { display: none; }
+  .tablet .shell--glove .shell__steps { flex: none; }
+  .tablet .shell.shell--glove .shell__glove { margin: 0; padding: 0 16px; letter-spacing: 0.08em; font-size: 0.8rem; }
+
+  /* Карта — на весь екран під статус-рядком. */
+  .tablet .shell--glove > .shell__map { position: absolute; z-index: 1; inset: var(--tab-bar) 0 0 0; margin: 0; }
+  .tablet .shell--glove > .shell__map > .ui-panel { position: absolute; inset: 0; margin: 0; padding: 0; border: none; border-radius: 0; background: transparent; }
+  .tablet .shell--glove > .shell__map > .ui-panel > :is(.ui-panel__head, .terrain-info, .terrain-marks, .terrain-legend-eva, .terrain-legend-marks, .terrain-counter) { display: none; }
+  .tablet .shell--glove .terrain-stage { position: absolute; inset: 0; height: auto; min-height: 0; border: none; border-radius: 0; }
+  .tablet .shell--glove .map-layers { left: calc(min(360px, 32%) + 22px); right: 12px; top: 12px; }
+  .tablet .shell--glove .map-layers__btn { min-height: 52px; font-size: 0.85rem; }
+
+  /* HUD — плитка зліва поверх карти. */
+  .tablet .shell--glove > .shell__hud { position: absolute; z-index: 4; top: calc(var(--tab-bar) + 12px); left: 12px; width: min(360px, 32%); max-height: calc(100% - var(--tab-bar) - var(--eva-dock-h, 104px) - var(--tab-walk) - 90px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; mask-image: linear-gradient(#000 calc(100% - 28px), transparent); }
+  .tablet .shell--glove > .shell__hud > * { background: var(--tab-glass); backdrop-filter: blur(10px); }
+  .tablet .shell--glove .gonogo__verdict { font-size: 1.2rem; }
+  .tablet .shell--glove .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Камери — справа зверху; «More panels» — під ними, відкривається шухлядою праворуч. */
+  .tablet .shell--glove .terrain-cams { position: absolute; z-index: 4; right: 12px; bottom: calc(var(--eva-dock-h, 104px) + 54px); display: flex; gap: 6px; margin: 0; padding: 6px; border-radius: 14px; background: var(--tab-glass); backdrop-filter: blur(10px); }
+  .tablet .shell.shell--glove .terrain-cams button { min-height: 64px; margin: 0; }
+  /* details — block: його вміст живе в ::details-content, тож flex на details його не розтягує. */
+  .tablet .shell--glove > .shell__more { --more-h: calc(var(--tab-h) - 2 * var(--tab-bezel) - var(--tab-bar) - var(--eva-dock-h, 104px) - 266px); position: absolute; z-index: 5; right: 12px; top: calc(var(--tab-bar) + 76px); width: min(380px, 34%); display: block; pointer-events: none; }
+  .tablet .shell--glove > .shell__more > summary { pointer-events: auto; width: fit-content; margin: 0 0 0 auto; background: var(--tab-glass); backdrop-filter: blur(10px); justify-content: center; padding: 0 18px; }
+  .tablet .shell--glove > .shell__more > .shell__more-body { pointer-events: auto; grid-template-columns: minmax(0, 1fr); max-height: var(--more-h); overflow-y: auto; overscroll-behavior: contain; padding: 8px; border-radius: 14px; background: rgb(8 8 10 / 0.94); }
+
+  /* Прогулянка — плитка внизу зліва над пультом. */
+  .tablet .shell--glove .walk-panel { position: absolute; z-index: 4; left: 12px; bottom: calc(var(--eva-dock-h, 104px) + 54px); width: min(700px, calc(100% - 500px)); max-height: var(--tab-walk); overflow: hidden; margin: 0; background: var(--tab-glass); backdrop-filter: blur(10px); }
+  .tablet .shell.shell--glove .walk-panel button { min-height: 48px; min-width: 48px; margin: 0; padding: 0 10px; font-size: 0.9rem; }
+  .tablet .shell--glove .walk-panel__row { flex-wrap: nowrap; gap: 6px; }
+  .tablet .shell--glove .walk-panel__speeds { flex-wrap: nowrap; gap: 4px; }
+  .tablet .shell--glove .walk-panel__stats { font-size: 0.8rem; }
+  .tablet .shell--glove .walk-panel__note { display: none; }
+
+  /* Глобус (району ще нема, HUD порожній): HUD-плитки нема, шари з лівого краю. */
+  .tablet .shell--glove:has(> .shell__hud:empty) .map-layers { left: 12px; }
+  .tablet .shell--glove:has(> .shell__hud:empty) > .shell__more { top: calc(var(--tab-bar) + 12px); --more-h: calc(var(--tab-h) - 2 * var(--tab-bezel) - var(--tab-bar) - 110px); }
+
+  /* Підказка першого візиту — плитка поверх карти. */
+  .tablet .onboarding { position: absolute; z-index: 7; top: 12px; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow-y: auto; }
+
+  /* Пульти (портал у body, position: fixed) — у межах екрана планшета. */
   body:has(.tablet) .eva-dock { bottom: var(--tab-bottom); right: auto; }
-  body:has(.tablet) .eva-dock--route { left: var(--tab-left); width: calc(var(--tab-inner-w) * 0.54); border-radius: 0 0 0 12px; }
-  body:has(.tablet) .eva-dock--life { left: calc(var(--tab-left) + var(--tab-inner-w) * 0.54); width: calc(var(--tab-inner-w) * 0.46); border-radius: 0 0 12px 0; }
-  html[data-eva-dock='collapsed'] body:has(.tablet) .eva-dock--life { left: var(--tab-left); width: var(--tab-inner-w); border-radius: 0 0 12px 12px; }
+  body:has(.tablet) .eva-dock--route { left: var(--tab-left); width: calc(var(--tab-inner-w) * 0.54); border-radius: 0 0 0 14px; }
+  body:has(.tablet) .eva-dock--life { left: calc(var(--tab-left) + var(--tab-inner-w) * 0.54); width: calc(var(--tab-inner-w) * 0.46); border-radius: 0 0 14px 0; }
+  html[data-eva-dock='collapsed'] body:has(.tablet) .eva-dock--life { left: var(--tab-left); width: var(--tab-inner-w); border-radius: 0 0 14px 14px; }
   body:has(.tablet) .eva-sheet-handle { left: var(--tab-left); right: auto; width: var(--tab-inner-w); bottom: calc(var(--tab-bottom) + var(--eva-dock-h)); }
   body:has(.tablet) .eva-photo { left: calc(var(--tab-left) + var(--tab-inner-w) / 2); bottom: calc(var(--tab-bottom) + var(--eva-dock-h) + 52px); max-height: calc(var(--tab-h) * 0.6); }
 }
-@media (prefers-reduced-motion: reduce) { .tablet .shell__bar { backdrop-filter: none; } }
 
-/* Альбомний планшет у корпусі: HUD — вузька колонка зліва, карта — решта екрана; шапка в один рядок. */
-@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine) {
-  .tablet .shell--glove {
-    --tab-head: 64px;
-    grid-template-columns: minmax(300px, 30%) minmax(0, 1fr);
-    grid-template-areas: 'bar bar' 'hud map' 'more more';
-    align-items: start; column-gap: 12px; padding: 0 12px calc(var(--eva-dock-h, 104px) + 52px);
-    font-size: 1rem;
-  }
-  .tablet .shell--glove > .shell__bar { flex-wrap: nowrap; gap: 14px; min-height: var(--tab-head); padding: 0 4px; }
-  .tablet .shell--glove .shell__brand { flex: 1 1 auto; min-width: 0; }
-  .tablet .shell--glove .shell__title { font-size: 1rem; white-space: nowrap; }
-  .tablet .shell--glove .shell__disclaimer { display: none; }
-  .tablet .shell--glove .shell__steps { flex: none; }
-  .tablet .shell--glove .shell__help { display: none; }
-  .tablet .shell.shell--glove .shell__glove { margin: 0; padding: 0 16px; letter-spacing: 0.08em; font-size: 0.85rem; }
-  /* HUD: число і вердикт зверху, решта — компактно. */
-  .tablet .shell--glove > .shell__hud { position: sticky; top: var(--tab-head); max-height: calc(var(--tab-h) - 2 * var(--tab-bezel) - var(--tab-head) - var(--eva-dock-h, 104px) - 60px); overflow-y: auto; }
-  .tablet .shell--glove .gonogo__verdict { font-size: 1.25rem; }
-  .tablet .shell--glove .gonogo__stations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* Карта — на висоту екрана між шапкою й пультом; службові блоки міток і легенда — у «More panels». */
-  .tablet .shell--glove .terrain-stage { height: calc(var(--tab-h) - 2 * var(--tab-bezel) - var(--tab-head) - var(--eva-dock-h, 104px) - 300px); min-height: 280px; }
-  .tablet .shell--glove :is(.terrain-marks, .terrain-legend-eva, .terrain-legend-marks, .terrain-counter) { display: none; }
-  .tablet .shell--glove .terrain-cams button { min-height: 52px; }
+/* Сенсорний планшет: без корпусу, екран на весь дисплей. */
+@media (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
+  body:has(.tablet) { --tab-bezel: 0px; --tab-w: 100vw; --tab-h: 100dvh; --tab-left: 0px; --tab-bottom: 0px; --tab-inner-w: 100vw; --tab-walk: 130px; background: #050506; }
+  .tablet__bezel { width: 100vw; height: 100dvh; padding: 0; border: none; border-radius: 0; box-shadow: none; background: #050506; }
+  .tablet :is(.tablet__bump, .tablet__lug, .tablet__key, .tablet__cam, .tablet__mark) { display: none; }
+  .tablet__screen { border: none; border-radius: 0; }
+  body:has(.tablet) :is(.eva-dock--route, .eva-dock--life) { border-radius: 0; }
+  html[data-eva-dock='collapsed'] body:has(.tablet) .eva-dock--life { border-radius: 0; }
 }
-@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine) {
-  /* Глобус (району ще нема, HUD порожній): одна колонка — карта на всю ширину екрана. */
-  .tablet .shell--glove:has(> .shell__hud:empty) { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'bar' 'map' 'more'; }
-}
-@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine) {
-  /* У корпусі підказка «How it works» — у потоці над картою, а не поверх (не закриває «More panels» на 1280×720). */
-  .tablet .onboarding { position: relative; top: auto; left: auto; transform: none; width: auto; }
-  .tablet .shell__clock { white-space: nowrap; flex: none; }
-}
+@media (prefers-reduced-motion: reduce) { .tablet * { backdrop-filter: none !important; } }

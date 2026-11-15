@@ -3,8 +3,8 @@
 // Колонки прокручуються самі, сторінка — ні (≥ 1200 px). Вужче — одна колонка: HUD → карта → план → стан.
 // Панелі в колонках згортаються; відкриті ті, що потрібні для наступного кроку (T24).
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
-// На десктопі glove mode — це планшет на зап'ясті: той самий екран у корпусі по центру (tablet.css); на сенсорних — на весь екран.
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+// Glove mode — екран планшета на зап'ясті (tablet.css): на десктопі в корпусі по центру, на сенсорному планшеті в альбомній — на весь дисплей.
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SITE_LABEL } from '../../contracts';
 import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
@@ -55,6 +55,12 @@ export function Shell({ hud, map, side, status }: ShellProps) {
   );
   const current = STEPS.findIndex((s) => s.id === step);
   const clock = useClock(glove);
+  // На глобусі HUD порожній, тож «More panels» (там Location) відкрита; вибрали район — згортаємо раз, далі як вирішить користувач.
+  const moreRef = useRef<HTMLDetailsElement>(null);
+  const onGlobe = step === 'site';
+  useEffect(() => {
+    if (moreRef.current) moreRef.current.open = onGlobe;
+  }, [onGlobe, glove]);
 
   // Згортаються лише панелі колонок; HUD і карта — ні.
   const plan = (
@@ -113,8 +119,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
           {map}
         </main>
         {glove ? (
-          // На кроці вибору району HUD порожній, тож список локацій відкритий одразу (на сенсорному планшеті закрита шухляда під картою — глухий кут).
-          <details className="shell__more" key={step} open={step === 'site' || undefined}>
+          <details className="shell__more" ref={moreRef}>
             <summary>More panels</summary>
             <div className="shell__more-body">
               {plan}
@@ -135,10 +140,18 @@ export function Shell({ hud, map, side, status }: ShellProps) {
       {glove ? (
         <div className="tablet">
           <div className="tablet__bezel">
-            <span className="tablet__bump tablet__bump--tl" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--tr" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--bl" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--br" aria-hidden="true" />
+            {/* Фізичний корпус (лише декор): бампери з гвинтами, кріплення ремінця, кнопки, камера, маркування. */}
+            {(['tl', 'tr', 'bl', 'br'] as const).map((c) => (
+              <span key={c} className={`tablet__bump tablet__bump--${c}`} aria-hidden="true" />
+            ))}
+            <span className="tablet__lug tablet__lug--l" aria-hidden="true" />
+            <span className="tablet__lug tablet__lug--r" aria-hidden="true" />
+            <span className="tablet__key tablet__key--1" aria-hidden="true" />
+            <span className="tablet__key tablet__key--2" aria-hidden="true" />
+            <span className="tablet__cam" aria-hidden="true" />
+            <span className="tablet__mark" aria-hidden="true">
+              EVA-PAD · MARS::404
+            </span>
             <div className="tablet__screen">{shell}</div>
           </div>
         </div>
