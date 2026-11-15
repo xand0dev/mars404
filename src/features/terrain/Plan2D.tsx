@@ -4,6 +4,7 @@ import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../cont
 import { xyToCell } from '../../contracts/planning';
 import { EvaSignShape, StatusNote } from '../../ui';
 import { planToXY } from './lib/marks';
+import { canPlaceMark } from './lib/markCursor';
 import { MarkShape } from './MarkGlyph';
 import { CELL } from './lib/cells';
 import { CSS, HALO, HALO_FILL_ALPHA, haloCells } from './lib/overlay';
@@ -38,6 +39,8 @@ export interface Plan2DProps {
   marks?: Annotation[];
   /** Режим «Add mark»: клік по плану → локальні метри */
   onPick?: ((xy: XY) => void) | null;
+  /** Add mark: курсор над сіткою (true) чи поза нею (false) — для pin / not-allowed (#134) */
+  onPickHover?: (valid: boolean) => void;
   /** Навігація без GPS: маяки, відрізки на інерціалці, контрольні точки */
   nav?: { beacons: { xy: XY; label: string }[]; drift: XY[][]; checkpoints: XY[] } | null;
 }
@@ -62,7 +65,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, nav = null }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -99,6 +102,15 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         onPick(planToXY(grid, pt.x, pt.y));
       }
     : undefined;
+  const onMove =
+    onPick && onPickHover
+      ? (e: MouseEvent<SVGSVGElement>) => {
+          const m = e.currentTarget.getScreenCTM();
+          if (!m) return;
+          const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+          onPickHover(canPlaceMark(grid, planToXY(grid, pt.x, pt.y)));
+        }
+      : undefined;
   const label = `2D plan B: ${targets.length} targets, ${plan ? plan.segments.length : 0} route segments, ${marks.length} crew marks, ${counts.blocked} blocked and ${counts.noData} NoData cells`;
 
   return (
@@ -115,7 +127,7 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
       <p className="terrain-counter">
         Blocked / NoData cells: {counts.blocked} / {counts.noData}
       </p>
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg" onClick={onClick} style={onPick ? { cursor: 'crosshair' } : undefined}>
+      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg" onClick={onClick} onMouseMove={onMove} onMouseLeave={onPick && onPickHover ? () => onPickHover(false) : undefined}>
         <title>{label}</title>
         <rect width={w} height={h} fill="#7a4a2c" />
         {raster && <image href={raster} width={w} height={h} preserveAspectRatio="none" style={{ imageRendering: 'pixelated' }} />}

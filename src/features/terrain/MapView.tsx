@@ -32,6 +32,7 @@ import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
 import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
+import { markCursorFor } from './lib/markCursor';
 import { navOverlay, useNavPlan, useNavView } from './navStore';
 import { NavChip } from './NavChip';
 import { MapLayerBar } from './MapLayerBar';
@@ -193,6 +194,10 @@ export function MapView({ globe }: MapViewProps) {
   };
   const segmentPoint = keyboardMarkPoint(plan, selectedSegment);
   const onPick = adding && valid ? place : null;
+  // Курсор Add mark (#134): pin над місцем, де стане мітка, not-allowed поза ним.
+  const [pickValid, setPickValid] = useState(true);
+  const onPickHover = onPick ? setPickValid : undefined;
+  const stageCursor = markCursorFor(onPick ? (pickValid ? 'valid' : 'invalid') : 'off');
 
   const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
@@ -293,6 +298,7 @@ export function MapView({ globe }: MapViewProps) {
         nav={navMap}
         marks={marks}
         onPick={onPick}
+        onPickHover={onPickHover}
       />
     ) : (
       <StatusNote level="danger" live="alert">
@@ -328,7 +334,7 @@ export function MapView({ globe }: MapViewProps) {
         />
       )}
       {site !== null && valid && !overview && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
-      <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
+      <div className={`terrain-stage${onPick ? ' is-adding' : ''}`} style={stageCursor ? { cursor: stageCursor } : undefined}>
         {site !== null && <NavChip />}
         {site !== null && valid && <MapLayerBar />}
         {show3D ? (
@@ -361,6 +367,7 @@ export function MapView({ globe }: MapViewProps) {
                       mode={mode}
                       marks={marks}
                       onPick={onPick}
+                      onPickHover={onPickHover}
                       inReach={inReach}
                       ponr={ponrMarker}
                       nav={navMap}

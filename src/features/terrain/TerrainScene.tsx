@@ -73,6 +73,8 @@ export interface SceneProps {
   marks?: Annotation[];
   /** Режим «Add mark»: клік по рельєфу → локальні метри */
   onPick?: ((xy: XY) => void) | null;
+  /** Add mark: курсор над рельєфом (true) чи поза ним (false) — для pin / not-allowed (#134) */
+  onPickHover?: (valid: boolean) => void;
   /** Позначка «поза ореолом» для цілей (маска reach) */
   inReach?: (xy: XY) => boolean;
   /** Точка неповернення (SPEC §7.8): де стоїть і підпис «хвилини від старту»; у 2D — той самий знак */
@@ -361,7 +363,7 @@ function FreeFly({ enabled, scale }: { enabled: boolean; scale: number }) {
   return null;
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, inReach = () => true, ponr = null, nav = null }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, onPickHover, inReach = () => true, ponr = null, nav = null }: SceneProps) {
   const { grid, heights, noData } = data;
   const render = data.render ?? null;
   const geometry = useMemo(() => {
@@ -597,6 +599,8 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
               }
             : undefined
         }
+        onPointerMove={onPick && onPickHover ? () => onPickHover(true) : undefined}
+        onPointerOut={onPick && onPickHover ? () => onPickHover(false) : undefined}
       >
         <meshStandardMaterial map={texture ?? baseTex} color={texture && render ? '#f0c9a2' : '#ffffff'} roughness={1} metalness={0} />
       </mesh>
