@@ -47,3 +47,30 @@ export function findNearestPhoto(segment: Segment, candidates: PhotoCandidate[])
   }
   return nearest;
 }
+
+export const PHOTO_LOCATION_TEXT: Record<PhotoLocation, string> = {
+  'rover-stop': 'rover stop',
+  approximate: 'approximate location',
+  target: 'science target',
+};
+
+const LOCATION_ACCURACY_NOTE: Record<PhotoLocation, string> = {
+  'rover-stop': 'Location: rover stop, not the exact camera spot.',
+  approximate: 'Location: approximate rover site — assumption.',
+  target: 'Location: science target coordinates — assumption.',
+};
+
+export const locationAccuracyNote = (location: PhotoLocation): string => LOCATION_ACCURACY_NOTE[location];
+
+/** Камера як у джерелі: NAV_LEFT_B (raw images API) і NAVCAM_LEFT (PDS) — «Navcam». */
+export const photoCameraName = (camera?: string): string => (camera === undefined ? 'Surface photo' : camera.startsWith('NAV') ? 'Navcam' : camera);
+
+/** «NASA source» лише для https-посилань на nasa.gov і його піддомени. */
+export function sourceLinkLabel(url: string): string {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === 'https:' && (hostname === 'nasa.gov' || hostname.endsWith('.nasa.gov')) ? 'NASA source' : 'Source';
+  } catch {
+    return 'Source';
+  }
+}

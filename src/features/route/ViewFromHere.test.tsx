@@ -21,7 +21,7 @@ describe('ViewFromHere · F4-AC6', () => {
     expect(screen.getByRole('img', { name: 'Layered rock outcrop at Kimberley' })).toHaveAttribute('src', 'photos/kimberley.jpg');
     expect(screen.getByText(/sol 603, taken ~120 m from segment 3 \(science target Kimberley\)/i)).toBeInTheDocument();
     expect(screen.getByText(/NASA\/JPL-Caltech/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /source/i })).toHaveAttribute('href', 'https://mars.nasa.gov/raw_images/1');
+    expect(screen.getByRole('link', { name: 'NASA source' })).toHaveAttribute('href', 'https://mars.nasa.gov/raw_images/1');
     expect(screen.getByText(/300 m radius — assumption/i)).toBeInTheDocument();
   });
 
@@ -50,5 +50,28 @@ describe('ViewFromHere · F4-AC6', () => {
     expect(screen.getByRole('img', { name: 'Navcam view of layered bedrock' })).toBeInTheDocument();
     expect(screen.getByText(/Navcam, sol 3010, taken ~80 m from segment 2 \(rover stop\)/)).toBeInTheDocument();
     expect(screen.getByText(/view from the rover stop, not from the route/i)).toBeInTheDocument();
+  });
+
+  it('знімок Spirit з PDS (approximate) — справжні sol/камера/credit з даних, «NASA source», позначка assumption', () => {
+    const photo: SurfacePhoto = {
+      id: 'spirit-1', coordinates: [50, 40], lonLat: [175.53, -14.6], url: 'https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/browse/sol0738/edr/x.img.jpg',
+      alt: 'Left Navcam view from Spirit rover site 123, sol 738', sourceUrl: 'https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0738/edr/x.img',
+      credit: 'NASA/JPL-Caltech', sol: 738, camera: 'NAVCAM_LEFT', locationAccuracy: 'approximate', status: 'verified',
+    };
+    render(<ViewFromHere photos={[photo]} segment={segment} segmentIndex={0} targets={[]} />);
+
+    expect(screen.getByRole('img', { name: photo.alt })).toHaveAttribute('src', photo.url);
+    expect(screen.getByText(/Navcam, sol 738, taken ~40 m from segment 1 \(approximate location\)/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'NASA source' })).toHaveAttribute('href', photo.sourceUrl);
+    expect(screen.getByText('Location: approximate rover site — assumption.')).toBeInTheDocument();
+  });
+
+  it('знімок із зупинки ровера — позначка точності «rover stop»', () => {
+    const photo: SurfacePhoto = {
+      id: 'p2', coordinates: [50, 10], lonLat: [0, 0], url: 'photos/p2.jpg', alt: 'Navcam p2', sourceUrl: 'https://mars.nasa.gov/raw_images/886246',
+      credit: 'NASA/JPL-Caltech', sol: 3008, camera: 'NAV_LEFT_B', locationAccuracy: 'rover-stop', status: 'verified',
+    };
+    render(<ViewFromHere photos={[photo]} segment={segment} segmentIndex={0} targets={[]} />);
+    expect(screen.getByText('Location: rover stop, not the exact camera spot.')).toBeInTheDocument();
   });
 });

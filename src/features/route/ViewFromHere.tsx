@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import type { Segment, SurfacePhoto, Target } from '../../contracts';
 import { StatusNote } from '../../ui';
-import { findNearestPhoto, photoCandidates, VIEW_RADIUS_M, type PhotoCandidate } from './surface-photo';
+import { PhotoLocationNote, PhotoSourceLink } from './PhotoSource';
+import { findNearestPhoto, PHOTO_LOCATION_TEXT, photoCameraName, photoCandidates, VIEW_RADIUS_M, type PhotoCandidate } from './surface-photo';
 
 interface ViewFromHereProps {
   segment: Segment;
@@ -10,15 +11,6 @@ interface ViewFromHereProps {
   photos: SurfacePhoto[];
   targets: Target[];
 }
-
-const LOCATION_TEXT: Record<PhotoCandidate['location'], string> = {
-  'rover-stop': 'rover stop',
-  approximate: 'approximate location',
-  target: 'science target',
-};
-
-/** 'NAV_LEFT_B' → «Navcam»; інші камери — як дає API; у фото цілей камери немає. */
-const cameraName = (camera?: string) => (camera === undefined ? 'Surface photo' : camera.startsWith('NAV') ? 'Navcam' : camera);
 
 export function ViewFromHere({ segment, segmentIndex, photos, targets }: ViewFromHereProps) {
   const nearest = findNearestPhoto(segment, photoCandidates(photos, targets));
@@ -29,7 +21,7 @@ export function ViewFromHere({ segment, segmentIndex, photos, targets }: ViewFro
       {nearest ? <PhotoFigure candidate={nearest.candidate} distanceM={nearest.distanceM} segmentIndex={segmentIndex} /> : <StatusNote level="info">No surface photo within {VIEW_RADIUS_M} m</StatusNote>}
       <p className="route-view-note">
         {VIEW_RADIUS_M} m radius — assumption.
-        {nearest && ` The photo shows the view from the ${LOCATION_TEXT[nearest.candidate.location]}, not from the route.`}
+        {nearest && ` The photo shows the view from the ${PHOTO_LOCATION_TEXT[nearest.candidate.location]}, not from the route.`}
       </p>
     </section>
   );
@@ -37,20 +29,17 @@ export function ViewFromHere({ segment, segmentIndex, photos, targets }: ViewFro
 
 function PhotoFigure({ candidate, distanceM, segmentIndex }: { candidate: PhotoCandidate; distanceM: number; segmentIndex: number }) {
   const { photo, location, name } = candidate;
-  const place = location === 'target' && name ? `${LOCATION_TEXT.target} ${name}` : LOCATION_TEXT[location];
+  const place = location === 'target' && name ? `${PHOTO_LOCATION_TEXT.target} ${name}` : PHOTO_LOCATION_TEXT[location];
 
   return (
     <figure>
       <PhotoImage key={photo.url} url={photo.url} alt={photo.alt} />
       <figcaption>
-        {cameraName(candidate.camera)}
+        {photoCameraName(candidate.camera)}
         {photo.sol === undefined ? '' : `, sol ${photo.sol}`}, taken ~{Math.round(distanceM)} m from segment {segmentIndex + 1} ({place}) · {photo.credit}
-        {photo.sourceUrl && (
-          <>
-            {' · '}
-            <a href={photo.sourceUrl} target="_blank" rel="noreferrer">Source</a>
-          </>
-        )}
+        <PhotoSourceLink sourceUrl={photo.sourceUrl} />
+        <br />
+        <PhotoLocationNote location={location} />
       </figcaption>
     </figure>
   );
