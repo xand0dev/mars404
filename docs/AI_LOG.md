@@ -65,6 +65,7 @@
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | #145: кільце контексту опускається під районом на 60 м (замість 12) — більше не вилазить над дном Columbia Hills; на overview без штрихування «Blocked» | src/features/terrain/{Environment,MapView}.tsx, lib/context.ts (+test) | npm run check; кадри до / після: Columbia Hills і Valles Marineris, вид Top | feat/F2-context-drop |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Реліз: favicon (SVG) — прибрано 404 favicon.ico з консолі на кожному екрані | index.html, public/favicon.svg | npm run check; релізний прогін на Pages | feat/F0-favicon |
 | 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Одна смуга шарів замість двох (#146 над картою + #151 у шапці): лишено смугу поверх карти з легендою й Beacons, іконки — SVG Олі з #151; LayerBar у шапці прибрано | src/features/terrain/MapLayerBar.tsx (+ тест), src/features/hud/{Shell.tsx,Shell.test.tsx,shell.css}, LayerBar* видалено | npm run check (750); npm run e2e 55/55 | release/one-layerbar |
+| 2026-11-15 | Олександр | Claude Code · claude-opus-5-5 | Прогулянка: лінія маршруту попереду не малюється крізь астронавта (тест глибини, біля землі старт за 3 м) | src/features/terrain/Astronaut.tsx | npm run check; кадр Follow ×2 локально | feat/F2-walk-line |
 
 ## F3
 
