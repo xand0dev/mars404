@@ -199,7 +199,9 @@ export function Astronaut(props: AstronautProps) {
   const [progress, setProgress] = useState(0);
   const path = useMemo(() => indexPath(smoothPath(routeVertices(plan))), [plan]);
   const done = useMemo(() => drape(slicePath(path, 0, progress), groundAt), [path, progress, groundAt]);
-  const ahead = useMemo(() => drape(slicePath(path, progress, path.length), groundAt), [path, progress, groundAt]);
+  // Біля землі лінія попереду починається за 3 м: з камери позаду вона інакше йде просто крізь фігуру.
+  const aheadFrom = props.lifeSize ? progress + 3 : progress;
+  const ahead = useMemo(() => drape(slicePath(path, aheadFrom, path.length), groundAt), [path, aheadFrom, groundAt]);
 
   useEffect(
     () => () => {
@@ -211,7 +213,7 @@ export function Astronaut(props: AstronautProps) {
 
   return (
     <>
-      {ahead.length >= 2 && <Line points={ahead} color="#ffb347" lineWidth={3} transparent opacity={0.95} renderOrder={RENDER_ORDER.lines + 1} />}
+      {ahead.length >= 2 && <Line points={ahead} color="#ffb347" lineWidth={3} transparent opacity={0.95} depthTest depthWrite={false} renderOrder={RENDER_ORDER.lines + 1} />}
       {/* Біля землі пройдений слід тягнеться від камери до ступнів і виглядає як стовп — показуємо лише згори. */}
       {!props.lifeSize && done.length >= 2 && <Line points={done} color="#7fe3ff" lineWidth={3} transparent opacity={0.9} renderOrder={RENDER_ORDER.segment} />}
       <Suspense fallback={null}>
