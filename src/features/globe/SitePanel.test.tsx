@@ -309,3 +309,14 @@ describe('#80 · кнопки масштабу', () => {
     expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
   });
 });
+
+describe('глобус → район: сторінка на початок', () => {
+  it('відкриття району прокручує на початок; на глобусі — ні', () => {
+    const spy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    render(<SitePanel />);
+    expect(spy).not.toHaveBeenCalled();
+    act(() => useMission.getState().setSite('gale'));
+    expect(spy).toHaveBeenCalledWith({ top: 0 });
+    spy.mockRestore();
+  });
+});
