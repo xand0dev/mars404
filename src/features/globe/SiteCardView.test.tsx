@@ -1,7 +1,9 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetMission, useMission } from '../../store/useMission';
 import { SiteCard } from './SiteCardView';
+import { resetGlobe } from './globeState';
 import { clearSiteCardCache } from './siteCard';
 import { siteById } from './sites';
 
@@ -35,6 +37,8 @@ function mockCard(id: string, mode: 'eva' | 'overview' | 'card') {
 }
 
 beforeEach(() => {
+  resetMission();
+  resetGlobe();
   clearSiteCardCache();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -89,6 +93,8 @@ describe('#112 · SiteCard', () => {
     await user.tab();
     expect(screen.getByRole('link', { name: 'NASA/JPL-Caltech' })).toHaveFocus();
     await user.tab();
+    expect(screen.getByRole('button', { name: 'Plan an EVA here' })).toHaveFocus();
+    await user.tab();
     const sources = screen.getByText('Sources (1)').closest('summary')!;
     expect(sources).toHaveFocus();
     await user.keyboard('{Enter}');
@@ -108,5 +114,48 @@ describe('#112 · SiteCard', () => {
 
     const about = screen.getByText('About this site').closest('details');
     expect(about).not.toHaveAttribute('open');
+  });
+
+  it.each([
+    ['gale', 'eva', 'Plan an EVA here'],
+    ['columbia-hills', 'eva', 'Plan an EVA here'],
+    ['olympus-mons', 'overview', 'Explore terrain'],
+  ] as const)('Given %s (%s); Then головна кнопка «%s» відкриває район (та сама дія, що й вибір точки)', async (id, mode, action) => {
+    const user = userEvent.setup();
+    mockCard(id, mode);
+    render(<SiteCard site={siteById(id)!} />);
+
+    const card = await screen.findByRole('region', { name: siteById(id)!.name });
+    await user.click(within(card).getByRole('button', { name: action }));
+    expect(useMission.getState().site).toBe(id);
+  });
+
+  it('Given немає json для EVA-точки; Then кнопка «Plan an EVA here» усе одно є', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    render(<SiteCard site={siteById('gale')!} />);
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('button', { name: 'Plan an EVA here' })).toBeInTheDocument();
+  });
+
+  it('Given відкритий район; Then головної кнопки немає', async () => {
+    mockCard('gale', 'eva');
+    render(<SiteCard site={siteById('gale')!} collapsed />);
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+
+    expect(screen.queryByRole('button', { name: 'Plan an EVA here' })).not.toBeInTheDocument();
+  });
+
+  it('Given картка з кнопкою; When Tab; Then фокус доходить до кнопки, далі до Sources', async () => {
+    const user = userEvent.setup();
+    mockCard('gale', 'eva');
+    render(<SiteCard site={siteById('gale')!} />);
+    await screen.findByRole('region', { name: 'Gale / Mount Sharp' });
+
+    await user.tab();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Plan an EVA here' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByText('Sources (1)').closest('summary')).toHaveFocus();
   });
 });

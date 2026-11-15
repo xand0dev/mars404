@@ -71,7 +71,9 @@ class Packages(unittest.TestCase):
 
     def test_columbia_hills(self):
         reg, src = self.check('columbia-hills')
-        self.assertEqual(reg['files']['texture'], 'hillshade.png')
+        self.assertEqual(reg['files']['texture'], 'hillshade.jpg')  # QA 15.11: PNG 3,2 МБ → JPEG q82
+        self.assertLessEqual((ROOT / 'columbia-hills' / 'hillshade.jpg').stat().st_size, 1.5 * MB)
+        self.assertFalse((ROOT / 'columbia-hills' / 'hillshade.png').exists(), 'старий PNG не лишився')
         # Похідні шари — не verified (урок #63).
         layers = {l['id']: l for l in reg['layers']}
         self.assertEqual(layers['optical']['status'], 'assumption')

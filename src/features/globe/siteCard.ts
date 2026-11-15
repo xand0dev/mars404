@@ -126,7 +126,7 @@ export function parseSiteCard(value: unknown, requestedId: string): SiteCardData
           return { label, value: factValue, sourceId };
         })
         .filter((fact): fact is SiteCardFact => fact !== null)
-        .slice(0, 4)
+        .slice(0, 5)
     : (invalid(requestedId, 'facts'), []);
 
   return {

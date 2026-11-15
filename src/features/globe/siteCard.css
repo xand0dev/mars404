@@ -12,6 +12,7 @@
 .site-card__mode--overview { border-color: var(--info); color: var(--info); }
 .site-card__mode--card { border-color: var(--text-dim); color: var(--text-muted); }
 .site-card__facts { margin-top: 0; }
+.site-card__action { justify-self: start; }
 .site-card__facts .ui-row__title { font-family: var(--font-mono); font-size: var(--fs-small); }
 .site-card__unmodelled { padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); }
 .site-card__sources > .ui-disclosure__body { min-width: 0; }
