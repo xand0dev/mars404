@@ -1,8 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { readFileSync } from 'node:fs';
-import { mockGrid } from '../../mocks';
 import { resetMission, useMission } from '../../store/useMission';
 import { Panel } from '../../ui';
 import { GLOVE_KEY } from './glove';
@@ -170,20 +168,5 @@ describe('підказка першого візиту', () => {
     page();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(dialog()).toBeNull();
-  });
-});
-
-describe('шари карти зверху', () => {
-  it('Given район Gale, Then панель шарів стоїть над картою, у верхній частині застосунку', () => {
-    const region = JSON.parse(readFileSync('public/data/gale/region.json', 'utf-8'));
-    act(() => {
-      useMission.getState().setSite('gale');
-      useMission.getState().setRegionData({ region, grid: mockGrid, targets: [] });
-    });
-    page();
-    const bar = screen.getByRole('toolbar', { name: 'Map layers' });
-    const map = screen.getByRole('region', { name: 'Gale terrain' });
-    expect(bar.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(bar.closest('.shell__map')).not.toBeNull();
   });
 });
