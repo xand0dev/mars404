@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cellCenter, toR3F } from '../../../contracts/planning';
 import { PerspectiveCamera } from 'three';
-import { EYE_HEIGHT_M, GLOBE_CAMERA, applyGlobeCamera, cameraPose, gridFrame } from './camera';
+import { EYE_HEIGHT_M, GLOBE_CAMERA, ROUTE_FRAME_MIN_M, applyGlobeCamera, cameraPose, gridFrame, routeFrame } from './camera';
 import { displayHeights } from './geometry';
 import { smallGrid } from './fixtures';
 
@@ -60,5 +60,26 @@ describe('applyGlobeCamera — сумісність з F1', () => {
     expect(cam.position.toArray()).toEqual([...GLOBE_CAMERA.position]);
     expect(cam.position.length()).toBe(3);
     expect([cam.near, cam.far]).toEqual([GLOBE_CAMERA.near, GLOBE_CAMERA.far]);
+  });
+});
+
+describe('routeFrame (#94: камера наводиться на маршрут)', () => {
+  const grid = smallGrid();
+  const heights = displayHeights(grid);
+  it('Given маршрут; Then центр — середина меж, розмір ≥ мінімуму і ≥ 1.6 × протяжності', () => {
+    const a = cellCenter(grid, 1, 1);
+    const b = cellCenter(grid, grid.height - 2, grid.width - 2);
+    const f = routeFrame(grid, heights, [a, b], 1)!;
+    expect(f.center[0]).toBeCloseTo((a[0] + b[0]) / 2);
+    expect(f.center[2]).toBeCloseTo(-(a[1] + b[1]) / 2);
+    expect(f.size).toBeCloseTo(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])) * 1.6);
+  });
+  it('Given короткий маршрут; Then кадр не менший за ROUTE_FRAME_MIN_M', () => {
+    const a = cellCenter(grid, 1, 1);
+    const b = cellCenter(grid, 1, 2);
+    expect(routeFrame(grid, heights, [a, b])!.size).toBe(ROUTE_FRAME_MIN_M);
+  });
+  it('Given < 2 точок; Then null', () => {
+    expect(routeFrame(grid, heights, [cellCenter(grid, 1, 1)])).toBeNull();
   });
 });

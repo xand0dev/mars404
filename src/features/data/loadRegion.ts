@@ -1,9 +1,9 @@
-// F3: читання пакета public/data/gale без React (SPEC §6.0, §7.2). Кожен файл перевіряється окремо:
+// F3: читання пакета public/data/<SiteId> без React (SPEC §6.0, §7.2). Кожен файл перевіряється окремо:
 // бита висота чи walkable → лишається mock; битий slope/hazard → NaN (клітинки заблоковані) і помилка шару;
 // бита накладка/текстура/траверс → лише помилка шару.
 import { decodeSoil } from './soil';
 import type { PlanningGrid, Region, SurfacePhoto, SurfacePhotosGeoJSON, Target, TargetsGeoJSON, XY } from '../../contracts';
-import { isNoDataValue, lonLatToXY, xyToCell } from '../../contracts/planning';
+import { isNoDataValue, isSiteId, lonLatToXY, xyToCell } from '../../contracts/planning';
 
 /** Байти файлу відносно папки регіону; файла немає → FileMissingError. */
 export type GetFile = (path: string) => Promise<ArrayBuffer>;
@@ -37,7 +37,7 @@ function checkRegion(v: unknown): Region {
   const g = r?.grid;
   const ok =
     r?.schemaVersion === 1 &&
-    r.id === 'gale' &&
+    isSiteId(r.id) &&
     Number.isInteger(g?.width) &&
     Number.isInteger(g?.height) &&
     g.width > 0 &&

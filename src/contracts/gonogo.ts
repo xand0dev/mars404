@@ -1,6 +1,6 @@
 // GO / NO-GO перед виходом і під час нього (SPEC §7.10). Чиста функція: читає стан store, нічого не пише.
 // Рахує лише вердикт з уже порахованих F4/F5 результатів; власних чисел маршруту чи бюджету не вводить.
-import type { MissionData, ResourceKey } from './index';
+import { SITE_LABEL, type MissionData, type ResourceKey } from './index';
 import { validateGrid, xyToCell } from './planning';
 
 export type StationId = 'RTE' | 'LSS' | 'RTN' | 'SCI' | 'ABT' | 'DAT' | 'RAD' | 'MDL' | 'EQP';
@@ -114,7 +114,7 @@ export function evaluateGoNoGo(s: GoNoGoInput): GoNoGo {
   if (gridErrors.length > 0) stations.push({ id: 'DAT', call: 'nogo', reason: `Invalid grid: ${gridErrors[0]}` });
   else if (!s.region) stations.push({ id: 'DAT', call: 'caution', reason: 'Terrain is MOCK' });
   else if (s.region.status !== 'verified') stations.push({ id: 'DAT', call: 'caution', reason: `Terrain status: ${s.region.status}` });
-  else stations.push({ id: 'DAT', call: 'go', reason: 'Gale terrain verified' });
+  else stations.push({ id: 'DAT', call: 'go', reason: `${SITE_LABEL[s.region.id] ?? 'Site'} terrain verified` });
 
   // RAD — радіація
   if (s.model.doseUSvPerS === null || s.limits.dose === null) stations.push({ id: 'RAD', call: 'caution', reason: 'Dose: no data — estimate incomplete' });

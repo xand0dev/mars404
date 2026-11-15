@@ -23,6 +23,15 @@ describe('chooseSite — спільна дія панелі й маркерів'
     expect(useMission.getState().site).toBeNull();
   });
 
+  it('#101: Given сцена є; When Columbia Hills; Then переліт туди, наприкінці site = "columbia-hills"', async () => {
+    useGlobe.getState().setSceneReady(true);
+    chooseSite('columbia-hills');
+    expect(useGlobe.getState()).toMatchObject({ flying: true, flyTo: 'columbia-hills' });
+    const { openSite } = await import('./choose');
+    openSite();
+    expect(useMission.getState().site).toBe('columbia-hills');
+  });
+
   it('Given reduced motion; When Gale; Then одразу (F1-AC3)', () => {
     vi.stubGlobal('matchMedia', (q: string) => ({ matches: q === '(prefers-reduced-motion: reduce)' }));
     useGlobe.getState().setSceneReady(true);

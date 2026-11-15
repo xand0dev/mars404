@@ -2,7 +2,7 @@
 import type { Camera } from 'three';
 import type { PlanningGrid, XY } from '../../../contracts';
 import { VERTICAL_EXAGGERATION } from '../../../contracts';
-import { toR3F } from '../../../contracts/planning';
+import { toR3F, xyToCell } from '../../../contracts/planning';
 
 /** follow — камера за астронавтом під час демо-прогулянки; free — вільний політ (миша + WASD / стрілки, Q / E). */
 export type CameraMode = 'orbit' | 'top' | 'pov' | 'follow' | 'free';
@@ -54,6 +54,37 @@ export function gridFrame(grid: PlanningGrid, heights: Float32Array): Frame {
   const w = grid.width * grid.metersPerPixel;
   const h = grid.height * grid.metersPerPixel;
   return { center: [ox + w / 2, (minY + maxY) / 2, -(oy - h / 2)], size: Math.max(w, h), minY, maxY };
+}
+
+/** Найменший кадр маршруту, м: короткий маршрут не роздуваємо на весь екран. */
+export const ROUTE_FRAME_MIN_M = 700;
+
+/**
+ * Кадр навколо маршруту (#94): після «Build route» Orbit / Top наводяться на маршрут, а не на весь район.
+ * Запас 60 % навколо меж; висоти — з клітинок під точками маршруту.
+ */
+export function routeFrame(grid: PlanningGrid, heights: Float32Array, path: XY[], minSize = ROUTE_FRAME_MIN_M): Frame | null {
+  if (path.length < 2) return null;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  let lo = Infinity, hi = -Infinity;
+  for (const p of path) {
+    x0 = Math.min(x0, p[0]);
+    x1 = Math.max(x1, p[0]);
+    y0 = Math.min(y0, p[1]);
+    y1 = Math.max(y1, p[1]);
+    const c = xyToCell(grid, p);
+    const h = c ? heights[c.index] : undefined;
+    if (h !== undefined && Number.isFinite(h)) {
+      lo = Math.min(lo, h);
+      hi = Math.max(hi, h);
+    }
+  }
+  if (!Number.isFinite(x0)) return null;
+  if (!Number.isFinite(lo)) lo = hi = 0;
+  const minY = lo * VERTICAL_EXAGGERATION;
+  const maxY = hi * VERTICAL_EXAGGERATION;
+  const size = Math.max(minSize, Math.max(x1 - x0, y1 - y0) * 1.6);
+  return { center: [(x0 + x1) / 2, (minY + maxY) / 2, -(y0 + y1) / 2], size, minY, maxY };
 }
 
 export interface PovInput {

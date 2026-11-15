@@ -33,7 +33,7 @@ describe('LayersPanel', () => {
   it('Given район не відкрито, Then MOCK і підказка', () => {
     render(<LayersPanel />);
     expect(screen.getByText('MOCK')).toBeInTheDocument();
-    expect(screen.getByText(/open gale/i)).toBeInTheDocument();
+    expect(screen.getByText(/open a site/i)).toBeInTheDocument();
   });
 
   it('F3-AC3: Given панель, Then 5 шарів AC мають кнопку, легенду текстом, одиниці й походження', () => {

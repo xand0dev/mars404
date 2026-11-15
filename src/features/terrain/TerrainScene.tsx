@@ -5,7 +5,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Color, DataTexture, LinearFilter, NearestFilter, RGBAFormat, ShaderMaterial, Vector3, type Texture } from 'three';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { toR3F, xyToCell } from '../../contracts/planning';
-import { cameraPose, gridFrame, type CameraMode } from './lib/camera';
+import { cameraPose, gridFrame, routeFrame, type CameraMode, type Frame } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
 import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
@@ -91,19 +91,29 @@ function useDataTexture(rgba: Uint8Array, width: number, height: number): DataTe
   return tex;
 }
 
-function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov: Parameters<typeof cameraPose>[2] }) {
+function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan | null; mode: CameraMode; pov: Parameters<typeof cameraPose>[2] }) {
   const get = useThree((s) => s.get);
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
   // OrbitControls (makeDefault) реєструються пізніше за перший ефект; без цієї залежності вони
   // перенаводять камеру на (0, 0, 0) — кут району, і Orbit показує порожнечу.
   const controlsReady = useThree((s) => s.controls !== null);
-  const frame = useMemo(() => gridFrame(data.grid, data.heights), [data]);
+  const regionFrame = useMemo(() => gridFrame(data.grid, data.heights), [data.grid, data.heights]);
+  // #94: після «Build route» Orbit / Top наводяться на маршрут. Кадр тримаємо, доки не збудують новий маршрут
+  // або не змінять район, — щоб клік по цілі (план скинуто) не відкидав камеру назад.
+  const [routeView, setRouteView] = useState<{ grid: PlanningGrid; plan: RoutePlan; frame: Frame } | null>(null);
+  if (routeView && routeView.grid !== data.grid) setRouteView(null);
+  else if (plan?.status === 'ok' && routeView?.plan !== plan) {
+    const f = routeFrame(data.grid, data.heights, plan.path);
+    if (f) setRouteView({ grid: data.grid, plan, frame: f });
+  }
+  const frame = routeView?.frame ?? regionFrame;
   // Поза Orbit/Top не залежить від вибору цілей — не стрибаємо камерою при кожному кліку.
   const povKey = mode === 'pov' ? pov : null;
   const wide = !!data.context;
   // Проліт при відкритті району: з висоти над усім кратером униз до звичного ракурсу (один раз на район).
   const anim = useRef<{ from: [number, number, number]; to: [number, number, number]; target: [number, number, number]; t0: number } | null>(null);
   const flownFor = useRef<PlanningGrid | null>(null);
+  const framedFor = useRef<RoutePlan | null>(null);
   useEffect(() => {
     const { camera, invalidate } = get();
     const controls = get().controls as unknown as { target: { set(x: number, y: number, z: number): void }; update(): void } | null;
@@ -111,7 +121,7 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
     if (mode === 'free' || mode === 'follow') {
       anim.current = null;
       camera.near = 0.5;
-      camera.far = wide ? 400_000 : frame.size * 20 + (frame.maxY - frame.minY) * 4;
+      camera.far = wide ? 400_000 : regionFrame.size * 20 + (regionFrame.maxY - regionFrame.minY) * 4;
       camera.updateProjectionMatrix();
       invalidate();
       return;
@@ -131,18 +141,23 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
         : base;
     const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const fly = wide && mode === 'orbit' && controlsReady && flownFor.current !== data.grid && !reduced;
+    // Новий маршрут — плавний переліт з поточного ракурсу (reduced motion — одразу).
+    const toRoute = routeView !== null && framedFor.current !== routeView.plan && controlsReady && !reduced;
+    if (routeView) framedFor.current = routeView.plan;
     if (fly) {
       flownFor.current = data.grid;
       const [cx, cy, cz] = frame.center;
       const from: [number, number, number] = [cx - frame.size * 7, cy + frame.size * 8, cz - frame.size * 9];
       anim.current = { from, to: pose.position, target: pose.target, t0: performance.now() };
       camera.position.set(...from);
+    } else if (toRoute) {
+      anim.current = { from: [camera.position.x, camera.position.y, camera.position.z], to: pose.position, target: pose.target, t0: performance.now() };
     } else {
       anim.current = null;
       camera.position.set(...pose.position);
     }
     camera.near = mode === 'pov' ? 0.5 : Math.max(0.5, frame.size / 2000);
-    camera.far = wide ? 400_000 : frame.size * 20 + (frame.maxY - frame.minY) * 4;
+    camera.far = wide ? 400_000 : regionFrame.size * 20 + (regionFrame.maxY - regionFrame.minY) * 4;
     camera.lookAt(...pose.target);
     camera.updateProjectionMatrix();
     if (controls) {
@@ -150,7 +165,7 @@ function CameraRig({ data, mode, pov }: { data: SceneData; mode: CameraMode; pov
       controls.update();
     }
     invalidate();
-  }, [get, frame, mode, povKey, aspect, controlsReady, wide, data.grid]);
+  }, [get, frame, regionFrame, routeView, mode, povKey, aspect, controlsReady, wide, data.grid]);
   useFrame(({ camera, invalidate, controls }, dt) => {
     if (mode === 'follow' && walkPose.ready) {
       // Камера позаду й трохи вище астронавта, плавно наздоганяє.
@@ -748,7 +763,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} />}
       <OrbitControls makeDefault enableDamping={false} enabled={mode !== 'follow'} />
       <FreeFly enabled={mode === 'free'} scale={tileSize} />
-      <CameraRig data={data} mode={mode} pov={pov} />
+      <CameraRig data={data} plan={plan} mode={mode} pov={pov} />
     </group>
   );
 }

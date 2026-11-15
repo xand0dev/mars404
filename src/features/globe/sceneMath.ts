@@ -39,9 +39,12 @@ export function dragRotation(
   return [Math.max(-Math.PI / 2, Math.min(Math.PI / 2, x + dyPx * k)), y + dxPx * k];
 }
 
-/** Маркер підсвічено: відкрита картка точки або перехід до Gale. */
-export function markerActive(id: string, { previewId, flying }: { previewId: string | null; flying: boolean }): boolean {
-  return id === previewId || (flying && id === GALE_ID);
+/** Маркер підсвічено: відкрита картка точки або перехід до району. */
+export function markerActive(
+  id: string,
+  { previewId, flying, flyTo = GALE_ID }: { previewId: string | null; flying: boolean; flyTo?: string },
+): boolean {
+  return id === previewId || (flying && id === flyTo);
 }
 
 type V3 = readonly [number, number, number];

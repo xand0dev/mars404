@@ -56,6 +56,7 @@ export function TargetsPanel() {
 
   return (
     <Panel title="Science targets" featureId="F6" owner="Настя" mock={targets.some((target) => target.status === 'mock')}>
+      {targets.length === 0 && <p className="ui-stub">No science targets for this site yet — the terrain and layers are ready.</p>}
       <ul className="ui-list">
         {targets.map((target) => {
           const isSelected = selected.includes(target.id);

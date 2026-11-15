@@ -315,6 +315,14 @@ export interface ChecklistItem {
 export const SITE_IDS = ['gale', 'columbia-hills', 'olympus-mons', 'valles-marineris'] as const;
 export type SiteId = (typeof SITE_IDS)[number];
 
+/** Коротка назва району для заголовків UI. */
+export const SITE_LABEL: Record<SiteId, string> = {
+  gale: 'Gale',
+  'columbia-hills': 'Columbia Hills',
+  'olympus-mons': 'Olympus Mons',
+  'valles-marineris': 'Valles Marineris',
+};
+
 export interface MissionData {
   site: SiteId | null;
   layers: Record<string, boolean>;
