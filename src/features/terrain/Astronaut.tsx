@@ -32,7 +32,7 @@ interface Rig {
   mixer: AnimationMixer;
   actions: Partial<Record<Gait['clip'], AnimationAction>>;
   durations: { Walk: number; Run: number };
-  /** Поворот моделі до курсу: обличчя астронавта — у −Z, ніс ровера — у +Z */
+  /** Поворот моделі до курсу: обидві моделі дивляться в +Z (перевірено камерою Follow) */
   yawOffset: number;
   rover: boolean;
 }
@@ -107,7 +107,7 @@ function useAstronautRig(): Rig {
       if (name !== 'Idle') durations[name] = clip.duration;
     }
     actions.Idle?.setEffectiveWeight(1);
-    return { root, mixer, actions, durations, yawOffset: Math.PI, rover: false };
+    return { root, mixer, actions, durations, yawOffset: 0, rover: false };
   }, [gltf]);
   return rig;
 }
