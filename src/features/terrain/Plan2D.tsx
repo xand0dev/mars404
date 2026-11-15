@@ -1,5 +1,5 @@
 // 2D-план Б (SPEC §7.5): та сама сітка, blocked/NoData, ореол, шари, цілі, маршрут, підсвічений відрізок.
-import { useMemo, type MouseEvent } from 'react';
+import { useMemo, type KeyboardEvent, type MouseEvent } from 'react';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
 import { xyToCell } from '../../contracts/planning';
 import { EvaSignShape, StatusNote } from '../../ui';
@@ -45,6 +45,10 @@ export interface Plan2DProps {
   onPickHover?: (valid: boolean) => void;
   /** Знімок району (HiRISE / Viking) — підкладка 2D-карти; є — замість кольорів класів клітинок */
   photoUrl?: string | null;
+  /** #180: відкрити F6 preview без auto-add. */
+  onTargetPreview?: (targetId: string, anchor?: { x: number; y: number }) => void;
+  /** Preview-акцент, окремий від selectedIds маршруту. */
+  previewTargetId?: string | null;
   /** Навігація без GPS: маяки, відрізки на інерціалці, контрольні точки */
   nav?: { beacons: { xy: XY; label: string }[]; drift: XY[][]; checkpoints: XY[] } | null;
 }
@@ -69,7 +73,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null, overview = false, photoUrl = null }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, onTargetPreview, previewTargetId = null, nav = null, overview = false, photoUrl = null }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -194,14 +198,34 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         {targets.map((t) => {
           const [x, y] = planPoint(grid, t.coordinates);
           const sel = selectedIds.includes(t.id);
+          const previewed = previewTargetId === t.id;
           const text = `${sel ? '✓ ' : ''}${t.name}`;
           // Не влазить праворуч (оцінка ширини ~0.6 em на символ) — підпис ліворуч від точки.
           const left = x + unit * 1.6 + text.length * unit * 2.4 * 0.6 > w;
           return (
-            <g key={t.id} data-kind="target" data-selected={sel}>
+            <g
+              key={t.id}
+              data-kind="target"
+              data-selected={sel}
+              data-preview={previewed}
+              role={onTargetPreview ? 'button' : undefined}
+              tabIndex={onTargetPreview ? 0 : undefined}
+              aria-label={onTargetPreview ? `Preview ${t.name}` : undefined}
+              style={onTargetPreview ? { cursor: 'pointer' } : undefined}
+              onClick={(event: MouseEvent<SVGGElement>) => {
+                event.stopPropagation();
+                onTargetPreview?.(t.id, { x: event.clientX, y: event.clientY });
+              }}
+              onKeyDown={(event: KeyboardEvent<SVGGElement>) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                onTargetPreview?.(t.id);
+              }}
+            >
+              {previewed && <circle className="terrain-target-preview-ring" cx={x} cy={y} r={sign * 0.72} />}
               <EvaSignShape kind="target" state={!inReach(t.coordinates) ? 'outside' : sel ? 'selected' : 'unselected'} x={x} y={y} size={sign} label={`${t.name}${!inReach(t.coordinates) ? ', outside reachable area' : sel ? ', selected' : ''}`} />
-              {(sel || photoUrl || targets.length <= 2) && (
-              <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * (sel ? 2.4 : 1.9)} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400} opacity={sel ? 1 : 0.85}>
+              {(sel || previewed || photoUrl || targets.length <= 2) && (
+              <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * (sel || previewed ? 2.4 : 1.9)} fill={previewed ? '#ffd38a' : '#f3ece6'} stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel || previewed ? 700 : 400} opacity={sel || previewed ? 1 : 0.85}>
                 {text}
               </text>
               )}
