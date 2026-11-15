@@ -1,11 +1,12 @@
-// F1: вибір місця. Gale відкриває район (setSite), інші точки — картка «next site» без зміни site.
+// F1: вибір місця. EVA (Gale, Columbia Hills) і Overview (Olympus Mons, Valles Marineris) — переліт і setSite;
+// Jezero / Meridiani — лише картка; «coming soon» — кнопка вимкнена (#105).
 import { useEffect } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { useGlobe } from './globeState';
 import { chooseSite, openSite } from './choose';
 import { FLY_MS } from './motion';
-import { SITES, siteById, type Site } from './sites';
+import { MODE_GLYPH, SITES, canOpenSite, modeLabel, siteById, type Site } from './sites';
 import { ZOOM_MIN, useZoom } from './zoom';
 
 const listStyle = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 } as const;
@@ -47,12 +48,12 @@ function SiteCard({ site }: { site: Site }) {
       </h3>
       <p style={{ margin: '0 0 4px' }}>{site.summary}</p>
       <StatusNote level="info" live="status">
-        next site — not modelled
+        {modeLabel(site)}
       </StatusNote>
       <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
         {formatLatLon(site)} ·{' '}
         <a href={site.source.url} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>
-          IAU Gazetteer
+          {site.source.url?.includes('planetarynames') ? 'IAU Gazetteer' : 'Source'}
         </a>
       </p>
     </section>
@@ -81,6 +82,7 @@ export function SitePanel() {
     setSite(null);
   };
   const previewed = previewId === null ? undefined : siteById(previewId);
+  const opened = site === null ? undefined : siteById(site);
 
   return (
     <Panel title="Location" featureId="F1" owner="Іван" mock={texture.status !== 'ok'}>
@@ -90,11 +92,18 @@ export function SitePanel() {
             <button
               type="button"
               data-site={s.id}
-              aria-pressed={s.modelled ? site === s.id : previewId === s.id}
+              data-mode={s.comingSoon ? 'soon' : s.mode}
+              aria-pressed={canOpenSite(s) ? site === s.id : previewId === s.id}
+              aria-describedby={`f1-mode-${s.id}`}
+              disabled={s.comingSoon}
               onClick={() => chooseSite(s.id)}
             >
+              <span aria-hidden="true">{MODE_GLYPH[s.comingSoon ? 'soon' : s.mode]} </span>
               {s.name}
             </button>
+            <span id={`f1-mode-${s.id}`} hidden>
+              {modeLabel(s)}
+            </span>
           </li>
         ))}
       </ul>
@@ -116,7 +125,7 @@ export function SitePanel() {
           </button>
         </p>
       )}
-      {previewed && <SiteCard site={previewed} />}
+      {previewed ? <SiteCard site={previewed} /> : opened && <SiteCard site={opened} />}
       <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
         {texture.status === 'ok'
           ? `Texture: ${texture.credit}`

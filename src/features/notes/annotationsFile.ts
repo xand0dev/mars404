@@ -1,5 +1,6 @@
 // Експорт / імпорт міток екіпажу як AnnotationsFile (SPEC §7.12, F1-AC6). Чисті функції без React.
 import type { Annotation, AnnotationKind, AnnotationsFile, SiteId } from '../../contracts';
+import { isSiteId } from '../../contracts/planning';
 
 export const ANNOTATION_KINDS: readonly AnnotationKind[] = ['impassable', 'hazard', 'note', 'plan'];
 
@@ -30,8 +31,8 @@ const toAnnotation = (v: Record<string, unknown>, origin: Annotation['origin']):
   return { id: v.id as string, kind: v.kind as AnnotationKind, coordinates: [x, y], radiusM: v.radiusM as number, text: v.text as string, createdAt: v.createdAt as string, origin };
 };
 
-/** Розбирає файл експорту. Усі мітки з файла отримують origin = 'imported'. */
-export function parseAnnotationsFile(text: string): ParseResult {
+/** Розбирає файл експорту. Усі мітки з файла отримують origin = 'imported'. site файла має бути SiteId і збігатися з поточним. */
+export function parseAnnotationsFile(text: string, currentSite: SiteId = 'gale'): ParseResult {
   let data: unknown;
   try {
     data = JSON.parse(text);
@@ -40,7 +41,8 @@ export function parseAnnotationsFile(text: string): ParseResult {
   }
   if (!isObj(data)) return { ok: false, error: 'not an AnnotationsFile object' };
   if (data.schemaVersion !== 1) return { ok: false, error: `unsupported schemaVersion ${String(data.schemaVersion)}` };
-  if (data.site !== 'gale') return { ok: false, error: `marks are for site "${String(data.site)}", not Gale` };
+  if (!isSiteId(data.site)) return { ok: false, error: `unknown site "${String(data.site)}"` };
+  if (data.site !== currentSite) return { ok: false, error: `marks are for site "${data.site}", not "${currentSite}"` };
   if (!Array.isArray(data.annotations)) return { ok: false, error: 'annotations must be a list' };
   const ids = new Set<string>();
   for (const a of data.annotations) {

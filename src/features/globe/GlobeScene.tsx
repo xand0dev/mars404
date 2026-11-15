@@ -66,7 +66,8 @@ function useMarsTexture(): Texture | null {
 
 function Marker({ site, active }: { site: Site; active: boolean }) {
   const pos = useMemo(() => latLonToSphere(site.latDeg, site.lonEastDeg, MARKER_R), [site]);
-  const r = (site.modelled ? 0.035 : 0.025) * (active ? 1.4 : 1);
+  // §7.7: режим розрізняємо формою — eva октаедр (◆), overview тетраедр (▲), card сфера (●).
+  const r = (site.mode === 'card' ? 0.025 : 0.04) * (active ? 1.4 : 1);
   return (
     <mesh
       position={pos}
@@ -77,8 +78,18 @@ function Marker({ site, active }: { site: Site; active: boolean }) {
         if (e.delta <= CLICK_SLOP_PX) chooseSite(site.id);
       }}
     >
-      <sphereGeometry args={[r, 16, 12]} />
-      <meshBasicMaterial color={active ? '#ffd38a' : site.modelled ? '#e0673c' : '#f3ece6'} />
+      {site.mode === 'eva' ? (
+        <octahedronGeometry args={[r]} />
+      ) : site.mode === 'overview' ? (
+        <tetrahedronGeometry args={[r]} />
+      ) : (
+        <sphereGeometry args={[r, 16, 12]} />
+      )}
+      <meshBasicMaterial
+        color={active ? '#ffd38a' : site.mode === 'eva' ? '#e0673c' : site.mode === 'overview' ? '#6fb3d9' : '#f3ece6'}
+        transparent={!!site.comingSoon}
+        opacity={site.comingSoon ? 0.4 : 1}
+      />
     </mesh>
   );
 }

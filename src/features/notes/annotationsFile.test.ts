@@ -35,7 +35,8 @@ describe('F1-AC6 · імпорт невалідного файла', () => {
     ['не JSON', '{oops'],
     ['не обʼєкт', '[]'],
     ['інша schemaVersion', JSON.stringify({ ...valid(), schemaVersion: 2 })],
-    ['інший site', JSON.stringify({ ...valid(), site: 'jezero' })],
+    ['невідомий site', JSON.stringify({ ...valid(), site: 'jezero' })],
+    ['site іншого району (не поточний)', JSON.stringify({ ...valid(), site: 'columbia-hills' })],
     ['annotations не масив', JSON.stringify({ ...valid(), annotations: {} })],
     ['невідомий вид', JSON.stringify(withMark({ kind: 'lava' }))],
     ['координати не числа', JSON.stringify(withMark({ coordinates: ['1', 2] }))],
@@ -61,5 +62,18 @@ describe('mergeImported', () => {
       ['b', 'new'],
       ['c', 'loose sand'],
     ]);
+  });
+});
+
+describe('#105 · site через isSiteId і поточний район', () => {
+  it('Given відкрито Columbia Hills; When імпорт файла columbia-hills; Then ok', () => {
+    const text = JSON.stringify(toAnnotationsFile('columbia-hills', [mark('a')]));
+    const res = parseAnnotationsFile(text, 'columbia-hills');
+    expect(res.ok).toBe(true);
+  });
+
+  it('Given відкрито Columbia Hills; When імпорт файла Gale; Then помилка з обома назвами', () => {
+    const res = parseAnnotationsFile(JSON.stringify(toAnnotationsFile('gale', [mark('a')])), 'columbia-hills');
+    expect(res).toEqual({ ok: false, error: 'marks are for site "gale", not "columbia-hills"' });
   });
 });
