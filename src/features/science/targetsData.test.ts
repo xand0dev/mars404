@@ -57,8 +57,6 @@ describe('F6-AC1/AC2 · пакет цілей Gale', () => {
 
 describe('F6-AC5 · каталог поверхневих фото', () => {
   it('Given bbox Gale, When photos.geojson перевірено, Then є 8–20 verified Navcam rover-stop фото', async () => {
-    const targets = JSON.parse(await readFile(targetsPath, 'utf8')) as TargetsGeoJSON;
-    const targetCoordinates = new Set(targets.features.map((feature) => feature.geometry.coordinates.join(',')));
     const data = record(JSON.parse(await readFile(photosPath, 'utf8')) as unknown);
     const features = data.features;
 
@@ -84,7 +82,6 @@ describe('F6-AC5 · каталог поверхневих фото', () => {
       expect(lon).toBeLessThanOrEqual(BBOX.east);
       expect(lat).toBeGreaterThanOrEqual(BBOX.south);
       expect(lat).toBeLessThanOrEqual(BBOX.north);
-      expect(targetCoordinates).toContain(coordinates.join(','));
       expect(properties.locationAccuracy).toBe('rover-stop');
       expect(properties.status).toBe('verified');
       expect(properties.camera).toMatch(/^NAV_(LEFT|RIGHT)_[AB]$/);

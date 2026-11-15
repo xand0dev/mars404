@@ -474,7 +474,7 @@ def build(cache, region='gale', out=None):
     ]
     files = dict(elevation='elevation.f32', slope='slope.f32', walkable='walkable.u8', hazard='hazard.f32',
                  texture=texture, targets='targets.geojson', traverse='traverse.geojson')
-    if gale:
+    if gale or (out is not None and (out / 'photos' / 'photos.geojson').exists()):
         files['photos'] = 'photos/photos.geojson'
     files['elevationRender'] = 'elevation_render.f32'
     context, extra, old_sources, old_inputs = read_previous(out)
