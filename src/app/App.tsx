@@ -14,23 +14,25 @@ import { useMission } from '../store/useMission';
 export function App() {
   // Overview-район (Olympus Mons, Valles Marineris): лише рельєф і шари — панелі планування EVA ховаємо.
   const overview = useMission((s) => s.site !== null && s.region?.id === s.site && regionKind(s.region) === 'overview');
+  // Глобус (район не обрано): лише карта й вибір місця — панелі планування, HUD і стан ще порожні.
+  const globe = useMission((s) => s.site === null);
   return (
     <>
       <DataLoader />
       <BudgetEngine />
       <Shell
-        hud={<Hud />}
+        hud={globe ? undefined : <Hud />}
         map={
           <>
             <MapView globe={<GlobeScene />} />
-            <CameraModes />
+            {!globe && <CameraModes />}
           </>
         }
         side={
           <>
             <SitePanel />
-            <LayersPanel />
-            {!overview && (
+            {!globe && <LayersPanel />}
+            {!globe && !overview && (
               <>
                 <TargetsPanel />
                 <RoutePanel />
@@ -40,7 +42,7 @@ export function App() {
           </>
         }
         status={
-          overview ? undefined : (
+          globe || overview ? undefined : (
             <>
               <BudgetPanel />
               <ChecklistPanel />

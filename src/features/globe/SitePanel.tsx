@@ -1,6 +1,6 @@
 // F1: вибір місця. EVA (Gale, Columbia Hills) і Overview (Olympus Mons, Valles Marineris) — переліт і setSite;
 // Jezero / Meridiani — лише картка; «coming soon» — кнопка вимкнена (#105).
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { SiteCard } from './SiteCardView';
@@ -35,6 +35,15 @@ function ZoomControls() {
   );
 }
 
+/** jsdom не має scrollTo — без нього просто нічого не робимо. */
+function scrollToTop() {
+  try {
+    window.scrollTo({ top: 0 });
+  } catch {
+    /* немає прокрутки — не страшно */
+  }
+}
+
 export function SitePanel() {
   const site = useMission((s) => s.site);
   const setSite = useMission((s) => s.setSite);
@@ -51,6 +60,13 @@ export function SitePanel() {
     const id = setTimeout(() => openSite(), FLY_MS);
     return () => clearTimeout(id);
   }, [flying]);
+
+  // Глобус → район: Location стоїть під картою, тож після вибору — на початок сторінки, до HUD і рельєфу.
+  const prevSite = useRef(site);
+  useEffect(() => {
+    if (prevSite.current === null && site !== null) scrollToTop();
+    prevSite.current = site;
+  }, [site]);
 
   const back = () => {
     resetUi();
