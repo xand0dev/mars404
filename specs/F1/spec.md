@@ -23,10 +23,12 @@
 ## #112 · Прев’ю-картки шести локацій (15.11)
 
 - `siteCard.ts`: `fetch(dataUrl('sites/<id>.json'))`, кеш запиту на id, schema v1; помилка мережі / 404 → `null`, невалідні поля пропускаються з `console.warn`.
-- `SiteCardView.tsx`: фото 16:10 з credit, title / subtitle, режим формою й словом, summary, Why go, до 4 фактів з evidence та `Sources (N)` у `Disclosure`. Назва `SiteCardView` потрібна, бо TypeScript на macOS не дозволяє одночасно `siteCard.ts` і `SiteCard.tsx`, що різняться лише регістром.
+- `SiteCardView.tsx`: фото 16:10 з credit, title / subtitle, режим формою й словом, summary, Why go, до 5 фактів з evidence (межа #111: 3–5) та `Sources (N)` у `Disclosure`. Назва `SiteCardView` потрібна, бо TypeScript на macOS не дозволяє одночасно `siteCard.ts` і `SiteCard.tsx`, що різняться лише регістром.
 - Jezero / Meridiani лишаються preview на глобусі без дії, з текстом `Terrain not modelled yet`. Для відкритого EVA / Overview району mode badge видно одразу, повна картка згорнута в `About this site`.
 - Демо-шлях не змінюється: Gale / Columbia Hills / Olympus / Valles одним кліком запускають наявний переліт і відкривають район.
 - Тести: loader і кеш; EVA / Overview / Card; fallback без JSON; Tab до Sources і нативне відкриття `summary`; регресія `SitePanel`.
+- Головна дія повної картки (доповнення): EVA — «Plan an EVA here», Overview — «Explore terrain»; обидві викликають `chooseSite` (той самий переліт / `setSite`). Card — без кнопки. У відкритому районі (`About this site`) кнопки немає. Порядок Tab: credit → кнопка → `Sources (N)`.
+- Відкрите питання: при one-click-перельоті повна картка EVA / Overview у `SitePanel` не показується, тож кнопку видно лише в компоненті (тести). Чи потрібен двокроковий вибір (картка → кнопка → переліт), як в AC #112, — рішення за командою (зачіпає e2e #105).
 
 ## Нові задачі (14.11): Abort map + «View from here»
 План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.

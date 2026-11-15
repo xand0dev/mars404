@@ -1,0 +1,32 @@
+1
+00:00:00,500 --> 00:00:04,000
+Gale crater, Mars. Every spacewalk has one question:
+
+2
+00:00:04,000 --> 00:00:08,000
+when do I have to turn back?
+
+3
+00:00:08,000 --> 00:00:12,000
+Pick targets on real NASA terrain. Return in 24 minutes.
+
+4
+00:00:12,000 --> 00:00:16,000
+Rehearse the walk: time, oxygen and energy, minute by minute.
+
+5
+00:00:16,000 --> 00:00:20,000
+Oxygen down 40%? It finds the point of no return
+and swaps in a closer target.
+
+6
+00:00:20,000 --> 00:00:24,000
+No GPS on Mars: beacons guide the way back.
+
+7
+00:00:24,000 --> 00:00:28,000
+Same tool, second site: Spirit's Columbia Hills.
+
+8
+00:00:28,000 --> 00:00:30,000
+MARS::404 — know when to turn back.

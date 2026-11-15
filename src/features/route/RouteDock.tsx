@@ -5,6 +5,8 @@ import type { AbortPlan, RoutePlan, Segment, TargetPhoto } from '../../contracts
 import { STATUS_ICON, formatMinutes } from '../../ui';
 import { formatRisks } from './segment-risk';
 import { PhotoLocationNote, PhotoSourceLink } from './PhotoSource';
+import type { TravelMode } from '../../core';
+import { TravelModeToggle } from './TravelMode';
 import { PHOTO_LOCATION_TEXT, photoCameraName, type PhotoLocation } from './surface-photo';
 import { legSummaries } from './traverse-legs';
 
@@ -20,6 +22,8 @@ interface RouteDockProps {
   selectedSegment: number | null;
   onSelect: (segment: number) => void;
   onBuild: () => void;
+  travelMode: TravelMode;
+  onTravelModeChange: (mode: TravelMode) => void;
   canBuild: boolean;
   /** Причини ризику по відрізках (SPEC §7.14), ті самі, що в таблиці. */
   risks: string[][];
@@ -33,7 +37,7 @@ interface RouteDockProps {
 const PLAY_STEP_MS = 250;
 
 
-export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, risks, labels, abort, photoFor }: RouteDockProps) {
+export function RouteDock({ plan, selectedSegment, onSelect, onBuild, travelMode, onTravelModeChange, canBuild, risks, labels, abort, photoFor }: RouteDockProps) {
   const [photoOpen, setPhotoOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const ready = plan?.status === 'ok' && plan.segments.length > 0;
@@ -199,6 +203,7 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
             </div>
           </div>
           {/* Та сама дія, що в панелі: на екрані завжди одна «Build route» — кнопку панелі ховає CSS, коли видно пульт. */}
+          <TravelModeToggle mode={travelMode} onChange={onTravelModeChange} className="route-mode eva-dock__mode" />
           <button type="button" className="ui-btn--primary eva-dock__build" disabled={!canBuild} onClick={onBuild}>
             Build route
           </button>
