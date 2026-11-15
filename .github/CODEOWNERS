@@ -21,6 +21,7 @@
 
 # F1 Глобус і вибір місця
 /src/features/globe/ @gonivanko
+/src/features/notes/ @gonivanko
 /public/data/mars/ @gonivanko
 /pipeline/globe/ @gonivanko
 /specs/F1/ @gonivanko
@@ -47,6 +48,7 @@
 
 # F6 Наукові цілі й фото
 /src/features/science/ @Bulka0801
+/src/features/prep/ @Bulka0801
 /public/data/gale/targets* @Bulka0801
 /public/data/gale/photos/ @Bulka0801
 /specs/F6/ @Bulka0801
@@ -57,10 +59,10 @@
 /specs/F7/ @oljyaaa
 
 # F8 Демо й сабміт
-/docs/demo/ @xand0dev
-/docs/submission/ @xand0dev
-/README.md @xand0dev
-/specs/F8/ @xand0dev
+/docs/demo/ @oljyaaa
+/docs/submission/ @oljyaaa
+/README.md @oljyaaa
+/specs/F8/ @oljyaaa
 
 # Перевизначення (останнє правило перемагає)
 /pipeline/globe/ @gonivanko

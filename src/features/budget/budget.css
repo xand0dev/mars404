@@ -1,0 +1,111 @@
+.budget-return { font-size: 1.4rem; font-weight: 700; margin: 0 0 4px; font-variant-numeric: tabular-nums; }
+.budget-reserve { font-size: 0.85rem; color: var(--text-muted); margin: 4px 0; overflow-wrap: anywhere; }
+.budget-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+
+.budget-evidence { margin: -4px 0 6px; font-size: 0.8em; color: var(--warn); }
+
+/* Life support: головне число, статус словом, ресурси зі словом стану. Колір лише доповнює слово (SPEC §7.7). */
+.life-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px var(--space-3, 12px); padding: var(--space-3, 12px); margin-bottom: var(--space-2, 8px); border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius, 10px); background: var(--surface-2, transparent); }
+.life-hero--ok { border-left-color: var(--ok); }
+.life-hero--warn { border-left-color: var(--warn); }
+.life-hero--danger { border-left-color: var(--danger); background: var(--deficit-bg, transparent); }
+.life-hero--info { border-left-color: var(--info); }
+/* Головне число — у HUD; тут лише рядок, щоб не було двох однакових великих «Return in». */
+.life-hero .budget-return { grid-column: 1; min-width: 0; margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+.life-hero__status { grid-column: 2; grid-row: 2; }
+.life-label { grid-column: 1 / -1; margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.life-limited { grid-column: 1 / -1; margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+.life-word { justify-self: end; padding: 2px 8px; border: 1px solid currentColor; border-radius: 999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
+.life-word--ok { color: var(--ok); }
+.life-word--warn { color: var(--warn); }
+.life-word--danger { color: var(--danger); }
+.life-word--info { color: var(--info); }
+.life-resource { margin-bottom: var(--space-2, 8px); }
+.life-resource__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-2, 8px); }
+.budget-actions .life-label { align-self: center; grid-column: auto; }
+
+/* Пульт EVA: нижній край планшета, під великим пальцем. Дві половини (F4 ліворуч, F5 праворуч) — одна смуга. */
+:root { --eva-dock-h: 96px; --eva-route-h: var(--eva-dock-h); }
+body:has(.eva-dock) { padding-bottom: calc(var(--eva-dock-h) + env(safe-area-inset-bottom, 0px)); }
+.eva-dock { position: fixed; bottom: 0; z-index: 40; box-sizing: border-box; min-height: var(--eva-dock-h); display: flex; align-items: center; gap: var(--space-2, 8px); padding: var(--space-2, 8px) var(--space-3, 12px) calc(var(--space-2, 8px) + env(safe-area-inset-bottom, 0px)); background: var(--surface, #15181d); border-top: 1px solid var(--border, var(--line)); }
+.eva-dock button { min-height: 56px; min-width: 56px; padding: 0 12px; white-space: nowrap; }
+/* Режим рукавиць F7 (клас .shell--glove) — цілі ≥ 64 px, як у HUD. */
+body:has(.shell--glove) .eva-dock button { min-height: 64px; min-width: 64px; }
+body:has(.shell--glove) { --eva-dock-h: 104px; }
+.eva-dock__readout { flex: 1 1 auto; min-width: 0; margin: 0; display: grid; gap: 2px; line-height: 1.25; }
+.eva-dock__readout strong { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
+.eva-dock__readout > span { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eva-dock--life { right: 0; width: 46%; border-left: 1px solid var(--border, var(--line)); }
+.eva-dock__whatif { display: flex; gap: var(--space-2, 8px); }
+.eva-dock__toggle { flex: none; }
+/* Згорнуто: лишається лише «Return in» і кнопка розгорнути. */
+html[data-eva-dock='collapsed'] .eva-dock--life { width: 100%; border-left: none; }
+html[data-eva-dock='collapsed'] .eva-dock__whatif { display: none; }
+@media (max-width: 719px) {
+  .eva-dock--life { width: 100%; border-left: none; }
+  .eva-dock__readout strong { white-space: normal; font-size: 0.9rem; }
+  :root { --eva-route-h: 156px; }
+  body:has(.eva-dock--route) { padding-bottom: calc(var(--eva-dock-h) + var(--eva-route-h) + env(safe-area-inset-bottom, 0px)); }
+  html[data-eva-dock='collapsed'] body { padding-bottom: calc(var(--eva-dock-h) + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Шторка: open — лише пульт; expanded — деталі над пультом; collapsed — один рядок. */
+:root { --eva-sheet-h: min(60vh, 500px); }
+.eva-dock { flex-direction: column; align-items: stretch; }
+.eva-dock__controls { display: flex; align-items: center; gap: var(--space-2, 8px); min-height: calc(var(--eva-dock-h) - 16px); }
+.eva-dock__details { display: none; }
+html[data-eva-dock='expanded'] .eva-dock { height: var(--eva-sheet-h); }
+html[data-eva-dock='expanded'] .eva-dock__details { display: block; flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--space-2, 8px) var(--space-1, 4px); }
+html[data-eva-dock='expanded'] body { padding-bottom: calc(var(--eva-sheet-h) + 40px); }
+
+/* Ручка шторки: тап або потягнути. Над пультом, на всю ширину — легко влучити рукавицею. */
+/* Ручка — лише смужка, як у шухляди: висоту шторки обирає астронавт. Зона дотику на всю ширину, 40 px (F7-AC1). */
+.eva-sheet-handle { position: fixed; left: 0; right: 0; bottom: var(--eva-dock-h); z-index: 41; min-height: 40px; height: 40px; width: 100%; padding: 0; display: grid; place-items: center; border: none; border-top: 1px solid var(--border, var(--line)); border-radius: 14px 14px 0 0; background: var(--surface, #15181d); cursor: grab; touch-action: none; }
+.eva-sheet-handle:active { cursor: grabbing; }
+.eva-sheet-handle__grip { width: 52px; height: 5px; border-radius: 3px; background: var(--text-muted); opacity: 0.7; }
+.eva-sheet-handle:hover .eva-sheet-handle__grip, .eva-sheet-handle:focus-visible .eva-sheet-handle__grip { opacity: 1; background: var(--text); }
+html[data-eva-dragging] .eva-dock, html[data-eva-dragging] .eva-sheet-handle { transition: none !important; }
+html[data-eva-dock='expanded'] .eva-sheet-handle { bottom: var(--eva-sheet-h); }
+html[data-eva-dock='collapsed'] .eva-sheet-handle { display: none; }
+
+/* Ресурси: є зараз → смуга витрати → лишиться після маршруту. Смуга — єдина «гучна» деталь шторки. */
+.eva-res { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3, 12px); }
+.eva-res__row { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; grid-template-areas: 'name now word' 'bar bar bar' 'plan plan plan'; align-items: baseline; gap: 2px var(--space-2, 8px); }
+.eva-res__name { grid-area: name; color: var(--res, var(--text-muted)); font-weight: 600; }
+.eva-res__now { grid-area: now; font-family: var(--font-mono); font-size: 1.05rem; color: var(--res, var(--text)); }
+.eva-res__row .life-word { grid-area: word; }
+.eva-res__bar { grid-area: bar; position: relative; height: 10px; border-radius: 5px; background: var(--surface-3, #222); overflow: hidden; }
+.eva-res__fill { position: absolute; inset: 0 auto 0 0; background: var(--res, var(--ok)); opacity: 0.6; }
+/* Що візьме маршрут — штриховка тим самим кольором ресурсу (не тривога: тривогу показує слово стану). */
+.eva-res__route { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, var(--res, var(--text)) 0 4px, transparent 4px 7px); }
+.eva-res__reserve { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); }
+.eva-res__plan { grid-area: plan; display: flex; justify-content: space-between; gap: var(--space-2, 8px); font-size: 0.8rem; color: var(--text-muted); }
+.eva-res__plan strong { color: var(--text); font-weight: 600; }
+.eva-res__note { margin: var(--space-3, 12px) 0 0; font-size: 0.8rem; color: var(--text-muted); }
+
+@media (max-width: 719px) {
+  .eva-sheet-handle { bottom: calc(var(--eva-dock-h) + var(--eva-route-h)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .eva-dock, .eva-sheet-handle { transition: height 180ms ease-out, bottom 180ms ease-out; }
+}
+
+/* Колір ресурсу — що це за ресурс (бліді тони); насичені --ok / --warn / --danger лишаються за станом.
+   O₂ — блідо-блакитний, як рідкий кисень; Time — пісочний, як денне небо Марса; Energy — фіолет електричної дуги; Dose — пурпур знака радіації. */
+[data-resource='o2'] { --res: #c2f0ff; }
+[data-resource='time'] { --res: #ebd9b4; }
+[data-resource='energy'] { --res: #cdb8ff; }
+[data-resource='dose'] { --res: #ffb3e6; }
+.eva-res__row { padding-left: 10px; border-left: 3px solid var(--res, var(--line)); }
+.eva-res-name { color: var(--res); font-weight: 600; }
+.life-resource[data-resource] { padding-left: 10px; border-left: 3px solid var(--res); }
+.life-resource[data-resource] .ui-gauge > span:first-child { color: var(--res); }
+.life-resource[data-resource] .ui-gauge__extra { color: var(--text-muted); }
+
+/* ≥ 1200 px Shell (F7, #99) — один екран: Route і Resources поруч з картою, пульт не потрібен (у Glove mode лишається). */
+@media (min-width: 1200px) and (min-height: 600px) {
+  body:has(.shell:not(.shell--glove)) .eva-dock,
+  body:has(.shell:not(.shell--glove)) .eva-sheet-handle,
+  body:has(.shell:not(.shell--glove)) .eva-photo { display: none; }
+  body:has(.shell:not(.shell--glove)) { padding-bottom: 0; }
+}

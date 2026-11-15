@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "meridiani",
+  "title": "Meridiani Planum",
+  "subtitle": "Opportunity rover field site",
+  "mode": "card",
+  "summary": "Opportunity found hematite-rich spherules and layered sandstone at Meridiani Planum. These deposits preserve evidence of liquid water in the Martian past.",
+  "whyGo": "Inspect hematite-rich deposits and layered rocks to reconstruct past water and surface conditions.",
+  "facts": [
+    { "label": "Center", "value": "0.20° N, 357.50° E", "sourceId": "iau-gazetteer-3854" },
+    { "label": "Mission", "value": "Opportunity, landed January 2004", "sourceId": "nasa-meridiani-water" },
+    { "label": "Hematite", "value": "Up to 20% at the surface", "sourceId": "nasa-meridiani-water" },
+    { "label": "Deposits", "value": "Spherules in layered sandstone", "sourceId": "nasa-meridiani-water" }
+  ],
+  "image": {
+    "file": "meridiani.jpg",
+    "alt": "False-color orbital view of layered terrain and craters at Meridiani Planum",
+    "credit": "NASA/JPL-Caltech/Arizona State University",
+    "sourceUrl": "https://science.nasa.gov/resource/meridiani-planum-2/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "iau-gazetteer-3854",
+      "title": "IAU Gazetteer of Planetary Nomenclature — Meridiani Planum",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/3854",
+      "credit": "IAU WGPSN / USGS Astrogeology",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "nasa-meridiani-water",
+      "title": "Meridiani Planum — evidence of past liquid water",
+      "url": "https://science.nasa.gov/resource/meridiani-planum-2/",
+      "credit": "NASA/JPL-Caltech/Arizona State University",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}

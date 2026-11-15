@@ -46,9 +46,39 @@ export interface RegionGrid {
   crs: string;
 }
 
+/**
+ * Режим району (SPEC §6.0, рішення 14.11): `eva` — планування виходу (маршрут, бюджет, GO / NO-GO);
+ * `overview` — лише рельєф для огляду (Olympus Mons, Valles Marineris), планування приховане.
+ * Немає поля — `eva` (пакети до 15.11).
+ */
+export type RegionKind = 'eva' | 'overview';
+
+/** Щільніший рельєф лише для 3D: той самий bbox, що й `grid`, інша роздільність. */
+export interface RenderGrid {
+  width: number;
+  height: number;
+}
+
+/**
+ * Рельєф довкола району (кільце контексту в 3D): квадрат з тим самим центром, більший за `grid`.
+ * Координати — у тих самих локальних метрах, що й `grid` (originM — північно-західний кут, може бути від'ємним).
+ */
+export interface RegionContext {
+  /** Файл float32 відносно папки регіону */
+  file: string;
+  width: number;
+  height: number;
+  metersPerPixel: number;
+  originM: XY;
+  /** Сирий sentinel у файлі; немає — той самий, що `Region.noData` */
+  noData?: number;
+}
+
 export interface Region {
   schemaVersion: 1;
-  id: 'gale';
+  id: SiteId;
+  /** Немає — 'eva'. Читати через `regionKind(region)`. */
+  kind?: RegionKind;
   name: string;
   status: Evidence;
   grid: RegionGrid;
@@ -61,12 +91,22 @@ export interface Region {
     texture: string;
     targets: string;
     traverse?: string;
+    /** photos.geojson (F6), SPEC §6.0 */
+    photos?: string;
+    /** float32 renderGrid.width × renderGrid.height — лише для 3D (без планування) */
+    elevationRender?: string;
   };
+  /** Розмір `files.elevationRender`; обидва поля або жодного. */
+  renderGrid?: RenderGrid;
+  /** Кільце рельєфу довкола району (лише 3D). */
+  context?: RegionContext;
   /** Сирий sentinel у elevation.f32 */
   noData: number;
   base: XY;
   model: ModelParams;
   limits: Resources;
+  /** Джерело кожного ліміту (SPEC §7.6, #20). Немає поля чи ключа — на екрані «assumption». */
+  limitsEvidence?: Record<ResourceKey, Source>;
   layers: Layer[];
   sources: Source[];
 }
@@ -90,6 +130,34 @@ export interface Target {
   status: Evidence;
   locationAccuracy: 'verified' | 'approximate' | 'mock';
   photo: TargetPhoto | null;
+}
+
+/** Знімок з поверхні для «View from here» (SPEC §7.9). Координати — зупинка ровера за sol, а не місце кадру. */
+export interface SurfacePhoto {
+  id: string;
+  coordinates: XY;
+  lonLat: readonly [lon: number, lat: number];
+  url: string;
+  alt: string;
+  sourceUrl: string;
+  credit: string;
+  sol: number;
+  /** 'NAV_LEFT_B' тощо, як дає raw images API */
+  camera: string;
+  locationAccuracy: 'rover-stop' | 'approximate';
+  status: Evidence;
+}
+
+/** photos/photos.geojson (F6): geometry = [lon, lat] зупинки; coordinates/lonLat заповнює DataLoader. */
+export interface SurfacePhotoFeature {
+  type: 'Feature';
+  id: string;
+  geometry: { type: 'Point'; coordinates: [lon: number, lat: number] };
+  properties: Omit<SurfacePhoto, 'coordinates' | 'lonLat'>;
+}
+export interface SurfacePhotosGeoJSON {
+  type: 'FeatureCollection';
+  features: SurfacePhotoFeature[];
 }
 
 /** targets.geojson (F6): geometry.coordinates = [lon, lat]; coordinates/lonLat заповнює DataLoader. */
@@ -131,6 +199,8 @@ export interface ModelCoefficients {
   hazardWeight: number;
   /** [0, 1) */
   reserveFraction: number;
+  /** Аварійний запас O₂, г; на план не витрачається (SPEC §7.8). */
+  emergencyO2G: number;
 }
 export interface ModelParams extends ModelCoefficients {
   evidence: Record<keyof ModelCoefficients, Source>;
@@ -148,6 +218,11 @@ export interface PlanningGrid {
   walkable: Uint8Array;
   /** [0, 1], модельний індекс */
   hazard: Float32Array;
+  /**
+   * Сповільнення ходьби ґрунтом, множник часу ≥ 1 на клітинку (пісок повільніше за скелю).
+   * З нічної яскравості THEMIS (теплова інерція), `soilFromNightDN`; немає → 1 (як раніше). Assumption.
+   */
+  soil?: Float32Array;
 }
 
 export interface Segment {
@@ -181,6 +256,16 @@ export interface RoutePlan {
   requestId: number;
 }
 
+/** Abort map (SPEC §7.8). */
+export interface AbortPlan {
+  /** По одному на plan.segments[i]; returnS — час до бази з кінця відрізка, null — шляху назад немає. */
+  segments: { returnS: number | null; ok: boolean }[];
+  /** с від початку плану до першого відрізка з ok = false; null — повернення звідусіль. */
+  pointOfNoReturnS: number | null;
+  /** Який аварійний запас враховано (з model). */
+  emergencyO2G: number;
+}
+
 export interface ReachabilityResult {
   status: 'estimated' | 'incomplete' | 'invalid';
   /** 1 = туди й назад у межах бюджету з резервом */
@@ -189,15 +274,65 @@ export interface ReachabilityResult {
   returnInS: number | null;
   deficits: ResourceKey[];
   swap: { dropId: string; addId: string } | null;
+  /** SPEC §7.8; null — немає чинного плану. */
+  abort: AbortPlan | null;
   warnings: string[];
 }
 
-export type SiteId = 'gale';
+/** Мітка екіпажу на «живій карті» (SPEC §7.12). */
+export type AnnotationKind = 'hazard' | 'impassable' | 'note' | 'plan';
+export interface Annotation {
+  id: string;
+  kind: AnnotationKind;
+  /** Центр мітки, локальні метри. */
+  coordinates: XY;
+  /** Радіус дії для hazard / impassable, м; для note / plan — лише показ. */
+  radiusM: number;
+  text: string;
+  /** ISO-час створення. */
+  createdAt: string;
+  /** Звідки мітка: цей вихід чи імпорт з попереднього. */
+  origin: 'this-eva' | 'imported';
+}
+/** Файл обміну мітками між виходами (експорт / імпорт JSON). */
+export interface AnnotationsFile {
+  schemaVersion: 1;
+  site: SiteId;
+  exportedAt: string;
+  annotations: Annotation[];
+}
+
+/** Пункт чекліста перед виходом (SPEC §7.13). */
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  /** Чому пункт з'явився — з плану словами («route has a 27° slope»). */
+  reason: string;
+  done: boolean;
+}
+
+/** Райони з даними (SPEC §6.0). Папка пакета — `public/data/<SiteId>/`. */
+export const SITE_IDS = ['gale', 'columbia-hills', 'olympus-mons', 'valles-marineris'] as const;
+export type SiteId = (typeof SITE_IDS)[number];
+
+/** Коротка назва району для заголовків UI. */
+export const SITE_LABEL: Record<SiteId, string> = {
+  gale: 'Gale',
+  'columbia-hills': 'Columbia Hills',
+  'olympus-mons': 'Olympus Mons',
+  'valles-marineris': 'Valles Marineris',
+};
 
 export interface MissionData {
   site: SiteId | null;
   layers: Record<string, boolean>;
   targets: Target[];
+  /** Знімки для «View from here»; до завантаження — []. */
+  photos: SurfacePhoto[];
+  /** Мітки екіпажу (§7.12); переживають зміну плану й сайту. */
+  annotations: Annotation[];
+  /** Чекліст перед виходом (§7.13); будує F6 з плану. */
+  checklist: ChecklistItem[];
   selectedTargetIds: string[];
   selectedSegment: number | null;
   region: Region | null;
@@ -218,7 +353,7 @@ export interface MissionData {
 export interface MissionActions {
   setSite(site: SiteId | null): void;
   toggleLayer(id: string): void;
-  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[] }): void;
+  setRegionData(d: { region: Region; grid: PlanningGrid; targets: Target[]; photos?: SurfacePhoto[] }): void;
   toggleTarget(id: string): void;
   replaceTarget(dropId: string, addId: string): void;
   setWaypoints(points: XY[]): void;
@@ -229,6 +364,11 @@ export interface MissionActions {
   setLimits(l: Resources): void;
   setTime(elapsedS: number): void;
   setPosition(p: XY): void;
+  addAnnotation(a: Annotation): void;
+  removeAnnotation(id: string): void;
+  setAnnotations(list: Annotation[]): void;
+  setChecklist(items: ChecklistItem[]): void;
+  toggleChecklistItem(id: string): void;
 }
 
 export type MissionState = MissionData & MissionActions;

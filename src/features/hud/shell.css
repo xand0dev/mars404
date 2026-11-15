@@ -1,8 +1,132 @@
-.shell { display: grid; gap: var(--gap); padding: var(--gap); grid-template-columns: minmax(0, 1fr); max-width: 1600px; margin: 0 auto; }
-.shell__title { font-size: 1.2rem; margin: 0; }
-.shell__disclaimer { margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem; }
-.shell__side, .shell__bottom { display: grid; gap: var(--gap); min-width: 0; }
+/* F7 · застосунок на весь екран.
+   ≥ 1200 px: шапка · ліворуч план (Location → Route) · карта · праворуч HUD і стан; сторінка не прокручується, колонки — самі.
+   Вужче: одна колонка HUD → карта → план → стан (звичайна прокрутка, 400 px без гор. скролу, F7-AC1). */
+.shell {
+  display: grid; gap: var(--space-3); padding: var(--space-3); max-width: 3200px; margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'bar' 'hud' 'map' 'side' 'status';
+  align-items: start;
+}
+.shell > * { min-width: 0; }
+.shell__bar { grid-area: bar; }
+.shell__hud { grid-area: hud; min-width: 0; }
+.shell__map { grid-area: map; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.shell__side { grid-area: side; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
+.shell__status { grid-area: status; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
+
+/* Кроки демо в шапці: що зроблено (✔), що зараз (червоне світіння), що далі. */
+.shell__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+.shell__step { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid transparent; }
+.shell__step + .shell__step::before { content: ''; width: 14px; height: 1px; background: var(--border); margin: 0 4px 0 -2px; }
+.shell__step-n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); font-size: 0.65rem; letter-spacing: 0; }
+.shell__step.is-done { color: var(--text-muted); }
+.shell__step.is-done .shell__step-n { border-color: #0f5a37; color: var(--ok); background: var(--ok-bg); }
+.shell__step.is-current { color: var(--text); border-color: rgb(255 42 42 / 0.45); background: rgb(224 16 26 / 0.1); box-shadow: 0 0 16px -6px rgb(224 16 26 / 0.9); }
+.shell__step.is-current .shell__step-n { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+/* Бренд — тонкий рядок: головне на екрані — HUD і карта. */
+.shell__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+.shell__brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-3); min-width: 0; }
+/* Бренд: червона точка зі світінням + жирна щільна назва, як на картках профілю. */
+.shell__brand::before { content: ''; align-self: center; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px 2px rgb(255 42 42 / 0.65); animation: shell-breathe 4s ease-in-out infinite; }
+@keyframes shell-breathe { 50% { opacity: 0.45; } }
+.shell__title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; color: var(--text); }
+.shell__disclaimer { margin: 0; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
+.shell__glove { flex: none; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-radius: 999px; padding: 0 18px; }
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .shell__side, .shell__status { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+
+/* ≥ 1200 і висота ≥ 600: усе в одному вікні, як застосунок. */
+@media (min-width: 1200px) and (min-height: 600px) {
+  html:has(.shell:not(.shell--glove)), body:has(.shell:not(.shell--glove)) { height: 100%; overflow: hidden; }
+  .shell:not(.shell--glove) {
+    height: 100dvh; max-width: none; padding: var(--space-2) var(--space-3) var(--space-3); gap: var(--space-2) var(--space-3);
+    grid-template-columns: clamp(300px, 22vw, 380px) minmax(0, 1fr) clamp(340px, 25vw, 420px);
+    grid-template-rows: auto minmax(0, max-content) minmax(160px, 1fr);
+    grid-template-areas: 'bar bar bar' 'side map hud' 'side map status';
+    align-items: stretch;
+  }
+  .shell:not(.shell--glove) > .shell__bar { padding-bottom: var(--space-1); }
+  /* Колонки прокручуються самі; фокус-рамка не обрізається (відступ). */
+  .shell:not(.shell--glove) > .shell__side,
+  .shell:not(.shell--glove) > .shell__status { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 2px 2px; margin: -2px -4px -2px -2px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .shell:not(.shell--glove) > .shell__side { grid-row: 2 / 4; }
+  .shell:not(.shell--glove) > .shell__map { grid-row: 2 / 4; min-height: 0; }
+  .shell:not(.shell--glove) > .shell__map > .ui-panel { flex: 1 1 auto; min-height: 0; }
+  .shell:not(.shell--glove) .shell__map .terrain-stage { flex: 1 1 auto; height: auto; min-height: 260px; }
+  /* HUD завжди зверху правої колонки; на низькому екрані прокручується сам, а Resources лишаються видимі. */
+  .shell:not(.shell--glove) > .shell__hud { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  /* Шапка в один рядок: назва з дисклеймером під нею, кроки, перемикач. */
+  .shell:not(.shell--glove) > .shell__bar { flex-wrap: nowrap; }
+  .shell:not(.shell--glove) .shell__brand { flex-direction: column; align-items: flex-start; gap: 0; }
+  .shell:not(.shell--glove) .shell__brand::before { position: absolute; left: 0; top: 7px; margin: 0; }
+  .shell:not(.shell--glove) .shell__brand { position: relative; padding-left: 16px; }
+  .shell:not(.shell--glove) .shell__disclaimer { font-size: 0.62rem; }
+  /* Легенда карти дрібніше — більше місця рельєфу. */
+  .shell:not(.shell--glove) .shell__map .terrain-legend-eva { font-size: 0.72rem; margin-top: 6px; }
+}
+
+/* Glove mode (F7-AC9, SPEC §7.14): цілі ≥ 64 px, крок ≥ 12 px; лише HUD і карта, решта — у «More panels». */
+.shell--glove { --touch: 64px; font-size: 1.1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'bar' 'hud' 'map' 'more'; }
+.shell.shell--glove :is(button, input, select, summary) { min-height: 64px; min-width: 64px; margin: 6px; font-size: 1.1rem; }
+.shell--glove input[type='number'] { width: 12rem; }
+.shell__more { grid-area: more; }
+.shell__more > summary { list-style: none; display: flex; align-items: center; padding: 0 var(--space-4); border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); cursor: pointer; font-weight: 700; }
+.shell__more > summary::-webkit-details-marker { display: none; }
+.shell__more > summary::before { content: '▸'; margin-right: 10px; }
+.shell__more[open] > summary::before { content: '▾'; }
+.shell__more-body { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+.shell__more-body > * { grid-area: auto; }
 @media (min-width: 1024px) {
-  .shell { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
-  .shell__top, .shell__hud, .shell__bottom { grid-column: 1 / -1; }
+  .shell--glove .shell__more-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
+
+/* UX (знайшов E2E): після вибору цілей «Build route» ховалась під довгим списком цілей.
+   На кроці Route остання панель плану (Route, App.tsx) прилипає до низу колонки — наступна дія завжди на виду. */
+.shell--step-route:not(.shell--glove) .shell__side > :has(.route-build) {
+  position: sticky; bottom: 0; z-index: 2;
+  border-color: rgb(255 42 42 / 0.45);
+  box-shadow: 0 -18px 28px -12px rgb(0 0 0 / 0.9), 0 0 22px -10px rgb(224 16 26 / 0.8);
+}
+
+/* ── Перший візит: підказка «How it works» (не модальна, поверх верху карти) ── */
+.shell__help { flex: none; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-radius: 999px; padding: 0 18px; background: transparent; }
+.shell__help[aria-expanded='true'] { border-color: rgb(255 42 42 / 0.5); color: var(--text); }
+.shell__map { position: relative; }
+.onboarding {
+  position: relative; z-index: 5; display: grid; gap: var(--space-2);
+  padding: var(--space-4) var(--space-5); border-radius: var(--radius);
+  background: radial-gradient(500px 200px at 0% 0%, rgb(224 16 26 / 0.18), transparent 70%), rgb(11 11 13 / 0.96);
+  border: 1px solid rgb(255 42 42 / 0.4); box-shadow: 0 24px 48px -16px #000, 0 0 30px -12px rgb(224 16 26 / 0.8);
+}
+@media (min-width: 1200px) {
+  /* На десктопі — картка поверх верхньої частини карти, не зсуває компонування. */
+  .onboarding { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); }
+}
+.onboarding__eyebrow { margin: 0; font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+.onboarding__title { margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+.onboarding__steps { list-style: none; margin: var(--space-1) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.onboarding__steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; color: var(--text-muted); }
+.onboarding__steps li strong { color: var(--text); }
+.onboarding__steps li.is-current { color: var(--text); }
+.onboarding__n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; }
+.onboarding__steps li.is-current .onboarding__n { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--accent-glow); }
+.onboarding__steps li.is-done .onboarding__n { border-color: #0f5a37; background: var(--ok-bg); color: var(--ok); }
+.onboarding__note { margin: var(--space-1) 0 0; font-size: var(--fs-small); color: var(--text-muted); }
+.onboarding__close { justify-self: start; min-width: 120px; }
+
+/* ── Наступна дія підсвічена на кожному кроці: червоне кільце, що «дихає» (без руху при reduced motion). ── */
+@keyframes next-action { 0%, 100% { box-shadow: 0 0 0 2px rgb(255 42 42 / 0.9), 0 0 18px 2px rgb(224 16 26 / 0.55); } 50% { box-shadow: 0 0 0 2px rgb(255 42 42 / 0.5), 0 0 6px 0 rgb(224 16 26 / 0.3); } }
+.shell--step-site [data-site='gale'],
+.shell--step-route .route-build:not(:disabled),
+.shell--step-checklist .gonogo__btn {
+  border-color: var(--accent); animation: next-action 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(255 42 42 / 0.9), 0 0 18px 2px rgb(224 16 26 / 0.55);
+}
+
+/* Overview-район (лише рельєф): кроки демо про планування виходу тут ні до чого. */
+.shell--overview .shell__steps {
+  visibility: hidden;
 }

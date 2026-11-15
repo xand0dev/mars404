@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "jezero",
+  "title": "Jezero Crater",
+  "subtitle": "Perseverance rover field site",
+  "mode": "card",
+  "summary": "Jezero lies within the Isidis impact basin. Orbital images show an ancient river delta and evidence that the crater once held a lake.",
+  "whyGo": "Examine delta sediments and crater-margin rocks for evidence of ancient habitable environments.",
+  "facts": [
+    { "label": "Center", "value": "18.41° N, 77.69° E", "sourceId": "iau-gazetteer-14300" },
+    { "label": "Landing ellipse", "value": "7.7 × 6.6 km", "sourceId": "jpl-jezero-ellipse" },
+    { "label": "Environment", "value": "Ancient river delta and lake", "sourceId": "jpl-jezero-ellipse" },
+    { "label": "Rover", "value": "Perseverance", "sourceId": "jpl-jezero-ellipse" }
+  ],
+  "image": {
+    "file": "jezero.jpg",
+    "alt": "Orbital view of Jezero Crater with its fan-shaped ancient river delta",
+    "credit": "ESA/DLR/FU-Berlin/NASA/JPL-Caltech",
+    "sourceUrl": "https://www.jpl.nasa.gov/images/pia24350-perseverance-rover-landing-ellipse-in-jezero-crater/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "iau-gazetteer-14300",
+      "title": "IAU Gazetteer of Planetary Nomenclature — Jezero",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/14300",
+      "credit": "IAU WGPSN / USGS Astrogeology",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "jpl-jezero-ellipse",
+      "title": "Perseverance Rover Landing Ellipse in Jezero Crater",
+      "url": "https://www.jpl.nasa.gov/images/pia24350-perseverance-rover-landing-ellipse-in-jezero-crater/",
+      "credit": "ESA/DLR/FU-Berlin/NASA/JPL-Caltech",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}

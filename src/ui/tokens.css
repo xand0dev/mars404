@@ -1,39 +1,208 @@
-/* Дизайн-токени (F7). Додавати можна; перейменовувати й видаляти — лише разом з усіма використаннями. */
+/* Дизайн-система MARS::404 (F7) · стиль xand0dev.
+   Майже чорний фон, картки з м'якими кутами й тонкою рамкою, жирні щільні заголовки, моноширинні сірі підписи.
+   Акцент — кривавий червоний зі світінням (головне число, головна дія, активний стан). Зелений — насичений.
+   Стан — формою й словом, колір лише доповнює (§7.7). Додавати токени можна; перейменовувати — лише разом з усіма використаннями. */
 :root {
-  --bg: #14100e;
-  --surface: #1f1916;
-  --surface-2: #2a221e;
-  --text: #f3ece6;
-  --text-muted: #b9aca2;
-  --accent: #e0673c;
-  --ok: #6cc28a;
-  --warn: #e8b84a;
-  --danger: #ff6b6b;
-  --info: #7fb4e6;
-  --focus: #ffd38a;
-  --radius: 10px;
+  --bg: #050506;
+  --surface: #0b0b0d;
+  --surface-2: #121215;
+  --surface-3: #1a1b1f;
+  --line: #1c1d21;
+  --border: #2a2c31;
+  --text: #f2f3f5;
+  --text-muted: #9a9fa7;
+  --text-dim: #646a73;
+  --accent: #ff2a2a;
+  --accent-deep: #e0101a;
+  --accent-ink: #ffffff;
+  --accent-glow: 0 0 18px rgb(224 16 26 / 0.55);
+  --ok: #19e68c;
+  --warn: #ffb020;
+  --danger: #ff4d5e;
+  --info: #7aa7ff;
+  --focus: #ffd9c2;
+  --deficit-bg: #2a0709;
+  --mock-bg: #2a1d06;
+  --mock-text: #ffc14d;
+  --assumption-bg: #241a05;
+  --ok-bg: #062a1a;
+  --warn-bg: #261b05;
+  --danger-bg: #2a0709;
+  --info-bg: #0b1730;
+  --grid: rgb(255 255 255 / 0.018);
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset;
+  --radius: 14px;
+  --radius-sm: 10px;
   --gap: 12px;
   --touch: 40px;
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --fs-hero: clamp(3rem, 5.5vw, 4.5rem);
+  --fs-title: 1.15rem;
+  --fs-body: 0.95rem;
+  --fs-small: 0.8rem;
+  --fs-label: 0.68rem;
+  /* Розкладка Shell: висоту верхньої смуги Shell вимірює й переписує на .shell */
+  --topbar-h: 0px;
+  --side-w: clamp(340px, 27vw, 460px);
   color-scheme: dark;
 }
+
+/* ── База ─────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
-body { overflow-x: hidden; }
-button, input, select { font: inherit; min-height: var(--touch); }
-button { background: var(--surface-2); color: var(--text); border: 1px solid #4a3d36; border-radius: 8px; padding: 0 12px; cursor: pointer; }
-button[aria-pressed='true'] { border-color: var(--accent); }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+/* Червоне світло з кута — як на картках профілю. */
+/* Символи стану (⏳ ⚠ ✔) — текстові гліфи, а не кольорові емодзі. */
+body { font-variant-emoji: text; overflow-x: hidden; overflow-wrap: anywhere; background-image: radial-gradient(900px 520px at 12% -8%, rgb(224 16 26 / 0.16), transparent 60%), radial-gradient(700px 500px at 100% 0%, rgb(224 16 26 / 0.06), transparent 60%); background-attachment: fixed; }
+h1, h2, h3 { text-wrap: balance; }
+a { color: var(--info); text-underline-offset: 2px; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+button, input, select { font: inherit; min-height: var(--touch); min-width: var(--touch); }
+input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
+input::placeholder { color: var(--text-dim); }
+input[type='number'] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 16px; cursor: pointer; font-weight: 600; letter-spacing: -0.005em; transition: border-color 120ms, background-color 120ms, box-shadow 120ms; }
+button:hover:not(:disabled) { border-color: #3a3c42; background: var(--surface-3); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button[aria-pressed='true'] { border-color: var(--accent-deep); background: rgb(224 16 26 / 0.12); box-shadow: 0 0 0 1px rgb(224 16 26 / 0.35), var(--accent-glow); }
+/* Чекбокс: ціль 40 px; стан — формою (✔ у рамці), колір лише доповнює. */
+input[type='checkbox'] { appearance: none; -webkit-appearance: none; flex: none; width: var(--touch); height: var(--touch); margin: 0; padding: 0; display: inline-grid; place-content: center; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); cursor: pointer; }
+input[type='checkbox']::before { content: ''; }
+input[type='checkbox']:checked { border-color: var(--ok); background: var(--ok-bg); box-shadow: 0 0 12px rgb(25 230 140 / 0.35); }
+input[type='checkbox']:checked::before { content: '✔'; color: var(--ok); font-weight: 700; font-size: 1.05rem; }
+input[type='radio'] { accent-color: var(--accent); padding: 0; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
-.ui-panel { background: var(--surface); border-radius: var(--radius); padding: var(--gap); min-width: 0; }
-.ui-panel > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.ui-panel h2 { font-size: 1rem; margin: 0; }
-.ui-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; }
-.ui-badge--mock { background: #5a3a12; color: #ffd38a; font-weight: 700; }
-.ui-note { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; }
-.ui-note--ok { color: var(--ok); } .ui-note--warn { color: var(--warn); } .ui-note--danger { color: var(--danger); } .ui-note--info { color: var(--info); }
+
+/* ── Панель ───────────────────────────────────────────────────────────── */
+/* Панель — контейнер: рядки списку перебудовуються за шириною панелі, а не екрана (вузька права колонка). */
+.ui-panel { container-type: inline-size; background: linear-gradient(180deg, #0d0d10, var(--surface) 120px); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow), 0 20px 40px -24px rgb(0 0 0 / 0.8); padding: 0 var(--space-4) var(--space-4); min-width: 0; }
+/* Заголовок — смуга з лінією знизу: моноширинний uppercase-лейбл ліворуч, бейджі праворуч. */
+.ui-panel > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-2); min-height: 44px; margin: 0 calc(-1 * var(--space-4)) var(--space-2); padding: var(--space-2) var(--space-4) 0; }
+/* Заголовок панелі — моноширинний сірий підпис, як «AI PRODUCT · PRIVATE» на картках профілю. */
+.ui-panel h2 { font-family: var(--font-mono); font-size: var(--fs-label); line-height: 1.2; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; color: var(--text-dim); }
+.ui-panel__badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+/* Панель, що згортається (права колонка Shell): уся смуга заголовка — кнопка. */
+.ui-panel--collapsible { padding: 0; }
+.ui-panel--collapsible > header { margin: 0; padding: 0 var(--space-3) 0 0; border-bottom-color: transparent; }
+.ui-panel--collapsible:not(.ui-panel--collapsed) > header { border-bottom-color: var(--line); }
+.ui-panel--collapsible h2 { flex: 1 1 auto; min-width: 0; }
+.ui-panel__toggle { width: 100%; display: flex; align-items: center; gap: var(--space-3); background: transparent; border: none; border-radius: 0; padding: 0 var(--space-4); min-height: 44px; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; text-align: left; box-shadow: none; }
+.ui-panel__toggle:hover:not(:disabled) { background: transparent; color: var(--text); }
+.ui-panel__toggle::before { content: ''; flex: none; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform 120ms; }
+.ui-panel__toggle[aria-expanded='true'] { color: var(--text); }
+.ui-panel--collapsible:not(.ui-panel--collapsed) { border-color: #26272c; }
+.ui-panel__toggle[aria-expanded='true']::before { transform: rotate(45deg) translate(-2px, -2px); border-color: var(--accent); filter: drop-shadow(0 0 4px rgb(255 42 42 / 0.8)); }
+.ui-panel__body { padding: var(--space-3) var(--space-4) var(--space-4); }
+.ui-panel--collapsed > .ui-panel__body { display: none; }
+
+/* ── Бейджі: прямокутні теги, моноширинні; стан — словом, колір лише доповнює. ── */
+.ui-badge { display: inline-flex; align-items: center; min-height: 20px; font-family: var(--font-mono); font-size: 0.64rem; line-height: 1; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); white-space: nowrap; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+.ui-badge--mock { background: var(--mock-bg); border-color: #5a3f0c; color: var(--mock-text); font-weight: 600; }
+.ui-badge--owner { border-color: var(--line); color: var(--text-dim); text-transform: none; letter-spacing: 0.02em; }
+.ui-badge--verified { background: var(--ok-bg); border-color: #0f5a37; color: var(--ok); }
+.ui-badge--assumption { background: var(--assumption-bg); border-color: #5c4513; color: var(--warn); }
+.ui-badge--pending { background: var(--info-bg); border-color: #1d4469; color: var(--info); }
+
+/* ── Статус ───────────────────────────────────────────────────────────── */
+.ui-note { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-1) 0; font-size: var(--fs-body); }
+.ui-note--ok { color: var(--ok); } .ui-note--warn { color: var(--warn); } .ui-note--danger { color: var(--danger); } .ui-note--info { color: var(--info); } .ui-note--pending { color: var(--info); }
+.ui-note--deficit { color: var(--danger); background: var(--deficit-bg); border: 1px solid #5e1219; border-radius: var(--radius-sm); padding: 8px 12px; box-shadow: 0 0 20px -6px rgb(224 16 26 / 0.6); }
+.ui-note > span:first-child { flex: none; }
+
+/* ── Шкала ресурсу ────────────────────────────────────────────────────── */
 .ui-gauge { display: grid; gap: 4px; margin: 6px 0; }
-.ui-gauge meter { width: 100%; height: 12px; }
+.ui-gauge meter { width: 100%; height: 8px; display: block; }
+.ui-gauge__track { position: relative; }
+.ui-gauge__reserve { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--warn); transform: translateX(-1px); }
+.ui-gauge__extra { color: var(--text-muted); font-size: var(--fs-small); font-family: var(--font-mono); }
+.ui-gauge--unknown { color: var(--warn); }
+.ui-gauge--deficit meter::-webkit-meter-optimum-value, .ui-gauge--deficit meter::-webkit-meter-suboptimum-value { background: var(--danger); }
+.ui-gauge--deficit meter::-moz-meter-bar { background: var(--danger); }
 .ui-stub { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+/* EVA-символіка (SPEC §7.11): колір лише доповнює форму. */
+.eva-sign { display: inline-block; vertical-align: middle; flex: none; overflow: visible; color: var(--text); }
+.eva-sign .eva-sign__mark { fill: var(--bg); stroke: none; font-family: var(--font); }
+.eva-sign--target.eva-sign--unselected .eva-sign__mark,
+.eva-sign--target.eva-sign--outside .eva-sign__mark,
+.eva-sign--nodata .eva-sign__mark { fill: currentColor; }
+.eva-sign--base { color: var(--ok); }
+.eva-sign--target { color: var(--accent); }
+.eva-sign--target.eva-sign--outside { color: var(--warn); }
+.eva-sign--hazard { color: var(--warn); }
+.eva-sign--nodata { color: var(--text-muted); }
+.eva-sign--astronaut { color: var(--info); }
+.eva-sign--ponr { color: var(--danger); }
+.eva-sign--photo { color: var(--text); }
+.eva-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--fs-small); color: var(--text-muted); }
+.eva-legend li { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ── Кнопки: базова — вище; варіанти ─────────────────────────────────── */
+.ui-btn--primary { background: linear-gradient(180deg, var(--accent), var(--accent-deep)); border-color: var(--accent-deep); color: var(--accent-ink); font-weight: 700; box-shadow: var(--accent-glow); }
+.ui-btn--primary:hover:not(:disabled) { background: linear-gradient(180deg, #ff4545, var(--accent)); border-color: var(--accent); }
+.ui-btn--ghost { background: transparent; }
+
+/* ── Рядок списку: знак · назва · мітки · дії ─────────────────────────── */
+.ui-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.ui-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.ui-row > :only-child { grid-column: 1 / -1; }
+.ui-row__sign { display: inline-flex; }
+/* Назва переноситься по словах, а не по літерах (body має overflow-wrap: anywhere). */
+.ui-row__title { min-width: 0; font-weight: 500; overflow-wrap: break-word; word-break: normal; }
+.ui-row__title > * { overflow-wrap: break-word; }
+.ui-row__actions > button { min-width: 84px; }
+/* Вибраний пункт: «Remove» спокійна, без червоного світіння. */
+.ui-row__actions > button[aria-pressed='true'] { background: transparent; border-color: var(--border); color: var(--text-muted); box-shadow: none; }
+.ui-row__actions > button[aria-pressed='true']:hover:not(:disabled) { color: var(--text); border-color: #3a3c42; }
+.ui-row__meta { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); justify-content: flex-end; }
+.ui-row__actions { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
+@media (max-width: 520px) {
+  .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ui-row__actions { grid-column: 1 / -1; justify-content: stretch; }
+  .ui-row__actions > * { flex: 1; }
+}
+/* Вузька панель: один рядок на ціль — знак · назва (мітка під нею) · компактна дія праворуч. */
+@container (max-width: 560px) {
+  .ui-row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'sign title actions' 'sign meta actions'; row-gap: 0; }
+  .ui-row:not(:has(> .ui-row__sign)) { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title actions' 'meta actions'; }
+  .ui-row__sign { grid-area: sign; }
+  .ui-row__title { grid-area: title; }
+  .ui-row__meta { grid-area: meta; justify-content: flex-start; }
+  .ui-row__actions { grid-area: actions; justify-content: flex-end; }
+  .ui-row__actions > * { flex: 0 0 auto; }
+}
+/* Назва в рядку — текст-посилання, а не друга кнопка в рамці. */
+.ui-row__title > .ui-btn--ghost { border-color: transparent; padding: 0 6px; margin-left: -6px; text-align: left; font-weight: 600; white-space: normal; }
+.ui-row__title > .ui-btn--ghost:hover:not(:disabled) { background: transparent; border-color: transparent; text-decoration: underline; text-underline-offset: 3px; }
+.ui-row__title > .ui-btn--ghost[aria-expanded='true'] { color: var(--accent); }
+
+/* ── Розгортний блок ──────────────────────────────────────────────────── */
+.ui-disclosure { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2); }
+.ui-disclosure > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--space-3); min-height: var(--touch); padding: 0 var(--space-3); font-weight: 600; border-radius: var(--radius-sm); }
+.ui-disclosure > summary::-webkit-details-marker { display: none; }
+.ui-disclosure > summary::before { content: ''; flex: none; width: 6px; height: 6px; border-right: 1.5px solid var(--text-muted); border-bottom: 1.5px solid var(--text-muted); transform: rotate(-45deg); }
+.ui-disclosure[open] > summary::before { transform: rotate(45deg) translate(-2px, -2px); }
+.ui-disclosure__body { padding: 0 var(--space-3) var(--space-3); }
+
+/* ── Таблиця даних ────────────────────────────────────────────────────── */
+.ui-table-wrap { overflow-x: auto; max-width: 100%; }
+.ui-table { width: 100%; border-collapse: collapse; font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
+.ui-table caption { text-align: left; color: var(--text-muted); padding-bottom: var(--space-2); }
+.ui-table th, .ui-table td { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--line); vertical-align: top; }
+.ui-table td { font-family: var(--font-mono); }
+.ui-table th { font-family: var(--font-mono); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+.ui-table .ui-table__cell--end { text-align: right; }
+.ui-table tbody tr:last-child td { border-bottom: none; }
+
+/* У списках головна дія рядка — контурна: десять помаранчевих заливок поспіль кричать, а не ведуть. */
+.ui-row .ui-btn--primary { background: transparent; color: #ff5c5c; border-color: rgb(255 42 42 / 0.6); box-shadow: none; }
+.ui-row .ui-btn--primary:hover:not(:disabled) { background: rgb(255 42 42 / 0.12); border-color: var(--accent); }

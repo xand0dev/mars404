@@ -8,18 +8,18 @@ export const COMMON = ['specs/F<N>/**', 'docs/AI_LOG.md', 'docs/SOURCES.md'];
 
 /** @type {Record<string, Feature>} */
 export const FEATURES = {
-  F1: { owner: 'Іван', nick: 'gonivanko', title: 'Глобус і вибір місця', allow: ['src/features/globe/**', 'public/data/mars/**', 'pipeline/globe/**'] },
+  F1: { owner: 'Іван', nick: 'gonivanko', title: 'Глобус і вибір місця', allow: ['src/features/globe/**', 'src/features/notes/**', 'public/data/mars/**', 'pipeline/globe/**'] },
   F2: { owner: 'Олександр', nick: 'xand0dev', title: '3D-рельєф і 2D-план', allow: ['src/features/terrain/**'] },
   F3: {
     owner: 'Максим', nick: 'kingsneverdie17', title: 'Дані й шари',
-    allow: ['pipeline/**', 'public/data/gale/**', 'src/features/data/**'],
-    deny: ['pipeline/globe/**', 'public/data/gale/targets*', 'public/data/gale/photos/**'],
+    allow: ['pipeline/**', 'public/data/gale/**', 'public/data/columbia-hills/**', 'public/data/olympus-mons/**', 'public/data/valles-marineris/**', 'src/features/data/**'],
+    deny: ['pipeline/globe/**', 'public/data/*/targets*', 'public/data/*/photos/**'],
   },
   F4: { owner: 'Влад', nick: 'froozy3', title: 'Маршрут A*', allow: ['src/features/route/**', 'src/core/**'] },
   F5: { owner: 'Влад', nick: 'froozy3', title: 'Бюджет і повернення', allow: ['src/features/budget/**', 'src/core/**'] },
-  F6: { owner: 'Настя', nick: 'Bulka0801', title: 'Наукові цілі й фото', allow: ['src/features/science/**', 'public/data/gale/targets*', 'public/data/gale/photos/**'] },
+  F6: { owner: 'Настя', nick: 'Bulka0801', title: 'Наукові цілі й фото', allow: ['src/features/science/**', 'src/features/prep/**', 'public/data/*/targets*', 'public/data/*/photos/**', 'public/data/sites/**'] },
   F7: { owner: 'Оля', nick: 'oljyaaa', title: 'UI, HUD, дизайн-токени', allow: ['src/features/hud/**', 'src/ui/**'] },
-  F8: { owner: 'Олександр', nick: 'xand0dev', title: 'Демо й сабміт', allow: ['docs/demo/**', 'docs/submission/**', 'README.md'] },
+  F8: { owner: 'Оля', nick: 'oljyaaa', title: 'Демо й сабміт', allow: ['docs/demo/**', 'docs/submission/**', 'README.md'] },
 };
 
 /** Явно спільні (SPEC §5.3); будь-який невказаний шлях — теж спільний. */

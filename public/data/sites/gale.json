@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "gale",
+  "title": "Gale Crater · Mount Sharp",
+  "subtitle": "Curiosity rover field site",
+  "mode": "eva",
+  "summary": "Gale is an impact crater with Mount Sharp at its center. Curiosity landed on the crater floor, and the central mountain rises about 5.5 km above it.",
+  "whyGo": "Compare exposed terrain along Mount Sharp to plan sampling across different elevations.",
+  "facts": [
+    { "label": "Center", "value": "5.44° S, 137.70° E", "sourceId": "iau-gazetteer-2071" },
+    { "label": "Relief", "value": "~5.5 km above the crater floor", "sourceId": "nasa-gale-cradled" },
+    { "label": "Rover", "value": "Curiosity", "sourceId": "nasa-gale-cradled" },
+    { "label": "Image data", "value": "Mars Express, MRO and Viking orbiters", "sourceId": "nasa-gale-cradled" }
+  ],
+  "image": {
+    "file": "gale.jpg",
+    "alt": "Oblique orbital view of Gale Crater with Mount Sharp rising at its center",
+    "credit": "NASA/JPL-Caltech/ESA/DLR/FU Berlin/MSSS",
+    "sourceUrl": "https://science.nasa.gov/resource/curiosity-cradled-by-gale-crater/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "iau-gazetteer-2071",
+      "title": "IAU Gazetteer of Planetary Nomenclature — Gale",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/2071",
+      "credit": "IAU WGPSN / USGS Astrogeology",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "nasa-gale-cradled",
+      "title": "Curiosity Cradled by Gale Crater",
+      "url": "https://science.nasa.gov/resource/curiosity-cradled-by-gale-crater/",
+      "credit": "NASA/JPL-Caltech/ESA/DLR/FU Berlin/MSSS",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "accessedAt": "2026-11-14",
+  "bbox": [
+    175.50568,
+    -14.620704,
+    175.55031,
+    -14.577516
+  ],
+  "center": [
+    175.527995,
+    -14.59911
+  ],
+  "inputs": {
+    "dem.tif": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/DEM_1m_ColumbiaHills/ImageServer/exportImage?bbox=175.505680%2C-14.620704%2C175.550310%2C-14.577516&bboxSR=104905&imageSR=104905&size=2560%2C2560&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&f=image",
+      "bytes": 26218444,
+      "sha256": "c2c7bb859554713347133130a42b57b9f203982992f97f5f7cbd912df25bb3b8",
+      "accessedAt": "2026-11-14"
+    },
+    "spirit_waypoints.json": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/spirit_waypoints/MapServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=104905&f=json",
+      "bytes": 1735,
+      "sha256": "c6a3ac37afa4d9d78bcdb52889f4d588a2dae05170a0432641031af5d10f7a84",
+      "accessedAt": "2026-11-14"
+    },
+    "spirit_path.json": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/spirit_path/MapServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=104905&f=json",
+      "bytes": 20861,
+      "sha256": "b793bb863b0df9b62b04462a798b083fafa7063233933c563428a20d7112537e",
+      "accessedAt": "2026-11-14"
+    },
+    "themis-night-9-297-1011.png": {
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/297/1011.png",
+      "bytes": 50232,
+      "sha256": "e4456da852b1fa72ef6264a2d48e3b747c86cbd75aa92ccbbdc1cf2e8fb0af77",
+      "accessedAt": "2026-11-14"
+    },
+    "themis-day-9-297-1011.png": {
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/9/297/1011.png",
+      "bytes": 38061,
+      "sha256": "ec64100e37118c08fb676cd7be5e95407efc662109a0497fefe8cf1c3899801a",
+      "accessedAt": "2026-11-14"
+    },
+    "context_mola.tif": {
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer/exportImage?bbox=174.992439%2C-15.117375%2C176.063551%2C-14.080845&bboxSR=104905&imageSR=104905&size=256%2C256&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image",
+      "bytes": 263020,
+      "sha256": "13d27cd46b68950d70162db02df3afb24506646c90d63328269f65215f0c714e",
+      "accessedAt": "2026-11-15"
+    }
+  },
+  "native": {
+    "width": 2560,
+    "height": 2560,
+    "mpp": 1,
+    "tiffNoData": null,
+    "noDataFraction": 0.006553,
+    "elevMinM": -1944.304,
+    "elevMaxM": -1833.561
+  },
+  "grid": {
+    "noDataCells": 391,
+    "slopeP50": 9.32,
+    "slopeP95": 23.12,
+    "cellsOver25": 2076
+  },
+  "render": {
+    "width": 1024,
+    "height": 1024,
+    "metersPerPixel": 2.5,
+    "method": "area-weighted mean of valid 1 m pixels (2.5 px per cell); 3D only, not used for planning",
+    "noDataCells": 6728,
+    "elevMinM": -1944.289,
+    "elevMaxM": -1833.582
+  },
+  "thermal": {
+    "night": {
+      "dnMin": 138,
+      "dnMax": 255,
+      "stretchLo": 150,
+      "stretchHi": 250,
+      "emptyCells": 0,
+      "nativePx": [
+        32,
+        31
+      ],
+      "tiles": [
+        "themis-night-9-297-1011.png"
+      ]
+    },
+    "day": {
+      "dnMin": 121,
+      "dnMax": 251,
+      "stretchLo": 133,
+      "stretchHi": 236,
+      "emptyCells": 0,
+      "nativePx": [
+        32,
+        31
+      ],
+      "tiles": [
+        "themis-day-9-297-1011.png"
+      ]
+    }
+  },
+  "hazardFromSlope": {
+    "kind": "slope-linear",
+    "slopeDegAtMax": 25,
+    "maxHazard": 0.5
+  },
+  "waypoints": [
+    {
+      "name": "Pot of Gold",
+      "lonLat": [
+        175.51572386874997,
+        -14.588956826320691
+      ],
+      "cell": 17209,
+      "reachableFromBase": true
+    },
+    {
+      "name": "Husband Hill",
+      "lonLat": [
+        175.52468923292014,
+        -14.592097272688143
+      ],
+      "cell": 22125,
+      "reachableFromBase": false
+    },
+    {
+      "name": "Comanche Outcrop",
+      "lonLat": [
+        175.52874523358614,
+        -14.594004607510849
+      ],
+      "cell": 24964,
+      "reachableFromBase": true
+    },
+    {
+      "name": "Silica Valley",
+      "lonLat": [
+        175.53223964953193,
+        -14.606510048565617
+      ],
+      "cell": 43928,
+      "reachableFromBase": true
+    },
+    {
+      "name": "Home Plate",
+      "lonLat": [
+        175.53129710983077,
+        -14.60611995301975
+      ],
+      "cell": 43410,
+      "reachableFromBase": true
+    },
+    {
+      "name": "Troy",
+      "lonLat": [
+        175.5307386787559,
+        -14.605994786673586
+      ],
+      "cell": 43151,
+      "reachableFromBase": true
+    }
+  ]
+}

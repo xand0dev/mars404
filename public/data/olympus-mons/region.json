@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "id": "olympus-mons",
+  "kind": "overview",
+  "name": "Olympus Mons (overview, 614 km)",
+  "status": "verified",
+  "grid": {
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 2400,
+    "originM": [
+      0,
+      614400
+    ],
+    "rowOrder": "north-to-south",
+    "boundsLonLat": [
+      -139.461883,
+      13.21735,
+      -128.538117,
+      23.58265
+    ],
+    "crs": "Mars 2000 geographic (Trek bboxSR 104905)"
+  },
+  "files": {
+    "elevation": "elevation.f32",
+    "slope": "slope.f32",
+    "walkable": "walkable.u8",
+    "hazard": "hazard.f32",
+    "texture": "texture.jpg",
+    "targets": "targets.geojson",
+    "elevationRender": "elevation_render.f32"
+  },
+  "renderGrid": {
+    "width": 512,
+    "height": 512
+  },
+  "noData": -9999.0,
+  "base": [
+    308400.0,
+    306000.0
+  ],
+  "model": {
+    "speedMps": 1.0,
+    "uphillFactor": 2,
+    "downhillFactor": 0.5,
+    "o2GPerS": 0.031,
+    "energyWhPerM": 0.05,
+    "doseUSvPerS": null,
+    "maxSlopeDeg": 25,
+    "hazardWeight": 0.5,
+    "reserveFraction": 0.2,
+    "emergencyO2G": 56,
+    "evidence": {
+      "speedMps": {
+        "id": "jones-apollo-walk",
+        "title": "Apollo EVA walking: O2 use and speed",
+        "status": "assumption",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g). Overview: not used for planning.",
+        "url": "https://www.osti.gov/servlets/purl/7168757",
+        "productId": "LA-UR-89-3858",
+        "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+        "accessedAt": "2026-11-14"
+      },
+      "uphillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "downhillFactor": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "o2GPerS": {
+        "id": "jones-apollo-walk",
+        "title": "Apollo EVA walking: O2 use and speed",
+        "status": "assumption",
+        "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g). Overview: not used for planning.",
+        "url": "https://www.osti.gov/servlets/purl/7168757",
+        "productId": "LA-UR-89-3858",
+        "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+        "accessedAt": "2026-11-14"
+      },
+      "energyWhPerM": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "doseUSvPerS": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "maxSlopeDeg": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "hazardWeight": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "reserveFraction": {
+        "id": "model-assumption",
+        "title": "Walk model coefficients",
+        "status": "assumption",
+        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+      },
+      "emergencyO2G": {
+        "id": "emu-sop-30min",
+        "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+        "status": "assumption",
+        "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 -> 56 g. ISS suit, not a Mars suit. Overview: not used for planning.",
+        "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
+        "productId": "NTRS 20140009556",
+        "credit": "NASA",
+        "accessedAt": "2026-11-14"
+      }
+    }
+  },
+  "limits": {
+    "time": 3600,
+    "o2": 140,
+    "energy": 600,
+    "dose": null
+  },
+  "limitsEvidence": {
+    "time": {
+      "id": "limit-time-assumption",
+      "title": "EVA time limit",
+      "status": "assumption",
+      "note": "3600 s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556). Overview: not used for planning."
+    },
+    "o2": {
+      "id": "limit-o2-assumption",
+      "title": "O2 available for this EVA",
+      "status": "assumption",
+      "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20. Overview: not used for planning."
+    },
+    "energy": {
+      "id": "limit-energy-assumption",
+      "title": "Suit energy limit",
+      "status": "assumption",
+      "note": "600 Wh; not set in SPEC. Overview: not used for planning."
+    },
+    "dose": {
+      "id": "limit-dose-assumption",
+      "title": "Radiation dose limit",
+      "status": "assumption",
+      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6). Overview: not used for planning."
+    }
+  },
+  "layers": [
+    {
+      "id": "terrain",
+      "name": "Terrain (MOLA + HRSC)",
+      "kind": "terrain",
+      "url": "elevation.f32",
+      "sourceIds": [
+        "trek-mola-hrsc-200m"
+      ],
+      "status": "verified",
+      "units": "m",
+      "nativeResolutionM": 200,
+      "gridResolutionM": 2400,
+      "method": "Trek bilinear to 600 m, mean of valid pixels per 2400 m cell",
+      "legend": [
+        {
+          "value": -2501,
+          "label": "-2501 m (lowest)",
+          "color": "#3b2a20"
+        },
+        {
+          "value": 21109,
+          "label": "21109 m (highest)",
+          "color": "#e8dcc8"
+        }
+      ]
+    },
+    {
+      "id": "optical",
+      "name": "Colour (Viking MDIM 2.1)",
+      "kind": "optical",
+      "url": "texture.jpg",
+      "sourceIds": [
+        "trek-viking-mdim21-color"
+      ],
+      "status": "verified",
+      "units": "colorized RGB",
+      "nativeResolutionM": 232,
+      "gridResolutionM": 2400,
+      "method": "exportImage resample to 2048² (~300 m/px); artistic colour",
+      "legend": [
+        {
+          "value": 0,
+          "label": "dark",
+          "color": "#3a2418"
+        },
+        {
+          "value": 255,
+          "label": "bright",
+          "color": "#e6c9a8"
+        }
+      ]
+    },
+    {
+      "id": "slope",
+      "name": "Slope (derived)",
+      "kind": "slope",
+      "url": "slope.f32",
+      "sourceIds": [
+        "trek-mola-hrsc-200m",
+        "hazard-from-slope"
+      ],
+      "status": "assumption",
+      "units": "°",
+      "nativeResolutionM": 600.0,
+      "gridResolutionM": 2400,
+      "method": "Horn 3x3 at 600 m, max per cell",
+      "legend": [
+        {
+          "value": 0,
+          "label": "0° flat",
+          "color": "#2f6f4f"
+        },
+        {
+          "value": 15,
+          "label": "15° moderate",
+          "color": "#c9a227"
+        },
+        {
+          "value": 25,
+          "label": "25° model limit",
+          "color": "#c0392b"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "trek-mola-hrsc-200m",
+      "title": "Mars MOLA + HRSC blended DEM 200 m",
+      "status": "verified",
+      "note": "Float32 TIFF via exportImage 1024² (600 m cells, bilinear by Trek) on the 614.4 km bbox; mean of valid pixels per 2400 m cell.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer/exportImage?bbox=-139.461883%2C13.217350%2C-128.538117%2C23.582650&bboxSR=104905&imageSR=104905&size=1024%2C1024&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image",
+      "productId": "Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw",
+      "credit": "NASA/JPL/GSFC (MOLA), ESA/DLR/FU Berlin (HRSC), USGS Astrogeology, via NASA Mars Trek",
+      "accessedAt": "2026-11-15"
+    },
+    {
+      "id": "trek-viking-mdim21-color",
+      "title": "Viking MDIM 2.1 colorized global mosaic 232 m",
+      "status": "verified",
+      "note": "JPEG 2048² via exportImage (quality 80), same bbox; colours are artistic (USGS colorization), not true colour. Display only.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_Viking_MDIM21_ClrMosaic_global_232m/ImageServer/exportImage?bbox=-139.461883%2C13.217350%2C-128.538117%2C23.582650&bboxSR=104905&imageSR=104905&size=2048%2C2048&format=jpg&pixelType=U8&f=image&compressionQuality=80",
+      "productId": "Mars_Viking_MDIM21_ClrMosaic_global_232m",
+      "credit": "NASA/JPL (Viking), USGS Astrogeology (MDIM 2.1, colorized), via NASA Mars Trek",
+      "accessedAt": "2026-11-15"
+    },
+    {
+      "id": "hazard-from-slope",
+      "title": "Hazard derived from slope",
+      "status": "assumption",
+      "note": "hazard = min(1, slopeDeg / 25) x 0.5; NoData = 1. Slope over 600 m, so cliffs look gentler than they are. Overview: not used for planning."
+    },
+    {
+      "id": "base-assumption",
+      "title": "Map centre",
+      "status": "assumption",
+      "note": "Centre cell of the grid (lon -134.0, lat 18.4, IAU Gazetteer centre of Olympus Mons); no habitat. Overview: not used for planning."
+    },
+    {
+      "id": "jones-apollo-walk",
+      "title": "Apollo EVA walking: O2 use and speed",
+      "status": "assumption",
+      "note": "\"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr\"; \"1560 BTU/hr at 3.5 km/hr\" -> ~113 g/h = 0.031 g/s (o2GPerS). Emergency return \"3.6 km/hr for periods of up to an hour\" -> 1.0 m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g). Overview: not used for planning.",
+      "url": "https://www.osti.gov/servlets/purl/7168757",
+      "productId": "LA-UR-89-3858",
+      "credit": "E. M. Jones, Apollo Lunar Surface Journal",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "emu-sop-30min",
+      "title": "Emergency O2 reserve (EMU Secondary Oxygen Package)",
+      "status": "assumption",
+      "note": "NASA EVA overview (NTRS 20140009556): the EMU SOP \"provides a minimum of 30 minutes of emergency O2\". Grams = 1800 s x 0.031 g/s = 55.8 -> 56 g. ISS suit, not a Mars suit. Overview: not used for planning.",
+      "url": "https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf",
+      "productId": "NTRS 20140009556",
+      "credit": "NASA",
+      "accessedAt": "2026-11-14"
+    },
+    {
+      "id": "model-assumption",
+      "title": "Walk model coefficients",
+      "status": "assumption",
+      "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5). Overview: not used for planning."
+    },
+    {
+      "id": "limit-time-assumption",
+      "title": "EVA time limit",
+      "status": "assumption",
+      "note": "3600 s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556). Overview: not used for planning."
+    },
+    {
+      "id": "limit-o2-assumption",
+      "title": "O2 available for this EVA",
+      "status": "assumption",
+      "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20. Overview: not used for planning."
+    },
+    {
+      "id": "limit-energy-assumption",
+      "title": "Suit energy limit",
+      "status": "assumption",
+      "note": "600 Wh; not set in SPEC. Overview: not used for planning."
+    },
+    {
+      "id": "limit-dose-assumption",
+      "title": "Radiation dose limit",
+      "status": "assumption",
+      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6). Overview: not used for planning."
+    }
+  ],
+  "hazardFromSlope": {
+    "kind": "slope-linear",
+    "slopeDegAtMax": 25,
+    "maxHazard": 0.5
+  }
+}

@@ -5,7 +5,7 @@ import type { Region, RoutePlan } from '../contracts';
 
 const st = () => useMission.getState();
 const plan: RoutePlan = { status: 'ok', path: [], segments: [], legs: [], totals: { time: 1, o2: 1, energy: 1, dose: null, dist: 1 }, warnings: [], requestId: 1 };
-const reach = { status: 'incomplete' as const, mask: new Uint8Array(0), returnInS: 60, deficits: [], swap: null, warnings: [] };
+const reach = { status: 'incomplete' as const, mask: new Uint8Array(0), returnInS: 60, deficits: [], swap: null, abort: null, warnings: [] };
 
 beforeEach(() => resetMission());
 
@@ -69,6 +69,44 @@ describe('useMission · правила SPEC §6.1 (F0-AC4)', () => {
     expect(st().base).toEqual([5, 5]);
     expect(st().position).toEqual([5, 5]);
     expect(st().selectedTargetIds).toEqual([]);
+  });
+
+  it('photos: старт — [], setRegionData з photos і без них (§6.1)', () => {
+    expect(st().photos).toEqual([]);
+    const region = { model: mockModel, limits: mockLimits, base: [5, 5] } as unknown as Region;
+    const photo = { id: 'p1', coordinates: [10, 10] as const, lonLat: [137.39, -4.82] as const, url: 'photos/p1.jpg', alt: 'Navcam view', sourceUrl: 'https://mars.nasa.gov/', credit: 'NASA/JPL-Caltech', sol: 5051, camera: 'NAV_LEFT_B', locationAccuracy: 'rover-stop' as const, status: 'verified' as const };
+    st().setRegionData({ region, grid: mockGrid, targets: mockTargets, photos: [photo] });
+    expect(st().photos).toEqual([photo]);
+    st().setRegionData({ region, grid: mockGrid, targets: mockTargets });
+    expect(st().photos).toEqual([]);
+  });
+
+  it('mockModel має emergencyO2G = 360 г зі статусом assumption (§7.8)', () => {
+    expect(st().model.emergencyO2G).toBe(360);
+    expect(st().model.evidence.emergencyO2G.status).toBe('assumption');
+  });
+
+  it('мітки: impassable / hazard інвалідують план, note — ні; переживають setSite (§7.12)', () => {
+    const mk = (id: string, kind: 'impassable' | 'note') => ({ id, kind, coordinates: [100, 100] as const, radiusM: 20, text: '', createdAt: '2026-11-14T00:00:00Z', origin: 'this-eva' as const });
+    st().setPlan(plan);
+    st().addAnnotation(mk('n1', 'note'));
+    expect(st().plan).toBe(plan);
+    st().addAnnotation(mk('i1', 'impassable'));
+    expect(st().plan).toBeNull();
+    st().setSite('gale');
+    expect(st().annotations.map((a) => a.id)).toEqual(['n1', 'i1']);
+    st().removeAnnotation('n1');
+    expect(st().annotations.map((a) => a.id)).toEqual(['i1']);
+    st().setAnnotations([]);
+    expect(st().annotations).toEqual([]);
+  });
+
+  it('чекліст: setChecklist, toggleChecklistItem, скидається з setSite (§7.13)', () => {
+    st().setChecklist([{ id: 'o2', label: 'Spare O₂', reason: 'long route', done: false }]);
+    st().toggleChecklistItem('o2');
+    expect(st().checklist[0]!.done).toBe(true);
+    st().setSite('gale');
+    expect(st().checklist).toEqual([]);
   });
 
   it('setWaypoints інвалідує план; setLimits скидає reach, але не plan', () => {

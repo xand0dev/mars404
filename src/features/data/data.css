@@ -1,0 +1,21 @@
+/* F3: панель шарів. Токени — src/ui/tokens.css (F7). */
+.data-layers { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.data-layer { border-top: 1px solid var(--line); padding-top: 8px; min-width: 0; }
+.data-layer__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.data-toggle {
+  min-height: var(--touch); flex: 1 1 auto; text-align: left; padding: 6px 10px;
+  background: var(--surface-2); color: var(--text); border: 1px solid transparent; border-radius: 8px;
+  font: inherit; cursor: pointer;
+}
+.data-toggle[aria-pressed='true'] { border-color: var(--accent); background: var(--surface-2); }
+.data-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.data-toggle:disabled { opacity: 0.6; cursor: not-allowed; }
+.data-status--verified { color: var(--ok); }
+.data-status--assumption, .data-status--pending { color: var(--warn); }
+.data-status--mock { color: var(--mock-text); }
+.data-legend { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--fs-small); }
+.data-legend li { display: flex; align-items: center; gap: 6px; }
+.data-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--text-muted); flex: none; }
+.data-meta { margin: 4px 0 0; font-size: var(--fs-small); color: var(--text-muted); overflow-wrap: anywhere; }
+.data-meta a { color: var(--info); }
+.data-warnings { margin-top: var(--space-2); font-size: var(--fs-small); color: var(--text-muted); }

@@ -1,0 +1,22 @@
+/* Панель «Crew map notes» (F1-AC6). Токени — з src/ui/tokens.css. */
+.notes { display: grid; gap: var(--space-2); min-width: 0; }
+.notes__form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; }
+.notes__form button { grid-column: 1 / -1; }
+.notes__form select, .notes__form input { min-width: 0; width: 100%; }
+.notes__hint { margin: 0; font-size: var(--fs-small); color: var(--text-muted); }
+.notes__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.notes__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); border-left: 4px solid var(--text-muted); }
+.notes__item--impassable { border-left-color: var(--danger); }
+.notes__item--hazard { border-left-color: var(--warn); }
+.notes__item--note { border-left-color: var(--info); }
+.notes__item--plan { border-left-color: var(--accent); }
+.notes__kind { font-weight: 700; }
+.notes__text { grid-column: 1; overflow-wrap: anywhere; }
+.notes__meta { grid-column: 1; font-size: var(--fs-small); color: var(--text-muted); }
+.notes__origin, .notes__meta time { white-space: nowrap; }
+.notes__item > button { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+.notes__io { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Файловий input прихований візуально, але фокусований; фокус видно на підписі-кнопці. */
+.notes__import { position: relative; display: inline-flex; align-items: center; min-height: var(--touch); padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
+.notes__import input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.notes__import:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }

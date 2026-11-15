@@ -1,6 +1,6 @@
 // Єдиний shared store (SPEC §6.1). Змінюється лише PR з міткою `contract`.
 import { create } from 'zustand';
-import type { MissionData, MissionState, Target, XY } from '../contracts';
+import type { Annotation, MissionData, MissionState, Target, XY } from '../contracts';
 import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../mocks';
 
 const waypointsFor = (ids: string[], targets: Target[]): XY[] =>
@@ -15,6 +15,9 @@ export function initialMission(): MissionData {
     site: null,
     layers: {},
     targets: mockTargets,
+    photos: [],
+    annotations: [],
+    checklist: [],
     selectedTargetIds: [],
     selectedSegment: null,
     region: null,
@@ -39,9 +42,13 @@ const resetRun = (s: MissionData): Partial<MissionData> => ({
   selectedTargetIds: [],
   selectedSegment: null,
   time: 0,
+  checklist: [],
   budget: { ...s.limits },
   position: s.base,
 });
+
+/** Мітки, що змінюють маршрут (§7.12). */
+const affectsRoute = (a: Annotation) => a.kind === 'impassable' || a.kind === 'hazard';
 
 /** Інвалідація після зміни цілей. */
 const invalidate = { plan: null, reach: null, selectedSegment: null } as const;
@@ -53,10 +60,10 @@ export const useMission = create<MissionState>()((set) => ({
 
   toggleLayer: (id) => set((s) => ({ layers: { ...s.layers, [id]: !s.layers[id] } })),
 
-  setRegionData: ({ region, grid, targets }) =>
+  setRegionData: ({ region, grid, targets, photos = [] }) =>
     set((s) => {
-      const next = { ...s, region, grid, targets, model: region.model, limits: region.limits, base: region.base };
-      return { region, grid, targets, model: region.model, limits: region.limits, base: region.base, ...resetRun(next) };
+      const next = { ...s, region, grid, targets, photos, model: region.model, limits: region.limits, base: region.base };
+      return { region, grid, targets, photos, model: region.model, limits: region.limits, base: region.base, ...resetRun(next) };
     }),
 
   toggleTarget: (id) =>
@@ -82,6 +89,16 @@ export const useMission = create<MissionState>()((set) => ({
   setLimits: (limits) => set({ limits, reach: null }),
   setTime: (time) => set({ time: Number.isFinite(time) && time >= 0 ? time : 0 }),
   setPosition: (position) => set({ position }),
+  addAnnotation: (a) =>
+    set((s) => ({ annotations: [...s.annotations.filter((x) => x.id !== a.id), a], ...(affectsRoute(a) ? invalidate : {}) })),
+  removeAnnotation: (id) =>
+    set((s) => {
+      const gone = s.annotations.find((x) => x.id === id);
+      return { annotations: s.annotations.filter((x) => x.id !== id), ...(gone && affectsRoute(gone) ? invalidate : {}) };
+    }),
+  setAnnotations: (list) => set({ annotations: [...list], ...invalidate }),
+  setChecklist: (items) => set({ checklist: [...items] }),
+  toggleChecklistItem: (id) => set((s) => ({ checklist: s.checklist.map((c) => (c.id === id ? { ...c, done: !c.done } : c)) })),
 }));
 
 /** Для тестів: повернути store у стартовий стан. */
