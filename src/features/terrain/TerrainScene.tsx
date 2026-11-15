@@ -175,8 +175,8 @@ function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan
       // Вид від третьої особи: 4,5 м позаду, 1,9 м над ступнями, погляд на 6 м уперед на рівні грудей.
       const p = walkPose.position;
       const h = walkPose.heading;
-      const back = 4.5;
-      const up = 1.9;
+      const back = walkPose.rover ? 9 : 4.5;
+      const up = walkPose.rover ? 3.6 : 1.9;
       const want = new Vector3(p.x - Math.cos(h) * back, p.y + up, p.z + Math.sin(h) * back);
       // Камера не провалюється в рельєф позаду (на підйомі ґрунт за спиною вищий).
       const gCam = walkPose.groundAt?.([want.x, -want.z]);

@@ -1,6 +1,7 @@
 // Демо-прогулянка: астронавт (модель Quaternius, CC0; рух — мокап Mixamo) іде маршрутом з модельною швидкістю F4.
 // Кліп і його темп — від швидкості над ґрунтом (gaitFor): ступні не ковзають; біля цілей і на паузі — Idle.
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+// У режимі «Rover» тим самим маршрутом їде марсохід Curiosity (модель NASA, public domain); не завантажився — астронавт.
+import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Line, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { AnimationMixer, Box3, Color, Group, LoopRepeat, Vector3, type AnimationAction, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
@@ -9,8 +10,11 @@ import { VERTICAL_EXAGGERATION } from '../../contracts';
 import { toR3F } from '../../contracts/planning';
 import { angleDelta, gaitFor, indexPath, pointAt, routeVertices, slicePath, smoothPath, walkAt, walkTimeline, type Gait } from './lib/walk';
 import { RENDER_ORDER } from './lib/layerRaster';
+import { figureFor, type FigureSpec } from './lib/figure';
 import { useWalk, walkPose } from './walkStore';
+import { useMission } from '../../store/useMission';
 import modelUrl from './assets/astronaut.glb?url';
+import roverUrl from './assets/rover.glb?url';
 
 /** Біле перефарбування скафандра (у моделі він темний sci-fi); шви — сірі. */
 const SUIT_COLORS: Record<string, string> = {
@@ -20,7 +24,6 @@ const SUIT_COLORS: Record<string, string> = {
   SciFi_Light_Accent: '#8d8a85',
   Grey: '#1e1b19',
 };
-const HEIGHT_M = 1.85;
 /** Скільки метрів уперед дивиться курс: плавний поворот на зламах замість ривка. */
 const LOOK_AHEAD_M = 3;
 
@@ -29,15 +32,47 @@ interface Rig {
   mixer: AnimationMixer;
   actions: Partial<Record<Gait['clip'], AnimationAction>>;
   durations: { Walk: number; Run: number };
+  /** Поворот моделі до курсу: обличчя астронавта — у −Z, ніс ровера — у +Z */
+  yawOffset: number;
+  rover: boolean;
 }
 
-function useRig(): Rig {
+/** Ступні / колеса на y = 0, центр під фігурою, реальний розмір уздовж осі spec.size. */
+function normalize(model: Group, spec: FigureSpec): void {
+  model.scale.setScalar(1);
+  model.position.set(0, 0, 0);
+  // Габарити — з оновленими матрицями (у свіжої сцени кістки ще без matrixWorld).
+  model.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(model, true);
+  const size = new Vector3();
+  const center = new Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  const k = spec.size.meters / (size[spec.size.axis] || 1);
+  model.scale.setScalar(k);
+  model.position.set(-center.x * k, -box.min.y * k, -center.z * k);
+}
+
+function useRoverRig(): Rig {
+  const gltf = useGLTF(roverUrl);
+  return useMemo(() => {
+    const model = gltf.scene as Group;
+    model.traverse((o: Object3D) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      m.castShadow = true;
+      m.frustumCulled = false;
+    });
+    normalize(model, figureFor('rover'));
+    return { root: model, mixer: new AnimationMixer(model), actions: {}, durations: { Walk: 1.23, Run: 0.73 }, yawOffset: 0, rover: true };
+  }, [gltf]);
+}
+
+function useAstronautRig(): Rig {
   const gltf = useGLTF(modelUrl);
   const rig = useMemo(() => {
     // Астронавт на сцені один — беремо сцену моделі без клону (клон SkeletonUtils рве прив'язку 13 skin до кісток).
     const model = gltf.scene as Group;
-    model.scale.setScalar(1);
-    model.position.set(0, 0, 0);
     model.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (!m.isMesh) return;
@@ -54,17 +89,7 @@ function useRig(): Rig {
         m.material = mat;
       }
     });
-    // Нормалізуємо: ступні на y = 0, центр під ногами, зріст ≈ 1,85 м.
-    // Габарити — з оригіналу з оновленими матрицями (у свіжого клону кістки ще без matrixWorld).
-    gltf.scene.updateMatrixWorld(true);
-    const box = new Box3().setFromObject(gltf.scene, true);
-    const size = new Vector3();
-    const center = new Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-    const k = HEIGHT_M / (size.y || 1);
-    model.scale.setScalar(k);
-    model.position.set(-center.x * k, -box.min.y * k, -center.z * k);
+    normalize(model, figureFor('walk'));
     // Без обгортки: у StrictMode useMemo виконується двічі, і друга Group забрала б ту саму сцену з першої.
     const root = model;
     const mixer = new AnimationMixer(model);
@@ -82,7 +107,7 @@ function useRig(): Rig {
       if (name !== 'Idle') durations[name] = clip.duration;
     }
     actions.Idle?.setEffectiveWeight(1);
-    return { root, mixer, actions, durations };
+    return { root, mixer, actions, durations, yawOffset: Math.PI, rover: false };
   }, [gltf]);
   return rig;
 }
@@ -95,9 +120,24 @@ export interface AstronautProps {
   lifeSize: boolean;
 }
 
-function Figure({ plan, groundAt, lifeSize, onProgress }: AstronautProps & { onProgress: (d: number) => void }) {
+type FigureProps = AstronautProps & { onProgress: (d: number) => void };
+
+const AstronautFigure = (props: FigureProps) => <Figure {...props} rig={useAstronautRig()} />;
+const RoverFigure = (props: FigureProps) => <Figure {...props} rig={useRoverRig()} />;
+
+/** Модель ровера не завантажилась — маршрутом іде астронавт, без помилки на екрані. */
+class RoverFallback extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function Figure({ plan, groundAt, lifeSize, onProgress, rig }: FigureProps & { rig: Rig }) {
   const group = useRef<Group>(null);
-  const rig = useRig();
   const timeline = useMemo(() => walkTimeline(plan), [plan]);
   const path = useMemo(() => indexPath(smoothPath(routeVertices(plan))), [plan]);
   const rawLength = useMemo(() => plan.segments.reduce((a, s) => a + (Number.isFinite(s.dist) ? s.dist : 0), 0), [plan]);
@@ -162,14 +202,15 @@ function Figure({ plan, groundAt, lifeSize, onProgress }: AstronautProps & { onP
     const dist = camera.position.distanceTo(new Vector3(pos[0], pos[1], pos[2]));
     const s = lifeSize ? 1 : Math.min(60, Math.max(1, dist / 60));
     g.position.set(pos[0], pos[1], pos[2]);
-    // Обличчя моделі — у −Z; курс (cos h, −sin h) у площині R3F (x, −z).
-    g.rotation.set(0, Math.atan2(Math.cos(h), -Math.sin(h)) + Math.PI, 0);
+    // Курс (cos h, −sin h) у площині R3F (x, −z); yawOffset — куди «дивиться» сама модель.
+    g.rotation.set(0, Math.atan2(Math.cos(h), -Math.sin(h)) + rig.yawOffset, 0);
     g.scale.setScalar(s);
     walkPose.position.set(pos[0], pos[1], pos[2]);
     walkPose.heading = h;
     walkPose.ready = true;
     walkPose.groundAt = groundAt;
-    walkPose.fastForward = gait.fastForward;
+    walkPose.fastForward = rig.rover ? false : gait.fastForward;
+    walkPose.rover = rig.rover;
 
     const now = performance.now();
     if (st.playing && now - lastPush.current > 100) {
@@ -196,6 +237,7 @@ function Figure({ plan, groundAt, lifeSize, onProgress }: AstronautProps & { onP
 /** Астронавт на маршруті + пройдений слід і маршрут попереду, що лягають на рельєф і починаються від астронавта. */
 export function Astronaut(props: AstronautProps) {
   const { plan, groundAt } = props;
+  const rover = useMission((s) => s.travelMode) === 'rover';
   const [progress, setProgress] = useState(0);
   const path = useMemo(() => indexPath(smoothPath(routeVertices(plan))), [plan]);
   const done = useMemo(() => drape(slicePath(path, 0, progress), groundAt), [path, progress, groundAt]);
@@ -207,6 +249,7 @@ export function Astronaut(props: AstronautProps) {
     () => () => {
       walkPose.ready = false;
       walkPose.fastForward = false;
+      walkPose.rover = false;
     },
     [],
   );
@@ -217,7 +260,13 @@ export function Astronaut(props: AstronautProps) {
       {/* Біля землі пройдений слід тягнеться від камери до ступнів і виглядає як стовп — показуємо лише згори. */}
       {!props.lifeSize && done.length >= 2 && <Line points={done} color="#7fe3ff" lineWidth={3} transparent opacity={0.9} renderOrder={RENDER_ORDER.segment} />}
       <Suspense fallback={null}>
-        <Figure {...props} onProgress={setProgress} />
+        {rover ? (
+          <RoverFallback fallback={<AstronautFigure {...props} onProgress={setProgress} />}>
+            <RoverFigure {...props} onProgress={setProgress} />
+          </RoverFallback>
+        ) : (
+          <AstronautFigure {...props} onProgress={setProgress} />
+        )}
       </Suspense>
     </>
   );

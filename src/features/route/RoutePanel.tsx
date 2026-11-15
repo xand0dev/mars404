@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Annotation, RoutePlan, Segment, Target, XY } from '../../contracts';
 import { applyAnnotations } from '../../contracts/planning';
-import { modelFor, type TravelMode } from '../../core';
+import { modelFor } from '../../core';
 import { useMission } from '../../store/useMission';
 import { Disclosure, Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
@@ -54,7 +54,8 @@ export function RoutePanel() {
   // Після першого «Build route» план перебудовується на кожну зміну входів (SPEC §6.1).
   const [autoRebuild, setAutoRebuild] = useState(false);
   // Пішки чи на ровері: маршрут — моделлю режиму, повернення (ореол, Abort map) — пішохідною моделлю зі store (walkback).
-  const [travelMode, setTravelMode] = useState<TravelMode>('walk');
+  const travelMode = useMission((s) => s.travelMode);
+  const setTravelMode = useMission((s) => s.setTravelMode);
   const planModel = useMemo(() => modelFor(travelMode, model), [travelMode, model]);
 
   const requestPlan = (start: XY, end: XY) => getRouteClient().request({ grid: planningGrid, model: planModel, start, waypoints, base: end, noData });

@@ -1,7 +1,16 @@
 // Єдиний shared store (SPEC §6.1). Змінюється лише PR з міткою `contract`.
 import { create } from 'zustand';
 import type { Annotation, MissionData, MissionState, Target, XY } from '../contracts';
+import type { TravelMode } from '../core';
 import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../mocks';
+
+/** Пішки чи на ровері: вибирає панель Route (F4), 3D-сцена (F2) показує астронавта або марсохід. */
+interface TravelModeState {
+  travelMode: TravelMode;
+  setTravelMode: (mode: TravelMode) => void;
+}
+
+export type MissionStore = MissionState & TravelModeState;
 
 const waypointsFor = (ids: string[], targets: Target[]): XY[] =>
   ids.flatMap((id) => {
@@ -53,8 +62,10 @@ const affectsRoute = (a: Annotation) => a.kind === 'impassable' || a.kind === 'h
 /** Інвалідація після зміни цілей. */
 const invalidate = { plan: null, reach: null, selectedSegment: null } as const;
 
-export const useMission = create<MissionState>()((set) => ({
+export const useMission = create<MissionStore>()((set) => ({
   ...initialMission(),
+  travelMode: 'walk',
+  setTravelMode: (travelMode) => set({ travelMode }),
 
   setSite: (site) => set((s) => ({ site, ...resetRun(s) })),
 
@@ -103,5 +114,5 @@ export const useMission = create<MissionState>()((set) => ({
 
 /** Для тестів: повернути store у стартовий стан. */
 export function resetMission(): void {
-  useMission.setState(initialMission());
+  useMission.setState({ ...initialMission(), travelMode: 'walk' });
 }

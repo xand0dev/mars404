@@ -444,4 +444,18 @@ describe('RoutePanel', () => {
     await screen.findByText(/route found/i);
     expect(store().plan!.totals.energy).toBe(0);
   });
+
+  it('F2 ровер: «Rover» / «On foot» пишуть режим у store (його читає 3D-сцена)', async () => {
+    render(<RoutePanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Rover' }));
+    expect(store().travelMode).toBe('rover');
+    await userEvent.click(screen.getByRole('button', { name: 'On foot' }));
+    expect(store().travelMode).toBe('walk');
+  });
+
+  it('F2 ровер: режим зі store — панель показує «Rover» вибраним', () => {
+    store().setTravelMode('rover');
+    render(<RoutePanel />);
+    expect(screen.getByRole('button', { name: 'Rover' })).toHaveAttribute('aria-pressed', 'true');
+  });
 });
