@@ -1,0 +1,143 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "husband-hill",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5246892,
+          -14.5920973
+        ]
+      },
+      "properties": {
+        "id": "husband-hill",
+        "name": "Husband Hill",
+        "why": "Summit of the tallest of the Columbia Hills: survey the terrain and sample goethite- and phosphorus-rich outcrops that point to past water.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-husband-hill"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pot-of-gold",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5157239,
+          -14.5889568
+        ]
+      },
+      "properties": {
+        "id": "pot-of-gold",
+        "name": "Pot of Gold",
+        "why": "Hematite-bearing rock on the climb into the hills: check how water altered the older rocks of the Columbia Hills.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-pot-of-gold"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "comanche",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5287452,
+          -14.5940046
+        ]
+      },
+      "properties": {
+        "id": "comanche",
+        "name": "Comanche Outcrop",
+        "why": "Carbonate-rich outcrop: carbonates form in water that is not very acidic — a sign of a more hospitable past.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-comanche"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "home-plate",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5312971,
+          -14.60612
+        ]
+      },
+      "properties": {
+        "id": "home-plate",
+        "name": "Home Plate",
+        "why": "Layered plateau that may come from a hydrovolcanic explosion, where rising magma met subsurface briny water.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-home-plate"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "silica-valley",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5322396,
+          -14.60651
+        ]
+      },
+      "properties": {
+        "id": "silica-valley",
+        "name": "Silica Valley",
+        "why": "Bright silica-rich soil under the dark surface: formed in a hot spring or steam vent, a possible habitat for microbes.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-silica-valley"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "troy",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5307387,
+          -14.6059948
+        ]
+      },
+      "properties": {
+        "id": "troy",
+        "name": "Troy",
+        "why": "Soft soil at the western edge of Home Plate where Spirit got stuck and sent its last signal — check the ground before stepping in.",
+        "sourceIds": [
+          "trek-spirit-waypoints",
+          "trek-spirit-troy"
+        ],
+        "status": "verified",
+        "locationAccuracy": "verified",
+        "photo": null
+      }
+    }
+  ]
+}

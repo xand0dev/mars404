@@ -43,3 +43,14 @@ test('Gale без змін після Columbia Hills: Brantôme + Mont Mercou �
   await expect(page.locator('.hud__return')).toHaveText(/Return in \d+ min/);
   await expect(page.getByRole('list', { name: 'Route legs' })).toBeVisible();
 });
+
+test('глобус → Columbia Hills → маршрут: Comanche Outcrop + Home Plate → Build route → Return in, вердикт', async ({ page }) => {
+  await chooseSite(page, 'Columbia Hills (Gusev)');
+  await expect(page.getByRole('region', { name: 'Columbia Hills terrain' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add Comanche Outcrop' }).click();
+  await page.getByRole('button', { name: 'Add Home Plate' }).click();
+  await page.getByRole('button', { name: 'Build route' }).first().click();
+  await expect(page.locator('.hud__return')).toHaveText(/Return in \d+ min/);
+  await expect(page.getByTestId('gonogo-verdict')).toHaveText(/GO|NO-GO/);
+  await expect(page.getByRole('list', { name: 'Route legs' })).toContainText('Home Plate');
+});

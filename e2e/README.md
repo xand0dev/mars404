@@ -15,6 +15,6 @@ npx playwright show-report
 | демо | Gale → Add Brantôme → Add Mont Mercou → Build route: на десктопі кожна наступна дія видна без прокрутки, кроки в шапці перемикаються, наприкінці — «Return in N min», вердикт, ноги маршруту; застосунок уміщається в один екран |
 | компонування | без горизонтального скролу, цілі дотику ≥ 40 px, фокус ≥ 3 px |
 | glove mode | цілі ≥ 64 px, вердикт і «Return in» у першому екрані, стан переживає перезавантаження |
-| райони (`regions.spec.ts`) | глобус → Columbia Hills: реальний рельєф, дані verified; повернення до Gale — демо без змін |
+| райони (`regions.spec.ts`) | глобус → Columbia Hills: реальний рельєф, дані verified; Comanche Outcrop + Home Plate → маршрут і вердикт; повернення до Gale — демо без змін |
 
 Браузер — встановлений Chrome (`channel: 'chrome'`), окремо качати браузери не треба. У CI — job `e2e` у `.github/workflows/ci.yml`.
