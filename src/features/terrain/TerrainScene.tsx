@@ -12,13 +12,14 @@ import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
 import { segmentMarker } from './lib/segment';
 import { LABEL_HEIGHT, Label3D } from './Label3D';
-import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
+import { MARK_CHAR, MARK_COLOR, MARK_LABEL, markLabel, r3fToXY } from './lib/marks';
 import { labelAspect, labelledTargetIds, stackLabels } from './lib/labels';
 import { useOptionalTexture } from './useRegionTexture';
 import { renderPoint, renderShape, sampleRender, type RenderHeights } from './lib/hd';
 import { tileFramePoints, type ContextHeights } from './lib/context';
 import { Atmosphere, ContextTerrain, Sun } from './Environment';
 import { Astronaut } from './Astronaut';
+import { NavLinks } from './NavLinks';
 import { useWalk, walkPose } from './walkStore';
 import { BLOCKED_RGB, HALO_RGB } from './lib/overlay';
 
@@ -476,11 +477,26 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   const walkActive = useWalk((w) => w.active);
   const ground = mode === 'follow' || (mode === 'free' && walkActive);
   const markerR = ground ? 0.8 : Math.max(grid.metersPerPixel, Math.max(grid.width, grid.height) * grid.metersPerPixel / 100);
+  // Вершина щогли маяка (там, де конус маяка) — звідти йде лінія сигналу до скафандра.
+  /* eslint-disable react-hooks/exhaustive-deps -- sp() залежить від grid / heights / noData / render */
+  const mastTop = useMemo(
+    () => (xy: XY): [number, number, number] | null => {
+      const s = sp(xy, LIFT_M);
+      return s ? [s.position[0], s.position[1] + markerR * 5, s.position[2]] : null;
+    },
+    [grid, heights, noData, render, markerR],
+  );
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Підписи без накладань: текст — лише обрані цілі й та, що під курсором;
   // ті, що злипаються на екрані, піднімаємо сходинками (рахуємо в пікселях після кожного кадру).
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const labelled = useMemo(() => labelledTargetIds(targets, selectedIds, hoveredId), [targets, selectedIds, hoveredId]);
+  // Поки маршруту немає — підписані всі цілі (людина обирає, що це за точки); після — лише обрані й під курсором.
+  const routed = plan?.status === 'ok';
+  const labelled = useMemo(
+    () => (routed ? labelledTargetIds(targets, selectedIds, hoveredId) : new Set(targets.map((t) => t.id))),
+    [routed, targets, selectedIds, hoveredId],
+  );
   const labelText = (t: Target, sel: boolean, out: boolean, heightUnknown: boolean) =>
     `${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${heightUnknown ? ' · elev. unknown' : ''}`;
   const anchors = useMemo(() => {
@@ -700,8 +716,9 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
               }}
               onPointerOut={() => setHoveredId((h) => (h === t.id ? null : h))}
             >
-              <coneGeometry args={[markerR * (sel ? 1.3 : 0.9), markerR * 2.5, 12]} />
-              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent />
+              <coneGeometry args={[markerR * (sel ? 1.3 : routed ? 0.6 : 0.9), markerR * (sel || !routed ? 2.5 : 1.6), 12]} />
+              {/* Після маршруту необрані цілі — тихі (лишаються для «Replace»), щоб не плутати з мітками. */}
+              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent opacity={sel || !routed ? 1 : 0.45} />
             </mesh>
             {labelled.has(t.id) && (
               <Label3D
@@ -761,12 +778,13 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
                 </mesh>
               </>
             )}
-            <Label3D position={[0, markerR * 3.4, 0]} color={c} text={`${MARK_CHAR[m.kind]} ${m.text || m.kind}${m.origin === 'imported' ? ' · prev EVA' : ''}`} />
+            <Label3D position={[0, markerR * 3.4, 0]} color={c} text={`${MARK_CHAR[m.kind]} ${m.text ? `${MARK_LABEL[m.kind]}: ${m.text}` : MARK_LABEL[m.kind]}${m.origin === 'imported' ? ' · prev EVA' : ''}`} />
           </group>
         );
       })}
 
       {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} lifeSize={ground} />}
+      {walkActive && nav && plan && plan.status === 'ok' && plan.segments.length > 0 && <NavLinks grid={grid} plan={plan} mastTop={mastTop} markerR={markerR} />}
       <OrbitControls makeDefault enableDamping={false} enabled={mode !== 'follow'} />
       <FreeFly enabled={mode === 'free'} scale={tileSize} />
       <CameraRig data={data} plan={plan} mode={mode} pov={pov} />

@@ -2,13 +2,15 @@
 // контрольні точки там, де похибка зростає. Плюс ґрунт: скільки маршруту по пухкому піску (повільніше).
 import { Disclosure, EvidenceBadge, Panel, StatusNote } from '../../ui';
 import { BEACON_RANGE_M, CHECKPOINT_ERR_M, DRIFT, MAST_M } from './lib/nav';
-import { useNavPlan, useNavView } from './navStore';
+import { useNavLive, useNavPlan, useNavView } from './navStore';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 export function NavPanel() {
   const nav = useNavPlan();
   const { show, setShow } = useNavView();
+  const live = useNavLive((s) => s.now);
+  const linkState = useNavLive((s) => s.links);
 
   return (
     <Panel title="Navigation" featureId="F2" owner="Олександр" id="navigation">
@@ -24,6 +26,12 @@ export function NavPanel() {
               <span style={{ width: pct(nav.fixShare) }} />
             </div>
           </div>
+          {live && (
+            <p className={`nav__now ${live.fix ? 'is-fix' : 'is-imu'}`} role="status">
+              <span className="nav__k">Now</span> {live.fix ? '◉ Beacon fix' : '◌ Inertial'} · ±{Math.round(live.errM)} m · {live.links} of {nav.beacons.length} beacons
+              {!live.fix && live.nextCheckpointM !== null ? ` · checkpoint in ${Math.round(live.nextCheckpointM)} m` : ''}
+            </p>
+          )}
           <ul className="nav__facts">
             <li>
               <span className="nav__k">Beacons</span> Base + {nav.beacons.length - 1}
@@ -43,7 +51,13 @@ export function NavPanel() {
               <li key={b.id} className="ui-row">
                 <span className="nav__tri" aria-hidden="true">▲</span>
                 <span className="ui-row__title">{b.isBase ? 'Base (habitat)' : b.id}</span>
-                <span className="ui-row__meta nav__meta">{b.isBase ? 'always on' : `flat ${Math.round(b.slopeDeg)}° · ${Math.round(b.elevationM)} m`}</span>
+                <span className="ui-row__meta nav__meta">
+                  {b.isBase ? 'always on' : `flat ${Math.round(b.slopeDeg)}° · ${Math.round(b.elevationM)} m`}
+                  {linkState.length > 0 && (() => {
+                    const l = linkState.find((x) => x.id === b.id);
+                    return l ? ` · ${l.state === 'link' ? '● signal' : l.state === 'blocked' ? '○ blocked by terrain' : '· out of range'}` : '';
+                  })()}
+                </span>
               </li>
             ))}
           </ul>

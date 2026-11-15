@@ -32,6 +32,8 @@ export interface Beacon {
 
 export interface NavPoint {
   xy: XY;
+  /** Відстань від старту маршруту, м */
+  distM: number;
   /** Скільки маяків бачать точку. */
   visible: number;
   /** Похибка місця, м. */
@@ -43,6 +45,8 @@ export interface NavPlan {
   beacons: Beacon[];
   points: NavPoint[];
   checkpoints: XY[];
+  /** Відстань від старту до кожної контрольної точки, м */
+  checkpointDistM: number[];
   /** Частка маршруту (за відстанню) з точним місцем, 0…1. */
   fixShare: number;
   maxErrM: number;
@@ -168,6 +172,7 @@ export function planNavigation(grid: PlanningGrid, plan: RoutePlan, base: XY, ex
   // Похибка вздовж маршруту.
   const points: NavPoint[] = [];
   const checkpoints: XY[] = [];
+  const checkpointDistM: number[] = [];
   let err = FIX_ERR_M;
   let fixDist = 0;
   let total = 0;
@@ -184,18 +189,20 @@ export function planNavigation(grid: PlanningGrid, plan: RoutePlan, base: XY, ex
       err += DRIFT * step;
       if (err >= CHECKPOINT_ERR_M) {
         checkpoints.push(p);
+        checkpointDistM.push(total);
         err = FIX_ERR_M * 2;
       }
     }
     const cell = xyToCell(grid, p);
     if (cell && (grid.soil?.[cell.index] ?? 1) >= 1.2) sand += step;
-    points.push({ xy: p, visible, errM: err, fix });
+    points.push({ xy: p, distM: total, visible, errM: err, fix });
   });
 
   return {
     beacons: chosen,
     points,
     checkpoints,
+    checkpointDistM,
     fixShare: total > 0 ? fixDist / total : 0,
     maxErrM: Math.max(...points.map((p) => p.errM)),
     sandShare: total > 0 ? sand / total : 0,
@@ -219,4 +226,50 @@ export function driftRuns(points: NavPoint[]): XY[][] {
     }
   });
   return runs.filter((r) => r.length >= 2);
+}
+
+/** Стан зв'язку з маяком у точці: є пряма видимість у межах дальності, закрито рельєфом, або задалеко. */
+export type LinkState = 'link' | 'blocked' | 'far';
+
+export interface BeaconLink {
+  id: string;
+  xy: XY;
+  isBase: boolean;
+  distM: number;
+  state: LinkState;
+}
+
+/** Зв'язок кожного маяка з антеною скафандра в точці xy (для живої візуалізації під час прогулянки). */
+export function beaconLinks(grid: PlanningGrid, beacons: Beacon[], xy: XY): BeaconLink[] {
+  return beacons.map((b) => {
+    const distM = dist(b.xy, xy);
+    const state: LinkState = distM > BEACON_RANGE_M ? 'far' : lineOfSight(grid, b.xy, MAST_M, xy, SUIT_ANTENNA_M) ? 'link' : 'blocked';
+    return { id: b.id, xy: b.xy, isBase: b.isBase, distM, state };
+  });
+}
+
+export interface NavNow {
+  /** Скільки маяків на зв'язку зараз */
+  links: number;
+  /** ≥ 3 маяки — точне місце (трилатерація) */
+  fix: boolean;
+  /** Похибка місця зараз, м */
+  errM: number;
+  /** До наступної контрольної точки, м (null — більше немає) */
+  nextCheckpointM: number | null;
+}
+
+/**
+ * Живий стан навігації в точці маршруту: зв'язки рахуються з фактичної позиції астронавта,
+ * похибка без фіксу — з профілю вздовж маршруту (інерціалка накопичує дрейф від останнього фіксу).
+ */
+export function navNow(nav: NavPlan, links: BeaconLink[], distM: number): NavNow {
+  const n = links.filter((l) => l.state === 'link').length;
+  const fix = n >= 3;
+  let k = 0;
+  while (k < nav.points.length - 1 && (nav.points[k + 1] as NavPoint).distM <= distM) k++;
+  const profile = nav.points[k];
+  const errM = fix ? FIX_ERR_M : Math.max(FIX_ERR_M * 2, profile?.errM ?? FIX_ERR_M * 2);
+  const next = nav.checkpointDistM.find((d) => d > distM + 1e-6);
+  return { links: n, fix, errM, nextCheckpointM: next === undefined ? null : next - distM };
 }
