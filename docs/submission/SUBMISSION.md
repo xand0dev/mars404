@@ -82,20 +82,21 @@ Full list with product IDs, dates and licences: `docs/SOURCES.md`.
 - Apollo and ISS suit references used for model coefficients — see “Validity” below.
 
 ## Validity: model assumptions
-Text from Vlad (`specs/F5/assumptions-en.md`, #139), short form for the form field:
+Text from Vlad (`specs/F5/assumptions-en.md`, #139, updated in #177), short form for the form field:
 
-> MARS::404 plans walking EVAs on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled “assumption”. The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
+> MARS::404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled “assumption”. The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
 >
 > - Terrain: 256 × 256 grid of 10 m cells (2.56 km × 2.56 km) from HiRISE 1 m elevation models; features smaller than 10 m are not resolved.
 > - Cells steeper than 25° and NoData cells are blocked (25° is an assumption).
 > - Walking speed 1.0 m/s and O₂ use 0.031 g/s come from Apollo walking data (Moon, 1/6 g) — assumptions for Mars.
 > - Slope penalty (×2 uphill, ×0.5 downhill), soil slowdown up to +40% from THEMIS night IR, hazard weight, 20% reserve, 140 g O₂ and 1 h time limits and 0.05 Wh/m energy use are assumptions; the small O₂ limit is chosen so the “O₂ −40%” scenario visibly changes the plan.
 > - 30 minutes of emergency O₂ for the walk home is from the NASA EMU Secondary Oxygen Package (verified); the 56 g figure is an assumption (ISS suit, Apollo rate).
-> - Suit battery 922 Wh (NASA EMU, 20.5 V × 45 Ah, NTRS 20050217305) — verified.
-> - Radiation: surface dose rate 0.67 mSv/day measured by Curiosity RAD at Gale (Hassler et al. 2014) → 0.0078 µSv/s — verified; shown against the NASA-STD-3001 career limit of 600 mSv (NASA has no per-EVA limit). One point measurement, not a terrain radiation map.
-> - Not certified navigation; no real-time telemetry, weather or dust storms. 2 of 10 model coefficients are verified (emergency O₂, dose rate); the app says so on screen.
+> - Suit battery 922 Wh (ISS EMU, “20.5 V and 45 Ah”, NTRS 20050217305) — verified, but an ISS suit, not a Mars suit; energy is charged only while moving, so this part is optimistic.
+> - Radiation: surface dose rate 0.0078 µSv/s (0.67 mSv per day), Curiosity RAD at Gale (Hassler et al. 2014) — verified for Gale, an assumption for Columbia Hills; shown against the NASA-STD-3001 600 mSv career limit for scale only (NASA has no per-EVA limit). A typical demo route adds about 11 µSv.
+> - Rover option: Apollo LRV numbers moved from the Moon to Mars as assumptions; the walk home from any point is always checked on foot.
+> - Not certified navigation; no real-time telemetry, weather or dust storms.
 
-Full text with sources and the file where each number lives: `specs/F5/assumptions-en.md` (F5; dose, battery and rover lines there predate #160 / #169 — Vlad to update).
+Full text with sources and the file where each number lives: `specs/F5/assumptions-en.md`.
 
 ## Use of Super Intelligence (SI)
 Yes. SI tools were used as accelerators, not to come up with the idea; people chose the challenge, wrote the specification and decided what to merge.
