@@ -51,6 +51,27 @@ describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
     expect(svg.querySelector('[data-kind="nodata"]')).not.toBeNull();
   });
 
+  it('#180: click по 2D target marker передає id для preview, але не додає ціль', async () => {
+    const onTargetPreview = vi.fn();
+    const user = userEvent.setup();
+    render(<MapView globe={null} onTargetPreview={onTargetPreview} />);
+    gale();
+
+    await user.click(screen.getByRole('button', { name: 'Preview MOCK Site A' }));
+
+    expect(onTargetPreview).toHaveBeenCalledWith('mock-a', expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) }));
+    expect(useMission.getState().selectedTargetIds).toEqual([]);
+  });
+
+  it('#180: вибрана для preview точка підсвічена окремо від route selection', () => {
+    render(<MapView globe={null} previewTargetId="mock-a" onTargetPreview={() => {}} />);
+    gale();
+
+    const marker = screen.getByRole('button', { name: 'Preview MOCK Site A' });
+    expect(marker).toHaveAttribute('data-preview', 'true');
+    expect(marker).toHaveAttribute('data-selected', 'false');
+  });
+
   it('F2-AC3: маршрут і підсвітка selectedSegment; null — без підсвітки', () => {
     render(<MapView globe={null} />);
     gale();

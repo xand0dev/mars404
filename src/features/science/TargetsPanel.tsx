@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { PlanningGrid, ReachabilityResult, Target } from '../../contracts';
-import { xyToCell } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { EvaSign, ItemRow, Panel, type EvaTargetState } from '../../ui';
 import { TargetCard } from './TargetCard';
+import { targetReachState, type TargetReachState } from './targetReachState';
 
 const accuracyLabel = {
   verified: 'verified',
@@ -28,15 +27,6 @@ function AccuracyBadge({ accuracy }: { accuracy: keyof typeof accuracyLabel }) {
       )}
     </span>
   );
-}
-
-type TargetReachState = 'inside' | 'outside' | 'not-assessed';
-
-function targetReachState(target: Target, grid: PlanningGrid, reach: ReachabilityResult | null): TargetReachState {
-  if (!reach || reach.status === 'invalid' || reach.mask.length !== grid.width * grid.height) return 'not-assessed';
-  const cell = xyToCell(grid, target.coordinates);
-  if (!cell) return 'outside';
-  return reach.mask[cell.index] === 1 ? 'inside' : 'outside';
 }
 
 function targetSignState(selected: boolean, reachState: TargetReachState): EvaTargetState {

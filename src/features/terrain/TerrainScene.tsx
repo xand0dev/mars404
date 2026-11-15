@@ -75,6 +75,10 @@ export interface SceneProps {
   onPick?: ((xy: XY) => void) | null;
   /** Add mark: курсор над рельєфом (true) чи поза ним (false) — для pin / not-allowed (#134) */
   onPickHover?: (valid: boolean) => void;
+  /** #180: відкрити F6 preview без auto-add. */
+  onTargetPreview?: (targetId: string, anchor?: { x: number; y: number }) => void;
+  /** Preview-акцент, окремий від selectedIds маршруту. */
+  previewTargetId?: string | null;
   /** Позначка «поза ореолом» для цілей (маска reach) */
   inReach?: (xy: XY) => boolean;
   /** Точка неповернення (SPEC §7.8): де стоїть і підпис «хвилини від старту»; у 2D — той самий знак */
@@ -412,7 +416,7 @@ function FreeFly({ enabled, scale }: { enabled: boolean; scale: number }) {
   return null;
 }
 
-export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, onPickHover, inReach = () => true, ponr = null, nav = null }: SceneProps) {
+export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position, mode, marks = [], onPick = null, onPickHover, onTargetPreview, previewTargetId = null, inReach = () => true, ponr = null, nav = null }: SceneProps) {
   const { grid, heights, noData } = data;
   const render = data.render ?? null;
   const geometry = useMemo(() => {
@@ -545,8 +549,8 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   // Поки маршруту немає — підписані всі цілі (людина обирає, що це за точки); після — лише обрані й під курсором.
   const routed = plan?.status === 'ok';
   const labelled = useMemo(
-    () => (routed ? labelledTargetIds(targets, selectedIds, hoveredId) : new Set(targets.map((t) => t.id))),
-    [routed, targets, selectedIds, hoveredId],
+    () => (routed ? labelledTargetIds(targets, selectedIds, hoveredId ?? previewTargetId) : new Set(targets.map((t) => t.id))),
+    [routed, targets, selectedIds, hoveredId, previewTargetId],
   );
   const labelText = (t: Target, sel: boolean, out: boolean, heightUnknown: boolean) =>
     `${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${heightUnknown ? ' · elev. unknown' : ''}`;
@@ -757,6 +761,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         const p = at(t.coordinates);
         if (!p) return null;
         const sel = selectedIds.includes(t.id);
+        const previewed = previewTargetId === t.id;
         const out = !inReach(t.coordinates);
         return (
           <group key={t.id} position={p.position}>
@@ -768,16 +773,21 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
                 setHoveredId(t.id);
               }}
               onPointerOut={() => setHoveredId((h) => (h === t.id ? null : h))}
+              onClick={(e) => {
+                if (e.delta > 4) return;
+                e.stopPropagation();
+                onTargetPreview?.(t.id, { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
+              }}
             >
-              <coneGeometry args={[markerR * (sel ? 1.3 : routed ? 0.6 : 0.9), markerR * (sel || !routed ? 2.5 : 1.6), 12]} />
+              <coneGeometry args={[markerR * (previewed ? 1.55 : sel ? 1.3 : routed ? 0.6 : 0.9), markerR * (previewed ? 3 : sel || !routed ? 2.5 : 1.6), 12]} />
               {/* Після маршруту необрані цілі — тихі (лишаються для «Replace»), щоб не плутати з мітками. */}
-              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent opacity={sel || !routed ? 1 : 0.45} />
+              <meshBasicMaterial color={previewed ? '#ffd38a' : sel ? '#e0673c' : '#f3ece6'} transparent opacity={previewed || sel || !routed ? 1 : 0.45} />
             </mesh>
             {labelled.has(t.id) && (
               <Label3D
                 position={[0, markerR * 3, 0]}
                 level={levels[t.id] ?? 0}
-                color={out ? '#e8b84a' : sel ? '#ffd38a' : '#f3ece6'}
+                color={out || previewed ? '#e8b84a' : sel ? '#ffd38a' : '#f3ece6'}
                 text={labelText(t, sel, out, p.heightM === null)}
               />
             )}

@@ -41,6 +41,10 @@ import './terrain.css';
 export interface MapViewProps {
   /** 3D-вузли глобуса (F1), показуються при site = null */
   globe: ReactNode;
+  /** #180: click/tap по маркеру → F6 preview. */
+  onTargetPreview?: (targetId: string, anchor?: { x: number; y: number }) => void;
+  /** Точка з відкритим preview: лише візуальний акцент, не route selection. */
+  previewTargetId?: string | null;
 }
 
 function hasWebGL(): boolean {
@@ -126,7 +130,7 @@ function textureLabel(textureFile: string | null, status: ReturnType<typeof useO
   return 'height colours';
 }
 
-export function MapView({ globe }: MapViewProps) {
+export function MapView({ globe, onTargetPreview, previewTargetId = null }: MapViewProps) {
   // Навігація без GPS: маяки, інерціалка, контрольні точки (NavPanel) — на карті, якщо не вимкнено.
   const navPlan = useNavPlan();
   const navShown = useNavView((v) => v.show);
@@ -302,6 +306,8 @@ export function MapView({ globe }: MapViewProps) {
         marks={marks}
         onPick={onPick}
         onPickHover={onPickHover}
+        onTargetPreview={onTargetPreview}
+        previewTargetId={previewTargetId}
       />
     ) : (
       <StatusNote level="danger" live="alert">
@@ -374,6 +380,8 @@ export function MapView({ globe }: MapViewProps) {
                       inReach={inReach}
                       ponr={ponrMarker}
                       nav={navMap}
+                      onTargetPreview={onTargetPreview}
+                      previewTargetId={previewTargetId}
                     />
                     {fps && <FpsProbe onReport={setFpsReport} />}
                   </>
