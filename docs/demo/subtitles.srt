@@ -1,41 +1,44 @@
 1
-00:00:00,500 --> 00:00:04,000
-Gale crater, Mars. Every spacewalk has one question:
+00:00:00,000 --> 00:00:02,000
+We're team MARS::404.
 
 2
-00:00:04,000 --> 00:00:08,000
-when do I have to turn back?
+00:00:02,000 --> 00:00:05,000
+We got lost on a mountain with no signal.
+On Mars, when do you turn back?
 
 3
-00:00:08,000 --> 00:00:11,000
-Real NASA layers: HiRISE, THEMIS heat, slope.
-Steep ground is blocked.
+00:00:05,000 --> 00:00:08,000
+MARS::404 — know when to turn back.
 
 4
-00:00:11,000 --> 00:00:13,500
-Targets are real outcrops on Curiosity's path.
+00:00:08,000 --> 00:00:10,500
+Real NASA data: HiRISE terrain, THEMIS heat, slope.
 
 5
-00:00:13,500 --> 00:00:16,000
-Route on foot. Return in 24 minutes.
+00:00:10,500 --> 00:00:12,500
+Targets at real Curiosity outcrops.
 
 6
-00:00:16,000 --> 00:00:18,500
-Rehearse the walk: time, oxygen and energy.
+00:00:12,500 --> 00:00:15,000
+Route on foot. Return in 24 minutes.
 
 7
-00:00:18,500 --> 00:00:22,500
-Oxygen down 40%? Point of no return,
-then a closer target.
+00:00:15,000 --> 00:00:18,000
+Oxygen drops? It finds a closer target.
 
 8
-00:00:22,500 --> 00:00:25,000
-No GPS on Mars: beacons guide the way back.
+00:00:18,000 --> 00:00:20,000
+No GPS: beacons guide the way back.
 
 9
-00:00:25,000 --> 00:00:28,000
-Second site: Spirit's Columbia Hills. And the whole planet.
+00:00:20,000 --> 00:00:23,000
+For the first crews walking on Mars…
 
 10
-00:00:28,000 --> 00:00:30,000
-MARS::404 — know when to turn back.
+00:00:23,000 --> 00:00:26,000
+…and for hikers and rescuers on Earth with no signal.
+
+11
+00:00:26,000 --> 00:00:28,000
+Next: rover routes and satellite coverage.
