@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>NASA data slide</title>
+<style>
+  :root { --bg:#0d0b0a; --panel:#17130f; --line:#3a2a20; --text:#f2e9df; --muted:#a8968a; --accent:#e4572e; --verified:#4caf7d; --assume:#e0b341; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { width:1920px; height:1080px; background:radial-gradient(ellipse at 70% 0%, #2a140c 0%, var(--bg) 60%); color:var(--text);
+         font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif; padding:60px 96px 56px; position:relative; overflow:hidden; }
+  h1 { font-size:64px; font-weight:800; letter-spacing:-1px; }
+  h1 span { color:var(--accent); }
+  .sub { font-size:28px; color:var(--muted); margin-top:10px; }
+  .heads { display:grid; grid-template-columns:580px 70px 540px 70px minmax(0,1fr); margin-top:40px; font-size:22px; letter-spacing:4px;
+           text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .rows { margin-top:16px; display:flex; flex-direction:column; gap:18px; }
+  .row { display:grid; grid-template-columns:580px 70px 540px 70px minmax(0,1fr); align-items:center; }
+  .card { background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:22px 28px; height:140px;
+          display:flex; flex-direction:column; justify-content:center; }
+  .src { border-left:8px solid var(--accent); }
+  .t { font-size:31px; white-space:nowrap; font-weight:700; line-height:1.15; }
+  .m { font-size:22px; color:var(--muted); margin-top:8px; }
+  .arrow { text-align:center; font-size:56px; color:var(--accent); font-weight:300; }
+  .see { background:linear-gradient(90deg, #2b1a12, var(--panel)); }
+  .tag { display:inline-block; font-size:16px; font-weight:700; letter-spacing:2px; padding:3px 10px; border-radius:8px; margin-left:10px; vertical-align:middle; }
+  .v { color:var(--verified); border:2px solid var(--verified); }
+  .a { color:var(--assume); border:2px solid var(--assume); }
+  .foot { position:absolute; left:96px; right:96px; bottom:44px; font-size:19px; color:var(--muted); line-height:1.5;
+          border-top:2px solid var(--line); padding-top:16px; }
+  .foot b { color:var(--text); font-weight:600; }
+</style></head>
+<body>
+  <h1>Real <span>NASA data</span>, end to end</h1>
+  <div class="sub">Where the data comes from → what we compute → what the astronaut sees</div>
+  <div class="heads"><div>NASA source</div><div></div><div>We compute</div><div></div><div>Astronaut sees</div></div>
+  <div class="rows">
+    <div class="row">
+      <div class="card src"><div class="t">HiRISE elevation, 1 m</div><div class="m">MRO · Gale & Columbia Hills <span class="tag v">VERIFIED</span></div></div>
+      <div class="arrow">→</div>
+      <div class="card"><div class="t">Slope · walkable · hazard</div><div class="m">10 m planning grid</div></div>
+      <div class="arrow">→</div>
+      <div class="card see"><div class="t">Safe route &amp; return time</div><div class="m">“Return in N min”, steep ground blocked</div></div>
+    </div>
+    <div class="row">
+      <div class="card src"><div class="t">THEMIS night infrared</div><div class="m">Mars Odyssey · ~100 m <span class="tag v">VERIFIED</span></div></div>
+      <div class="arrow">→</div>
+      <div class="card"><div class="t">Ground type</div><div class="m">sand vs rock → walking time <span class="tag a">ASSUMPTION</span></div></div>
+      <div class="arrow">→</div>
+      <div class="card see"><div class="t">Slower on soft ground</div><div class="m">Thermal layer on the map</div></div>
+    </div>
+    <div class="row">
+      <div class="card src"><div class="t">MOLA + HRSC elevation, 200 m</div><div class="m">MGS (NASA) + Mars Express (ESA) <span class="tag v">VERIFIED</span></div></div>
+      <div class="arrow">→</div>
+      <div class="card"><div class="t">61 km context ring</div><div class="m">+ overviews: Olympus Mons, Valles Marineris</div></div>
+      <div class="arrow">→</div>
+      <div class="card see"><div class="t">Horizon & landmarks</div><div class="m">Mount Sharp, crater rims, canyons</div></div>
+    </div>
+    <div class="row">
+      <div class="card src"><div class="t">Curiosity & Spirit traverses</div><div class="m">Rover stops, paths, raw images <span class="tag v">VERIFIED</span></div></div>
+      <div class="arrow">→</div>
+      <div class="card"><div class="t">Science targets</div><div class="m">placed at real rover stops</div></div>
+      <div class="arrow">→</div>
+      <div class="card see"><div class="t">Targets with rover photos</div><div class="m">“why go” for each stop</div></div>
+    </div>
+  </div>
+  <div class="foot">
+    <b>Credits:</b> HiRISE — NASA/JPL/University of Arizona · THEMIS — NASA/JPL-Caltech/Arizona State University · MOLA — NASA/GSFC (CC0) ·
+    <b>HRSC — ESA/DLR/FU Berlin, CC BY-SA 3.0 IGO</b> · Viking MDIM 2.1 — USGS Astrogeology · Rover data — NASA/JPL-Caltech (MSL MMGIS, MER) ·
+    via NASA Mars Trek. Cropped and resampled offline by our reproducible pipeline; every layer shows its source.
+  </div>
+</body></html>

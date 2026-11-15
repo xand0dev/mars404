@@ -26,7 +26,7 @@
     "slope": "slope.f32",
     "walkable": "walkable.u8",
     "hazard": "hazard.f32",
-    "texture": "hillshade.png",
+    "texture": "hillshade.jpg",
     "targets": "targets.geojson",
     "traverse": "traverse.geojson",
     "elevationRender": "elevation_render.f32"
@@ -200,7 +200,7 @@
       "id": "optical",
       "name": "Hillshade (derived from DEM)",
       "kind": "optical",
-      "url": "hillshade.png",
+      "url": "hillshade.jpg",
       "sourceIds": [
         "trek-columbia-hills-dem-1m",
         "hillshade-from-dem"
@@ -354,7 +354,7 @@
       "id": "hillshade-from-dem",
       "title": "Hillshade derived from the 1 m DEM",
       "status": "assumption",
-      "note": "No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth 315 deg, altitude 45 deg, Horn 3x3 at 1 m), area-weighted mean to 2048², linear stretch p2–p98 to 64–192. Shading of the DEM, not a photograph."
+      "note": "No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth 315 deg, altitude 45 deg, Horn 3x3 at 1 m), area-weighted mean to 2048², linear stretch p2–p98 to 40–220, JPEG quality 82. Shading of the DEM, not a photograph."
     },
     {
       "id": "trek-spirit-path",

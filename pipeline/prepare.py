@@ -40,9 +40,11 @@ MAX_SLOPE_DEG = 25
 # Hillshade texture для районів без ортомозаїки (Columbia Hills): класичне сонце з північного заходу.
 HILLSHADE_AZ = 315
 HILLSHADE_ALT = 45
-# Лінійний stretch hillshade p2–p98 → 64…192 (лише вигляд; ширше не влазить у 8 МБ району): сирий hillshade плаского Gusev — 133…216 з медіаною 181,
+# Лінійний stretch hillshade p2–p98 → 40…220 (лише вигляд): сирий hillshade плаского Gusev — 133…216 з медіаною 181,
 # у 3D після тонування виходив майже білим. Висоти, схил і планування від цього не залежать.
-HILLSHADE_STRETCH = (2, 98, 64, 192)
+HILLSHADE_STRETCH = (2, 98, 40, 220)
+# Текстура Columbia Hills — JPEG (GDAL у Docker): PNG 2048² важив 3,2 МБ і Pages його не стискає (QA 15.11, specs/F3/qa.md).
+TEXTURE_JPEG_Q = 82
 # Тексти легенд THEMIS: лише те, що сказано в описі продукту Trek.
 THERMAL = {
     'night': dict(id='thermal', name='Thermal IR night (THEMIS)', low='cooler at night (lower thermal inertia)', high='warmer at night (higher thermal inertia)'),
@@ -138,6 +140,26 @@ def stretch_gray(values, p_lo, p_hi, out_lo, out_hi):
     a, b = good[len(good) * p_lo // 100], good[min(len(good) - 1, len(good) * p_hi // 100)]
     k = (out_hi - out_lo) / (b - a) if b > a else 0.0
     return bytes(0 if _invalid(v) else max(0, min(255, round(out_lo + (v - a) * k))) for v in values)
+
+
+def encode_jpeg_gray(w, h, gray, quality=TEXTURE_JPEG_Q):
+    """Сірий JPEG через GDAL (є лише в Docker-образі pipeline; локально без GDAL — ImportError). Детерміновано: libjpeg, без EXIF і часу."""
+    from osgeo import gdal
+    gdal.UseExceptions()
+    mem = gdal.GetDriverByName('MEM').Create('', w, h, 1, gdal.GDT_Byte)
+    mem.GetRasterBand(1).WriteRaster(0, 0, w, h, bytes(gray))
+    path = '/vsimem/texture.jpg'
+    gdal.GetDriverByName('JPEG').CreateCopy(path, mem, options=[f'QUALITY={quality}', 'WORLDFILE=NO'])
+    f = gdal.VSIFOpenL(path, 'rb')
+    gdal.VSIFSeekL(f, 0, 2)
+    n = gdal.VSIFTellL(f)
+    gdal.VSIFSeekL(f, 0, 0)
+    data = bytes(gdal.VSIFReadL(1, n, f))
+    gdal.VSIFCloseL(f)
+    for leftover in (path, path + '.aux.xml'):
+        if gdal.VSIStatL(leftover) is not None:
+            gdal.Unlink(leftover)
+    return data
 
 
 def reachable(walk, slope, W, H, start, max_slope):
@@ -398,14 +420,14 @@ def build(cache, region='gale', out=None):
         texture_bytes = (cache / 'hirise_4096.jpg').read_bytes()
         extra_out = {'hirise.jpg': (cache / 'hirise.jpg').read_bytes()}
     else:
-        dem_id, texture = 'trek-columbia-hills-dem-1m', 'hillshade.png'
+        dem_id, texture = 'trek-columbia-hills-dem-1m', 'hillshade.jpg'
         region_sources = [
             src(dem_id, 'Columbia Hills DEM 1 m (HiRISE stereo)', 'verified',
                 'Float32 TIFF via exportImage at 1 m (native 1.7e-5 deg ~ 1.01 m), nearest neighbour; mean of valid pixels per 10 m cell.',
                 f['dem.tif']['url'], rc['dem'], trek_credit, at('dem.tif')),
             src('hillshade-from-dem', 'Hillshade derived from the 1 m DEM', 'assumption',
                 f'No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth {HILLSHADE_AZ} deg, altitude {HILLSHADE_ALT} deg, '
-                f'Horn 3x3 at 1 m), area-weighted mean to {cfg.TEXTURE_PX}², linear stretch p{HILLSHADE_STRETCH[0]}–p{HILLSHADE_STRETCH[1]} to {HILLSHADE_STRETCH[2]}–{HILLSHADE_STRETCH[3]}. Shading of the DEM, not a photograph.'),
+                f'Horn 3x3 at 1 m), area-weighted mean to {cfg.TEXTURE_PX}², linear stretch p{HILLSHADE_STRETCH[0]}–p{HILLSHADE_STRETCH[1]} to {HILLSHADE_STRETCH[2]}–{HILLSHADE_STRETCH[3]}, JPEG quality {TEXTURE_JPEG_Q}. Shading of the DEM, not a photograph.'),
             src('trek-spirit-path', 'Spirit traverse (Mars Trek)', 'verified', 'spirit_path polylines (lon/lat) clipped to bbox; elevation taken from elevation.f32 (10 m cell mean).',
                 f['spirit_path.json']['url'], 'spirit_path', 'NASA/JPL-Caltech, Mars Trek', at('spirit_path.json')),
             src('trek-spirit-waypoints', 'Spirit waypoints (Mars Trek)', 'verified', 'Husband Hill and Home Plate set the bbox centre; waypoints inside the bbox check the base.',
@@ -414,7 +436,7 @@ def build(cache, region='gale', out=None):
         shade = hillshade(dem, nw, nh, cfg.NATIVE_M, HILLSHADE_AZ, HILLSHADE_ALT)
         tex = box_resample(shade, nw, nh, cfg.TEXTURE_PX, cfg.TEXTURE_PX)
         extra_out = {}
-        texture_bytes = png.encode_gray(cfg.TEXTURE_PX, cfg.TEXTURE_PX, stretch_gray(tex, *HILLSHADE_STRETCH))
+        texture_bytes = encode_jpeg_gray(cfg.TEXTURE_PX, cfg.TEXTURE_PX, stretch_gray(tex, *HILLSHADE_STRETCH))
     sources = [
         *region_sources,
         *thermal_sources,
