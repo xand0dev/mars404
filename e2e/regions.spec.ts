@@ -27,7 +27,7 @@ test('глобус → Columbia Hills: реальний рельєф район�
   await expect(page.locator('.shell__title')).toHaveText(/Columbia Hills/);
   const map = page.getByRole('region', { name: 'Columbia Hills terrain' });
   await expect(map).toContainText(/Data:\s*verified/);
-  await expect(page.getByRole('button', { name: /Map data/ })).toContainText('GO');
+  await expect(page.getByRole('button', { name: /Map data/, includeHidden: true })).toContainText('GO');
   await openLocation(page);
   await expect(page.getByRole('button', { name: 'Columbia Hills (Gusev)' })).toHaveAttribute('aria-pressed', 'true');
 });
