@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useMission } from '../../store/useMission';
 import { useCameraMode } from './cameraStore';
 import { clock, walkAt, walkTimeline, WALK_SPEEDS } from './lib/walk';
-import { useWalk } from './walkStore';
+import { useWalk, walkPose } from './walkStore';
 
 export function WalkControls() {
   const plan = useMission((s) => s.plan);
@@ -69,7 +69,12 @@ export function WalkControls() {
         <span>O₂ used {(w?.o2 ?? 0).toFixed(1)} g</span>
         <span>Energy {(w?.energy ?? 0).toFixed(1)} Wh</span>
         <span>Slope {slope}</span>
-        <span className="walk-panel__note">Model estimate · speed ×{speed} · figure enlarged when far</span>
+        <span className="walk-panel__note">
+          Model estimate · ×{speed}
+          {speed === 1 ? ' real time' : ''}
+          {playing && walkPose.fastForward ? ' · fast-forward' : ''}
+          {mode === 'follow' || mode === 'free' ? '' : ' · figure enlarged when far'}
+        </span>
       </p>
     </section>
   );
