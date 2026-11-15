@@ -14,7 +14,11 @@ import { parseTextureMeta, TEXTURE_META_PATH } from './texture';
 import { maxZoomFor, pinchFactor, useZoom, wheelFactor } from './zoom';
 
 const gale = siteById(GALE_ID)!;
-const GALE_FACE = rotationToFace(gale.latDeg, gale.lonEastDeg);
+/** Поворот глобуса, за якого точка дивиться на камеру. */
+const faceOf = (id: string) => {
+  const s = siteById(id) ?? gale;
+  return rotationToFace(s.latDeg, s.lonEastDeg);
+};
 /** Старт: Gale видно, але на 45° східніше центру — щоб перехід був помітним (UI-вибір, не дані). */
 const START = rotationToFace(0, gale.lonEastDeg - 45);
 const MARKER_R = 1.01;
@@ -85,6 +89,7 @@ export function GlobeScene() {
   const { invalidate, camera, size, gl } = useThree();
   const setSceneReady = useGlobe((s) => s.setSceneReady);
   const flying = useGlobe((s) => s.flying);
+  const flyTo = useGlobe((s) => s.flyTo);
   const previewId = useGlobe((s) => s.previewId);
   const map = useMarsTexture();
   const fly = useRef<{ from: [number, number, number]; start: number } | null>(null);
@@ -203,7 +208,7 @@ export function GlobeScene() {
     if (flying) {
       const now = clock.getElapsedTime() * 1000;
       fly.current ??= { from: [g.rotation.x, g.rotation.y, g.rotation.z], start: now };
-      const [x, y, z] = lerpRotation(fly.current.from, GALE_FACE, (now - fly.current.start) / FLY_MS);
+      const [x, y, z] = lerpRotation(fly.current.from, faceOf(flyTo), (now - fly.current.start) / FLY_MS);
       g.rotation.set(x, y, z, 'XYZ');
       invalidate();
     }
@@ -255,7 +260,7 @@ export function GlobeScene() {
           </mesh>
           <group ref={markers}>
             {SITES.map((s) => (
-              <Marker key={s.id} site={s} active={markerActive(s.id, { previewId, flying })} />
+              <Marker key={s.id} site={s} active={markerActive(s.id, { previewId, flying, flyTo })} />
             ))}
           </group>
         </group>

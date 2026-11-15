@@ -13,7 +13,7 @@ import { MarkGlyphIcon } from './MarkGlyph';
 import { MarkTools } from './MarkTools';
 import { useMarkTool } from './markStore';
 import { xyToCell } from '../../contracts/planning';
-import type { AnnotationKind, XY } from '../../contracts';
+import { SITE_LABEL, type AnnotationKind, type XY } from '../../contracts';
 import { FpsProbe, type FpsReport } from './FpsProbe';
 import { fpsEnabled } from './lib/fps';
 import { applyGlobeCamera } from './lib/camera';
@@ -113,10 +113,12 @@ function GlobeStage({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function textureLabel(hasRegion: boolean, status: ReturnType<typeof useOptionalTexture>['status']): string {
-  if (!hasRegion) return 'height colours';
-  if (status === 'ready') return 'HiRISE texture (greyscale, tinted for display)';
-  if (status === 'loading') return 'HiRISE loading…';
+function textureLabel(textureFile: string | null, status: ReturnType<typeof useOptionalTexture>['status']): string {
+  if (textureFile === null) return 'height colours';
+  // Columbia Hills: ортомозаїки Gusev у Trek немає — hillshade з DEM (region.layers optical, assumption).
+  const name = /hirise/i.test(textureFile) ? 'HiRISE' : /hillshade/i.test(textureFile) ? 'Hillshade from DEM' : 'Surface';
+  if (status === 'ready') return `${name} texture (greyscale, tinted for display)`;
+  if (status === 'loading') return `${name} loading…`;
   if (status === 'error') return 'height colours (texture failed to load)';
   return 'height colours';
 }
@@ -296,20 +298,20 @@ export function MapView({ globe }: MapViewProps) {
   const globeFallback = (
     <div role="img" aria-label="2D plan B">
       <StatusNote level="warn" live="status">
-        3D globe unavailable ({lost ? 'WebGL context lost' : 'WebGL unavailable'}). Use the site list to open Gale.
+        3D globe unavailable ({lost ? 'WebGL context lost' : 'WebGL unavailable'}). Use the site list to open a site.
       </StatusNote>
     </div>
   );
 
   return (
-    <Panel title={site === null ? 'Mars globe' : 'Gale terrain'} featureId="F2" owner="Олександр" mock={status === 'mock'}>
+    <Panel title={site === null ? 'Mars globe' : `${SITE_LABEL[site]} terrain`} featureId="F2" owner="Олександр" mock={status === 'mock'}>
       {site !== null && valid && cells && (
         <TerrainInfo
           width={grid.width}
           height={grid.height}
           metersPerPixel={grid.metersPerPixel}
           status={status}
-          texture={reason ? '2D plan' : textureLabel(region !== null, hirise.status)}
+          texture={reason ? '2D plan' : textureLabel(region?.files.texture ?? null, hirise.status)}
           counts={cells.counts}
           haloShown={(sceneData?.haloCells ?? 0) > 0}
           routeShown={(plan?.path.length ?? 0) >= 2}

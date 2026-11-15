@@ -1,9 +1,10 @@
 // Точки глобуса (F1). Координати — IAU Gazetteer of Planetary Nomenclature, контрольна мережа MDIM 2.1
 // (ту ж мережу має Viking MDIM 2.1 — кандидат текстури), planetocentric, +East, 0–360.
 // Звірено зі сторінками Feature/<id> 2026-11-14. Описи — без чисел, лише загальновідомі факти місій.
-import type { MissionState, Source } from '../../contracts';
+import type { MissionState, SiteId, Source } from '../../contracts';
 
 export const GALE_ID = 'gale' satisfies NonNullable<MissionState['site']>;
+export const COLUMBIA_HILLS_ID = 'columbia-hills' satisfies SiteId;
 
 export interface Site {
   id: string;
@@ -11,7 +12,7 @@ export interface Site {
   latDeg: number;
   /** Planetocentric, +East, 0–360 */
   lonEastDeg: number;
-  /** true — для точки є модель району (лише Gale) */
+  /** true — для точки є пакет даних public/data/<id> (EVA-район); id тоді — SiteId */
   modelled: boolean;
   /** Короткий опис для картки (англійською, UI) */
   summary: string;
@@ -41,6 +42,23 @@ export const SITES: readonly Site[] = [
     modelled: true,
     summary: 'Curiosity rover field site: layered sediments of Mount Sharp (Aeolis Mons). Modelled EVA region.',
     source: gazetteer(2071, 'Gale'),
+  },
+  {
+    id: COLUMBIA_HILLS_ID,
+    name: 'Columbia Hills (Gusev)',
+    latDeg: -14.59911,
+    lonEastDeg: 175.527995,
+    modelled: true,
+    summary: 'Spirit rover field site: Husband Hill and Home Plate in Gusev crater. Modelled EVA region.',
+    source: {
+      id: 'trek-spirit-waypoints',
+      title: 'Spirit waypoints (Mars Trek) — midpoint of Husband Hill and Home Plate',
+      url: 'https://trek.nasa.gov/mars/trekarcgis/rest/services/spirit_waypoints/MapServer/0',
+      status: 'verified',
+      note: 'Same centre as public/data/columbia-hills/region.json (base-assumption source); planetocentric +East',
+      credit: 'NASA/JPL-Caltech, Mars Trek',
+      accessedAt: ACCESSED,
+    },
   },
   {
     id: 'jezero',
@@ -82,4 +100,9 @@ export const SITES: readonly Site[] = [
 
 export function siteById(id: string): Site | undefined {
   return SITES.find((s) => s.id === id);
+}
+
+/** Точка з пакетом даних (EVA-район) — її id можна ставити в store як SiteId. */
+export function isModelledSite(site: Site | undefined): site is Site & { id: SiteId } {
+  return !!site?.modelled;
 }

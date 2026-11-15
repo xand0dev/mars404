@@ -1,5 +1,5 @@
 // F3: панель шарів — перемикачі (toggleLayer), легенда текстом, одиниці, походження, помилки шарів (F3-AC3, AC4).
-import type { Layer, Region, Source } from '../../contracts';
+import { SITE_LABEL, type Layer, type Region, type Source } from '../../contracts';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { useDataStatus } from './dataStatus';
@@ -65,8 +65,8 @@ export function LayersPanel() {
 
   return (
     <Panel title="Layers" featureId="F3" owner="Максим" mock={!real}>
-      {site === null && <StatusNote level="info">Open Gale on the globe to load real NASA layers.</StatusNote>}
-      {site !== null && phase === 'loading' && <StatusNote level="pending">Loading Gale data package…</StatusNote>}
+      {site === null && <StatusNote level="info">Open a site on the globe to load real NASA layers.</StatusNote>}
+      {site !== null && phase === 'loading' && <StatusNote level="pending">Loading {SITE_LABEL[site]} data package…</StatusNote>}
       {phase === 'mock' && (
         <StatusNote level="warn" live="status">
           Mock terrain: {reason}

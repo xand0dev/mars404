@@ -3,22 +3,25 @@
 import { useMission } from '../../store/useMission';
 import { useGlobe } from './globeState';
 import { prefersReducedMotion } from './motion';
-import { GALE_ID, siteById } from './sites';
+import type { SiteId } from '../../contracts';
+import { GALE_ID, isModelledSite, siteById } from './sites';
 
-/** Відкрити район Gale одразу (кінець переходу, Skip, reduced motion, без WebGL). */
-export function openGale(): void {
+/** Відкрити район одразу (кінець переходу, Skip, reduced motion, без WebGL). Без аргументу — куди летимо. */
+export function openSite(id: SiteId = useGlobe.getState().flyTo): void {
   useGlobe.getState().setFlying(false);
-  useMission.getState().setSite(GALE_ID);
+  useMission.getState().setSite(id);
 }
+
+export const openGale = (): void => openSite(GALE_ID);
 
 export function chooseSite(id: string): void {
   const site = siteById(id);
   if (!site) return;
   const g = useGlobe.getState();
-  if (site.id === GALE_ID) {
+  if (isModelledSite(site)) {
     g.preview(null);
-    if (g.flying || !g.sceneReady || prefersReducedMotion()) openGale();
-    else g.setFlying(true);
+    if (g.flying || !g.sceneReady || prefersReducedMotion()) openSite(site.id);
+    else g.setFlying(true, site.id);
   } else {
     g.setFlying(false);
     g.preview(site.id);

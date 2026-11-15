@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { useGlobe } from './globeState';
-import { chooseSite, openGale } from './choose';
+import { chooseSite, openSite } from './choose';
 import { FLY_MS } from './motion';
-import { GALE_ID, SITES, siteById, type Site } from './sites';
+import { SITES, siteById, type Site } from './sites';
 import { ZOOM_MIN, useZoom } from './zoom';
 
 const listStyle = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 } as const;
@@ -66,12 +66,13 @@ export function SitePanel() {
   const resetUi = useGlobe((s) => s.resetUi);
   const texture = useGlobe((s) => s.texture);
   const flying = useGlobe((s) => s.flying);
+  const flyTo = useGlobe((s) => s.flyTo);
   const sceneReady = useGlobe((s) => s.sceneReady);
 
   // F1-AC3: один таймер на перехід; пише в store рівно раз — у кінці. Skip / скасування прибирають його.
   useEffect(() => {
     if (!flying) return;
-    const id = setTimeout(openGale, FLY_MS);
+    const id = setTimeout(() => openSite(), FLY_MS);
     return () => clearTimeout(id);
   }, [flying]);
 
@@ -89,7 +90,7 @@ export function SitePanel() {
             <button
               type="button"
               data-site={s.id}
-              aria-pressed={s.id === GALE_ID ? site === GALE_ID : previewId === s.id}
+              aria-pressed={s.modelled ? site === s.id : previewId === s.id}
               onClick={() => chooseSite(s.id)}
             >
               {s.name}
@@ -101,9 +102,9 @@ export function SitePanel() {
       {flying && (
         <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <StatusNote level="info" live="status">
-            Flying to Gale…
+            Flying to {siteById(flyTo)?.name ?? 'site'}…
           </StatusNote>
-          <button type="button" onClick={openGale}>
+          <button type="button" onClick={() => openSite()}>
             Skip
           </button>
         </div>
