@@ -54,8 +54,10 @@
   .shell:not(.shell--glove) > .shell__status { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 2px 2px; margin: -2px -4px -2px -2px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .shell:not(.shell--glove) > .shell__side { grid-row: 2 / 4; }
   .shell:not(.shell--glove) > .shell__map { grid-row: 2 / 4; min-height: 0; }
-  .shell:not(.shell--glove) > .shell__map > .ui-panel { flex: 1 1 auto; min-height: 0; }
+  /* overflow-y: на низькому екрані (1280×800) інструменти міток не вилазять на кнопки камери — панель прокручується сама. */
+  .shell:not(.shell--glove) > .shell__map > .ui-panel { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .shell:not(.shell--glove) .shell__map .terrain-stage { flex: 1 1 auto; height: auto; min-height: 260px; }
+  @media (max-height: 860px) { .shell:not(.shell--glove) .shell__map .terrain-stage { min-height: 200px; } }
   /* HUD завжди зверху правої колонки; на низькому екрані прокручується сам, а Resources лишаються видимі. */
   .shell:not(.shell--glove) > .shell__hud { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   /* Шапка в один рядок: назва з дисклеймером під нею, кроки, перемикач. */
