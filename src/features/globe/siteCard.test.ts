@@ -77,4 +77,12 @@ describe('#112 · site card loader', () => {
     expect(parseSiteCard({ ...card, schemaVersion: 2 }, 'gale')).toBeNull();
     expect(parseSiteCard({ ...card, id: 'jezero' }, 'gale')).toBeNull();
   });
+
+  it('Given 5 валідних фактів (межа #111: 3–5); Then показує всі 5', () => {
+    const extra = [
+      { label: 'Mission', value: 'MSL', sourceId: 'nasa-gale' },
+      { label: 'Landing', value: '2012', sourceId: 'nasa-gale' },
+    ];
+    expect(parseSiteCard({ ...card, facts: [...card.facts, ...extra] }, 'gale')?.facts).toHaveLength(5);
+  });
 });

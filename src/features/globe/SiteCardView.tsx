@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { dataUrl } from '../../contracts/planning';
 import { Disclosure, EvidenceBadge, ItemRow } from '../../ui';
+import { chooseSite } from './choose';
 import { loadSiteCard, type SiteCardData } from './siteCard';
-import { MODE_GLYPH, modeLabel, type Site } from './sites';
+import { MODE_GLYPH, canOpenSite, modeLabel, type Site } from './sites';
 import './siteCard.css';
 
 export interface SiteCardProps {
@@ -11,11 +12,13 @@ export interface SiteCardProps {
   collapsed?: boolean;
 }
 
+const ACTION_LABEL = { eva: 'Plan an EVA here', overview: 'Explore terrain' } as const;
+
 function formatLatLon({ latDeg, lonEastDeg }: Site): string {
   return `${Math.abs(latDeg).toFixed(2)}° ${latDeg < 0 ? 'S' : 'N'}, ${lonEastDeg.toFixed(2)}° E`;
 }
 
-function CardBody({ site, data, region = true, showMode = true }: { site: Site; data: SiteCardData | null | undefined; region?: boolean; showMode?: boolean }) {
+function CardBody({ site, data, region = true }: { site: Site; data: SiteCardData | null | undefined; region?: boolean }) {
   const headingId = `f1-site-${site.id}`;
   const title = data?.title ?? site.name;
   const sources = new Map(data?.sources.map((source) => [source.id, source]));
@@ -37,7 +40,7 @@ function CardBody({ site, data, region = true, showMode = true }: { site: Site; 
       <header className="site-card__header">
         <h3 id={headingId}>{title}</h3>
         {data?.subtitle && <p className="site-card__subtitle">{data.subtitle}</p>}
-        {showMode && (
+        {region && (
           <span className={`site-card__mode site-card__mode--${site.mode}`}>
             <span aria-hidden="true">{MODE_GLYPH[site.mode]}</span> {modeLabel(site)}
           </span>
@@ -61,6 +64,11 @@ function CardBody({ site, data, region = true, showMode = true }: { site: Site; 
       )}
 
       {site.mode === 'card' && <p className="site-card__unmodelled">Terrain not modelled yet</p>}
+      {region && site.mode !== 'card' && canOpenSite(site) && (
+        <button type="button" className="ui-btn--primary site-card__action" onClick={() => chooseSite(site.id)}>
+          {ACTION_LABEL[site.mode]}
+        </button>
+      )}
 
       {data && data.sources.length > 0 ? (
         <Disclosure summary={`Sources (${data.sources.length})`} className="site-card__sources">
@@ -108,7 +116,7 @@ export function SiteCard({ site, collapsed = false }: SiteCardProps) {
     };
   }, [site.id]);
 
-  const body: ReactNode = <CardBody site={site} data={data} region={!collapsed} showMode={!collapsed} />;
+  const body: ReactNode = <CardBody site={site} data={data} region={!collapsed} />;
   return collapsed ? (
     <section className="site-card__opened" aria-label={site.name}>
       <span className={`site-card__mode site-card__mode--${site.mode}`}>
