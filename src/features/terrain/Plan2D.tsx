@@ -16,6 +16,8 @@ export interface Plan2DProps {
   grid: PlanningGrid;
   classes: Uint8Array;
   counts: { blocked: number; noData: number };
+  /** Огляд (Olympus / Valles): «Blocked» там нічого не означає — як у 3D (#145), не малюємо (#186) */
+  overview?: boolean;
   /** RGBA північ-вгору (колір за висотою) — для фонового растра; null — без растра */
   rasterRGBA: Uint8Array | null;
   mask: Uint8Array | null;
@@ -65,7 +67,7 @@ function rasterUrl(width: number, height: number, rgba: Uint8Array | null): stri
   }
 }
 
-export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null }: Plan2DProps) {
+export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerUrls, gridLayers, traverse, noReturn, targets, selectedIds, plan, selectedSegment, base, position = null, ponr = null, marks = [], onPick = null, onPickHover, nav = null, overview = false }: Plan2DProps) {
   const { width: w, height: h } = grid;
   const blockedD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.blocked), [w, classes]);
   const noDataD = useMemo(() => cellsPath(w, classes, (c) => c === CELL.noData), [w, classes]);
@@ -125,7 +127,7 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         </StatusNote>
       )}
       <p className="terrain-counter">
-        Blocked / NoData cells: {counts.blocked} / {counts.noData}
+        {overview ? `NoData cells: ${counts.noData}` : `Blocked / NoData cells: ${counts.blocked} / ${counts.noData}`}
       </p>
       <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} preserveAspectRatio="xMidYMid meet" className="terrain-svg" onClick={onClick} onMouseMove={onMove} onMouseLeave={onPick && onPickHover ? () => onPickHover(false) : undefined}>
         <title>{label}</title>
@@ -140,7 +142,7 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
         )}
         {haloFillD && <path d={haloFillD} fill={CSS.halo} opacity={HALO_FILL_ALPHA / 255} data-kind="halo" />}
         {haloEdgeD && <path d={haloEdgeD} fill={CSS.halo} data-kind="halo-edge" />}
-        {blockedD && <path d={blockedD} fill={CSS.blocked} data-kind="blocked" />}
+        {blockedD && !overview && <path d={blockedD} fill={CSS.blocked} data-kind="blocked" />}
         {noDataD && <path d={noDataD} fill={CSS.noData} data-kind="nodata" />}
         {traverse.map((l, k) => (
           <polyline
@@ -191,9 +193,11 @@ export function Plan2D({ reason, grid, classes, counts, rasterRGBA, mask, layerU
           return (
             <g key={t.id} data-kind="target" data-selected={sel}>
               <EvaSignShape kind="target" state={!inReach(t.coordinates) ? 'outside' : sel ? 'selected' : 'unselected'} x={x} y={y} size={sign} label={`${t.name}${!inReach(t.coordinates) ? ', outside reachable area' : sel ? ', selected' : ''}`} />
+              {(sel || targets.length <= 2) && (
               <text x={left ? x - unit * 1.6 : x + unit * 1.6} y={y + unit * 0.7} textAnchor={left ? 'end' : 'start'} fontSize={unit * 2.4} fill="#f3ece6" stroke="#14100e" strokeWidth={unit * 0.3} paintOrder="stroke" fontWeight={sel ? 700 : 400}>
                 {text}
               </text>
+              )}
             </g>
           );
         })}
