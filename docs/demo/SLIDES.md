@@ -1,26 +1,23 @@
-# Слайди (≤7, англійською) — F8
+# Слайди (7, англійською, 3 хв) — F8
 
-Мінімум тексту: заголовок + 1–2 рядки + скрін. Готовий файл — `docs/demo/MARS404_slides.pptx` (Google Drive → Завантажити → відкрити в Google Slides) → скріни → PDF у пакет сабміту.
-Скріни робить Іван після 16:30 з релізного build (1440×900); до того — заглушки `[SCREEN: …]`.
-Числа — як у `docs/demo/SCRIPT.md` (звірено на `main` 9a88ecd); без джерела — не пишемо.
+Файл: `docs/demo/MARS404_slides.pptx` → Google Drive → «Завантажити» → відкрити в Google Slides → PDF у пакет сабміту.
+Скріни — з релізного build `main` 663f40d (Chromium 1440×900; 3D, кадр Replace — 2D-план). Скріни Івана підставляємо поверх, коли будуть.
+Числа звірено в браузері (див. `docs/demo/SCRIPT.md`, «Числа»). Нотатки до кожного слайду — українською, з таймінгом.
 
-| # | Заголовок (EN) | Текст на слайді (EN) | Візуал | Хто дає |
-|---|---|---|---|---|
-| 1 | **MARS::404 — know when to turn back** | Team MARS::404 · NASA Space Apps 2026 · Challenge: Martian Map | Логотип; `[SCREEN: глобус Марса]` | Оля |
-| 2 | **No GPS. When do I turn back?** | An astronaut on foot on Mars has no GPS and no live help from Earth. Oxygen, energy and time must last the way **back**. | `[SCREEN: кадр інтро «AI-generated footage»]` з видимим написом | Оля |
-| 3 | **One number: Return in N min** | Route on real terrain → return clock → GO / NO-GO before the EVA starts. | `[SCREEN: HUD «Return in 24 min» + GO · CAUTION]` (Gale, Brantôme + Mont Mercou) | Іван |
-| 4 | **Built on NASA data** | Short form з `docs/SOURCES.md` → «NASA data for the Space Apps form» (нижче) | `[SCREEN: шари HiRISE / THEMIS / slope]` | Максим |
-| 5 | **Two sites, whole planet** | Gale (Curiosity) and Columbia Hills (Spirit) for walks; Olympus Mons and Valles Marineris — terrain overview. | `[SCREEN: Columbia Hills з маршрутом]` + `[SCREEN: Olympus Mons]` | Іван |
-| 6 | **Honest by design** | Terrain data: verified. Model: 1 of 10 coefficients verified (30-min emergency O₂), 9 shown as **assumption**. Best status is “within model”, never “safe”. | `[SCREEN: «Details: model coefficients» + «Sources of limits»]` | Влад |
-| 7 | **What’s next** | Walk or drive the rover · satellite coverage zones · suit energy over time (NASA EMU data). | — | Оля |
+| # | Час | Заголовок (EN) | Що на слайді |
+|---|---|---|---|
+| 1 | 0:00–0:20 | **MARS::404 — know when to turn back** | Челендж, одна фраза про продукт, скрін глобуса; 4 числа: 4 райони з рельєфом NASA (6 на глобусі), 10 наборів даних NASA / USGS / ESA, 6 шарів карти, 0 мережевих запитів у полі; команда з ролями; посилання на сайт і код |
+| 2 | 0:20–0:45 | **The walk back is the dangerous part** | Кадр AI-інтро з підписом «AI-generated footage»; 4 факти: затримка 4–24 хв (ESA), немає GPS, EVA 7 год + 30 хв аварійного O₂ (NASA NTRS 20140009556), підйом ×2 (assumption); те саме питання на Землі (Карпати) |
+| 3 | 0:45–1:20 | **One screen answers: when do I turn back?** | Скрін маршруту з «Return in 24 min»; 8 функцій: маршрут пішки, годинник повернення, точка неповернення, «O₂ −40%» → Replace, GO / NO-GO (9 станцій), навігація без GPS (98 %), прогулянка-превʼю, field-ready (мітки, рукавиці, 400 px, офлайн); кропи «Return in 12 min» і Navigation |
+| 4 | 1:20–1:45 | **Real NASA data, end to end** | Слайд Максима (`specs/F3/slide-nasa-data.png`, #144): джерело NASA → що рахуємо → що бачить астронавт |
+| 5 | 1:45–2:15 | **Six map layers — and what we extract from each** | Панель шарів зверху (#151); таблиця 6 шарів: джерело / метод → що отримує планувальник; скріни THEMIS night і Slope; геологія: цілі на справжніх відслоненнях (Mont Mercou, Nontron · Champeaux, Comanche · Home Plate, Troy) + картка Mont Mercou з фото Curiosity |
+| 6 | 2:15–2:40 | **Two walking sites, whole planet, honest numbers** | Columbia Hills (Return in 8 min), Olympus Mons (≈ 21,2 км, MOLA), глобус; verified (рельєф і знімки) · 1 з 10 коефіцієнтів verified · «within model», ніколи «safe» |
+| 7 | 2:40–3:00 | **Who it helps, and what comes next** | Користь: астронавт, екіпаж і плановики, аналогові місії, туристи й рятувальники на Землі; далі: пішки або ровером, зони покриття супутників, енергія скафандра за часом, Jezero |
 
-## Слайд 4 — текст від Максима (з `docs/SOURCES.md`, #127)
-> Terrain and imagery from NASA Mars Trek: HiRISE 1 m elevation models of Gale crater (Curiosity) and the Columbia Hills (Spirit), the HiRISE orthomosaic of the Curiosity area, THEMIS day and night infrared mosaics (Mars Odyssey), the MOLA + HRSC 200 m global elevation model and the Viking MDIM 2.1 colour mosaic. Rover traverses and stops from NASA/JPL-Caltech (MSL MMGIS, Mars Trek Spirit layers) and Curiosity raw images.
-
-На слайд — скорочено до списку з 5 рядків; повний текст — у нотатках і в `SUBMISSION.md`.
-
-## Слайд 6 — звідки числа
-`public/data/gale/region.json` на `main`: `emergencyO2G` = 56 г — **verified** (NASA EMU, 30 хв); решта 9 коефіцієнтів моделі й ліміти time / O₂ / energy / dose — **assumption**. Те саме показує застосунок: «9 of 10 model coefficients have no verified source. Model, not certified navigation.»
-
-## Слайд 7 — що далі
-Лише те, чого ще немає в продукті (позначаємо як next): транспорт «пішки / ровер» (`specs/F4/rover.md`), зони покриття супутників, енергія скафандра за часом замість метрів (R1 у `specs/F5/research-real-data.md`).
+## Звідки числа
+- Маршрути, «Return in», Replace, Navigation, Columbia Hills — живий застосунок на `main` (таблиця «Числа» в `SCRIPT.md`).
+- 4–24 хв — ESA; 7 год + 30 хв — NASA NTRS 20140009556; батарея EMU ≈ 922 Wh — NTRS 20050217305 (`specs/F5/research-real-data.md`).
+- Шари, методи й легенди — `public/data/gale/region.json`, `public/data/columbia-hills/region.json`.
+- Геологія цілей — поле «why» у `targets.geojson` Gale і Columbia Hills.
+- Коефіцієнти моделі (1 verified з 10) і межі моделі — `specs/F5/assumptions-en.md` (Влад, #139).
+- Olympus Mons ≈ 21,2 км — `docs/SOURCES.md` (`trek-mola-hrsc-200m`).
