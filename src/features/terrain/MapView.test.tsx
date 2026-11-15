@@ -25,6 +25,11 @@ describe('MapView (jsdom без WebGL → 2D-план Б)', () => {
     expect(screen.queryByText(/Blocked \/ NoData cells/)).toBeNull();
   });
 
+  it('site = null → глобус без бейджа MOCK (текстура глобуса — Viking MDIM 2.1, не mock)', () => {
+    render(<MapView globe={null} />);
+    expect(within(screen.getByRole('region', { name: 'Mars globe' })).queryByText('MOCK')).toBeNull();
+  });
+
   it('F2-AC1: розмір сітки, м/клітинку, «height ×3», статус MOCK', () => {
     render(<MapView globe={null} />);
     gale();

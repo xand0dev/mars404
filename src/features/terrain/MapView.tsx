@@ -315,7 +315,7 @@ export function MapView({ globe }: MapViewProps) {
   );
 
   return (
-    <Panel title={site === null ? 'Mars globe' : `${SITE_LABEL[site]} terrain`} featureId="F2" owner="Олександр" mock={status === 'mock'}>
+    <Panel title={site === null ? 'Mars globe' : `${SITE_LABEL[site]} terrain`} featureId="F2" owner="Олександр" mock={site !== null && status === 'mock'}>
       {site !== null && valid && cells && (
         <TerrainInfo
           width={grid.width}
