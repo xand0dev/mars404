@@ -101,3 +101,13 @@ class Traverse(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Stretch(unittest.TestCase):
+    def test_percentiles_map_to_range_and_nodata_to_zero(self):
+        vals = [i / 100 for i in range(101)] + [prepare.NODATA]
+        out = prepare.stretch_gray(vals, 2, 98, 40, 220)
+        self.assertEqual((out[2], out[98], out[-1]), (40, 220, 0))
+        self.assertEqual((out[0], out[100]), (36, 224))  # поза перцентилями — лінійно далі, з обрізанням 0…255
+        self.assertEqual(list(out[:101]), sorted(out[:101]))
+

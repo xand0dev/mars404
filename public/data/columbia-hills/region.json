@@ -209,7 +209,7 @@
       "units": "relative shading",
       "nativeResolutionM": 1,
       "gridResolutionM": 10,
-      "method": "hillshade at 1 m (sun 315 deg / 45 deg), area-weighted mean to 2048²; not an image",
+      "method": "hillshade at 1 m (sun 315 deg / 45 deg), area-weighted mean to 2048², contrast stretch p2–p98; not an image",
       "legend": [
         {
           "value": 0,
@@ -354,7 +354,7 @@
       "id": "hillshade-from-dem",
       "title": "Hillshade derived from the 1 m DEM",
       "status": "assumption",
-      "note": "No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth 315 deg, altitude 45 deg, Horn 3x3 at 1 m), area-weighted mean to 2048². Shading of the DEM, not a photograph."
+      "note": "No HiRISE orthomosaic of Gusev in Trek, so the texture is computed: hillshade (sun azimuth 315 deg, altitude 45 deg, Horn 3x3 at 1 m), area-weighted mean to 2048², linear stretch p2–p98 to 64–192. Shading of the DEM, not a photograph."
     },
     {
       "id": "trek-spirit-path",

@@ -109,3 +109,18 @@ Edge через Playwright, https://xand0dev.github.io/mars404/, 1440×900 і 40
 | Масштаб | довгота через cos(центральної широти), як `lonLatToXY`; на краях ±5,2° похибка схід–захід до 3,5 % (Olympus), 2,5 % (Valles) | docstring `overview.py` |
 | Чого немає | вибір overview на глобусі й режим «лише рельєф» — #105 (Іван); як рендер поводиться з клітинкою 2400 м — перевірити після #105 | — |
 
+## Перевірка всіх районів у браузері (15.11, `main` e61b5b6 + цей PR)
+Edge через Playwright, `vite preview`, SwiftShader WebGL, 1440×900 і 400×860; глобус → Location → район.
+
+| Район | Що на екрані | Скрін |
+|---|---|---|
+| Gale | `Grid 256×256 · 10 m · Data: verified`, HiRISE, 8 цілей | `screenshots/f3-regions-gale-1440.png` |
+| Columbia Hills | `Data: verified`, hillshade, 6 цілей Spirit; кільце контексту довкола | `screenshots/f3-regions-columbia-1440.png` (до stretch — `…-before.png`) |
+| Olympus Mons | `Grid 256×256 · 2400 m · verified`, кальдера й уступ | `screenshots/f3-regions-olympus-1440.png`, `…-400.png` |
+| Valles Marineris | `2400 m · verified`, каньйони Coprates | `screenshots/f3-regions-valles-1440.png` |
+
+Горизонтального скролу немає ні на 1440, ні на 400; помилок сторінки немає. На overview ще видно EVA-інтерфейс (Base, Return in) — ховає #129 (F2 / F7), не дані.
+Gale на 1440 перші ~3–10 с показує MOCK, поки вантажиться 12 МБ пакета (локально, машина під навантаженням), далі `verified`.
+
+**Hillshade Columbia Hills — stretch p2–p98 → 64…192.** Сирий hillshade плаского Gusev займав 133…216 (медіана 181), у 3D після тонування — майже біла пляма. Тепер контраст ×1,5, пагорби читаються. Ширший діапазон (40…220) дає PNG 3,56 МБ і район 8,7 МБ — більше ліміту 8 МБ. Висоти, схил, walkable і hazard не змінились (ті самі sha256); Gale — без змін.
+
