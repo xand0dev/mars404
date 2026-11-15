@@ -1,7 +1,6 @@
 /* Glove mode як планшет на зап'ясті (UI для відео й журі).
-   Десктоп із мишею (≥ 1200 × 700): застосунок у захищеному корпусі; екран — як додаток: карта на весь екран,
+   Десктоп із мишею (≥ 1200 × 700) і сенсорний планшет в альбомній: екран-додаток на все вікно, без корпусу: карта на весь екран,
    HUD, камери й прогулянка — напівпрозорі плитки поверх карти, сторінка не прокручується.
-   Сенсорний планшет в альбомній (≥ 1000 × 600): той самий екран-додаток на весь дисплей, без корпусу — корпус тут сам пристрій.
    Телефони, портрет і вузькі вікна: обгортки — display: contents, glove mode як був (на весь екран, з прокруткою). */
 .tablet, .tablet__bezel, .tablet__screen { display: contents; }
 .tablet__bump, .tablet__lug, .tablet__key, .tablet__cam, .tablet__mark { display: none; }
@@ -116,8 +115,8 @@
   body:has(.tablet) .eva-photo { left: calc(var(--tab-left) + var(--tab-inner-w) / 2); bottom: calc(var(--tab-bottom) + var(--eva-dock-h) + 52px); max-height: calc(var(--tab-h) * 0.6); }
 }
 
-/* Сенсорний планшет: без корпусу, екран на весь дисплей. */
-@media (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
+/* Без корпусу всюди (рішення 15.11: вигаданий rugged-корпус не схожий на реальне обладнання NASA): екран-додаток на все вікно. */
+@media (min-width: 1200px) and (min-height: 700px) and (pointer: fine), (min-width: 1000px) and (min-height: 600px) and (pointer: coarse) and (orientation: landscape) {
   body:has(.tablet) { --tab-bezel: 0px; --tab-w: 100vw; --tab-h: 100dvh; --tab-left: 0px; --tab-bottom: 0px; --tab-inner-w: 100vw; --tab-walk: 60px; background: #050506; }
   .tablet__bezel { width: 100vw; height: 100dvh; padding: 0; border: none; border-radius: 0; box-shadow: none; background: #050506; }
   .tablet :is(.tablet__bump, .tablet__lug, .tablet__key, .tablet__cam, .tablet__mark) { display: none; }
