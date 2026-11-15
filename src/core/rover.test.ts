@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { mockBase, mockGrid, mockLimits, mockModel, mockTargets } from '../mocks';
 import { planRoute } from './plan-route';
 import { assessReach, buildReachTrees } from './reachability';
-import { modelFor, riderModel, ROVER, roverEnergyWh } from './rover';
+import { compareTravelModes, modelFor, riderModel, ROVER, roverEnergyWh } from './rover';
 
 const target = mockTargets[0]!;
 const route = (model = mockModel) =>
@@ -73,5 +73,41 @@ describe('F5-AC7: walkback — повернення з будь-якої точ�
 
     expect(ride.returnInS ?? -Infinity).toBeGreaterThan(walk.returnInS ?? -Infinity);
     expect(ride.abort!.segments.map((s) => s.returnS)).toEqual(walk.abort!.segments.map((s) => s.returnS));
+  });
+});
+
+describe('compareTravelModes: обидва варіанти з одного плану', () => {
+  const walkPlan = route();
+  const ridePlan = route(riderModel(mockModel));
+  const input = { model: mockModel, limits: mockLimits, elapsedS: 0 };
+
+  it('Given пішохідний план, Then підсумки пішки й на ровері збігаються з окремими planRoute', () => {
+    const options = compareTravelModes({ ...input, plan: walkPlan, planMode: 'walk' })!;
+    expect(options.walk.totals.time).toBeCloseTo(walkPlan.totals.time, 6);
+    expect(options.walk.totals.o2).toBeCloseTo(walkPlan.totals.o2, 6);
+    expect(options.rover.totals.time).toBeCloseTo(ridePlan.totals.time, 6);
+    expect(options.rover.totals.o2).toBeCloseTo(ridePlan.totals.o2, 6);
+    expect(options.rover.totals.energy).toBe(0);
+    expect(options.rover.roverWh).toBeCloseTo(ridePlan.totals.dist * ROVER.energyWhPerM, 6);
+    expect(options.walk.roverWh).toBeNull();
+  });
+
+  it('Given план ровера, Then ті самі числа (порядок побудови не важливий)', () => {
+    const a = compareTravelModes({ ...input, plan: walkPlan, planMode: 'walk' })!;
+    const b = compareTravelModes({ ...input, plan: ridePlan, planMode: 'rover' })!;
+    expect(b.walk.totals.time).toBeCloseTo(a.walk.totals.time, 6);
+    expect(b.rover.totals.o2).toBeCloseTo(a.rover.totals.o2, 6);
+  });
+
+  it('Return in кожного варіанта — як у HUD (estimateReturn), на ровері більше; без плану — null', () => {
+    const options = compareTravelModes({ ...input, plan: walkPlan, planMode: 'walk' })!;
+    expect(options.rover.returnInS).toBeGreaterThan(options.walk.returnInS);
+    expect(compareTravelModes({ ...input, plan: null, planMode: 'walk' })).toBeNull();
+  });
+
+  it('Given мало O₂, When пішки дефіцит, Then deficits пішки містять o2', () => {
+    const tight = { ...mockLimits, o2: 1 };
+    const options = compareTravelModes({ ...input, limits: tight, plan: walkPlan, planMode: 'walk' })!;
+    expect(options.walk.deficits).toContain('o2');
   });
 });

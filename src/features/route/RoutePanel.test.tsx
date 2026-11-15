@@ -421,12 +421,12 @@ describe('RoutePanel', () => {
   it('F4-AC8: «Rover» → маршрут перебудовано з моделлю ровера (швидше, менше O₂), видно батарею ровера й walkback', async () => {
     await buildTo('mock-a');
     const walk = store().plan!;
-    const onFoot = screen.getByRole('button', { name: 'On foot' });
+    const onFoot = screen.getByRole('button', { name: /^On foot/ });
     expect(onFoot).toHaveAttribute('aria-pressed', 'true');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Rover' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Rover/ }));
     await waitFor(() => expect(store().plan?.totals.time).toBeLessThan(walk.totals.time));
-    expect(screen.getByRole('button', { name: 'Rover' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^Rover/ })).toHaveAttribute('aria-pressed', 'true');
     expect(store().plan!.totals.o2).toBeLessThan(walk.totals.o2);
     expect(screen.getByText(/rover battery/i)).toHaveTextContent(/Wh of 8712 Wh/);
     expect(screen.getByText(/return is checked on foot/i)).toBeInTheDocument();
@@ -439,7 +439,7 @@ describe('RoutePanel', () => {
   it('F4-AC8: режим можна обрати до «Build route» — перший маршрут одразу на ровері', async () => {
     store().toggleTarget('mock-a');
     render(<RoutePanel />);
-    await userEvent.click(screen.getByRole('button', { name: 'Rover' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Rover/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Build route' }));
     await screen.findByText(/route found/i);
     expect(store().plan!.totals.energy).toBe(0);
@@ -447,15 +447,28 @@ describe('RoutePanel', () => {
 
   it('F2 ровер: «Rover» / «On foot» пишуть режим у store (його читає 3D-сцена)', async () => {
     render(<RoutePanel />);
-    await userEvent.click(screen.getByRole('button', { name: 'Rover' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Rover/ }));
     expect(store().travelMode).toBe('rover');
-    await userEvent.click(screen.getByRole('button', { name: 'On foot' }));
+    await userEvent.click(screen.getByRole('button', { name: /^On foot/ }));
     expect(store().travelMode).toBe('walk');
   });
 
   it('F2 ровер: режим зі store — панель показує «Rover» вибраним', () => {
     store().setTravelMode('rover');
     render(<RoutePanel />);
-    expect(screen.getByRole('button', { name: 'Rover' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^Rover/ })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('Два варіанти поруч: після маршруту кожна кнопка показує час, O₂ і Return in свого режиму; ровер — ще батарею', async () => {
+    await buildTo('mock-a');
+    const group = screen.getByRole('group', { name: 'Travel mode' });
+    const onFoot = within(group).getByRole('button', { name: /^On foot/ });
+    const rover = within(group).getByRole('button', { name: /^Rover/ });
+    expect(onFoot).toHaveTextContent(/\d+ min · \d+ g O₂/);
+    expect(onFoot).toHaveTextContent(/Return in \d+ min/);
+    expect(rover).toHaveTextContent(/Battery \d+ Wh/);
+    const walkMin = Number(/(\d+) min ·/.exec(onFoot.textContent ?? '')![1]);
+    const roverMin = Number(/(\d+) min ·/.exec(rover.textContent ?? '')![1]);
+    expect(roverMin).toBeLessThan(walkMin);
   });
 });

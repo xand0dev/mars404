@@ -8,4 +8,4 @@ export { emptyPlan, planRoute, type RouteRequest } from './plan-route';
 export { availableOf, budgetStatus, computeBudget, estimateReturn, fitsWithin, reserveOf, validateBudgetInputs } from './budget';
 export { assessAbort, type AbortAssessment, type AbortInput } from './abort';
 export { assessReach, buildReachTrees, REACH_WARNINGS, type ReachInput, type ReachTrees } from './reachability';
-export { modelFor, riderModel, ROVER, roverEnergyWh, type TravelMode } from './rover';
+export { compareTravelModes, modelFor, riderModel, ROVER, roverEnergyWh, type TravelMode, type TravelOption } from './rover';
