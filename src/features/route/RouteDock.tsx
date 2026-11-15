@@ -4,7 +4,8 @@ import { createPortal } from 'react-dom';
 import type { AbortPlan, RoutePlan, Segment, TargetPhoto } from '../../contracts';
 import { STATUS_ICON, formatMinutes } from '../../ui';
 import { formatRisks } from './segment-risk';
-import type { PhotoLocation } from './surface-photo';
+import { PhotoLocationNote, PhotoSourceLink } from './PhotoSource';
+import { PHOTO_LOCATION_TEXT, photoCameraName, type PhotoLocation } from './surface-photo';
 import { legSummaries } from './traverse-legs';
 
 export interface DockPhoto {
@@ -31,8 +32,6 @@ interface RouteDockProps {
 /** Крок «Play» — як навігатор: маршрут у 110 відрізків проходить приблизно за 30 с. */
 const PLAY_STEP_MS = 250;
 
-const LOCATION_TEXT: Record<PhotoLocation, string> = { 'rover-stop': 'rover stop', approximate: 'approximate location', target: 'science target' };
-const cameraName = (camera?: string) => (camera === undefined ? 'Surface photo' : camera.startsWith('NAV') ? 'Navcam' : camera);
 
 export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, risks, labels, abort, photoFor }: RouteDockProps) {
   const [photoOpen, setPhotoOpen] = useState(false);
@@ -111,14 +110,11 @@ export function RouteDock({ plan, selectedSegment, onSelect, onBuild, canBuild, 
             <figure>
               <img src={photo.photo.url} alt={photo.photo.alt} />
               <figcaption>
-                {cameraName(photo.camera)}
-                {photo.photo.sol === undefined ? '' : `, sol ${photo.photo.sol}`}, ~{Math.round(photo.distanceM)} m from this segment ({LOCATION_TEXT[photo.location]}) · {photo.photo.credit}
-                {photo.photo.sourceUrl && (
-                  <>
-                    {' · '}
-                    <a href={photo.photo.sourceUrl} target="_blank" rel="noreferrer">Source</a>
-                  </>
-                )}
+                {photoCameraName(photo.camera)}
+                {photo.photo.sol === undefined ? '' : `, sol ${photo.photo.sol}`}, ~{Math.round(photo.distanceM)} m from this segment ({PHOTO_LOCATION_TEXT[photo.location]}) · {photo.photo.credit}
+                <PhotoSourceLink sourceUrl={photo.photo.sourceUrl} />
+                <br />
+                <PhotoLocationNote location={photo.location} />
               </figcaption>
             </figure>
           ) : (

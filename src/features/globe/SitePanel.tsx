@@ -3,18 +3,14 @@
 import { useEffect } from 'react';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
+import { SiteCard } from './SiteCardView';
 import { useGlobe } from './globeState';
 import { chooseSite, openSite } from './choose';
 import { FLY_MS } from './motion';
-import { MODE_GLYPH, SITES, canOpenSite, modeLabel, siteById, type Site } from './sites';
+import { MODE_GLYPH, SITES, canOpenSite, modeLabel, siteById } from './sites';
 import { ZOOM_MIN, useZoom } from './zoom';
 
 const listStyle = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 } as const;
-
-function formatLatLon({ latDeg, lonEastDeg }: Site): string {
-  return `${Math.abs(latDeg).toFixed(2)}° ${latDeg < 0 ? 'S' : 'N'}, ${lonEastDeg.toFixed(2)}° E`;
-}
-
 
 /** #80: кнопки масштабу — для клавіатури й тих, хто без тачпада. */
 function ZoomControls() {
@@ -36,27 +32,6 @@ function ZoomControls() {
         {zoom.toFixed(1)}×
       </span>
     </div>
-  );
-}
-
-function SiteCard({ site }: { site: Site }) {
-  const headingId = `f1-site-${site.id}`;
-  return (
-    <section aria-labelledby={headingId} style={{ marginTop: 8 }}>
-      <h3 id={headingId} style={{ fontSize: '0.95rem', margin: '0 0 4px' }}>
-        {site.name}
-      </h3>
-      <p style={{ margin: '0 0 4px' }}>{site.summary}</p>
-      <StatusNote level="info" live="status">
-        {modeLabel(site)}
-      </StatusNote>
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-        {formatLatLon(site)} ·{' '}
-        <a href={site.source.url} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>
-          {site.source.url?.includes('planetarynames') ? 'IAU Gazetteer' : 'Source'}
-        </a>
-      </p>
-    </section>
   );
 }
 
@@ -125,7 +100,7 @@ export function SitePanel() {
           </button>
         </p>
       )}
-      {previewed ? <SiteCard site={previewed} /> : opened && <SiteCard site={opened} />}
+      {previewed ? <SiteCard site={previewed} /> : opened && <SiteCard site={opened} collapsed />}
       <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
         {texture.status === 'ok'
           ? `Texture: ${texture.credit}`

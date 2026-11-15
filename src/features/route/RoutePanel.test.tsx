@@ -324,6 +324,8 @@ describe('RoutePanel', () => {
     const sheet = screen.getByRole('dialog', { name: 'Photo from segment 1' });
     expect(within(sheet).getByRole('img', { name: 'Navcam view of bedrock' })).toBeInTheDocument();
     expect(sheet).toHaveTextContent(/Navcam, sol 3110, ~\d+ m from this segment \(rover stop\)/);
+    expect(within(sheet).getByRole('link', { name: 'NASA source' })).toHaveAttribute('href', 'https://mars.nasa.gov/raw_images/1');
+    expect(sheet).toHaveTextContent('Location: rover stop, not the exact camera spot.');
 
     await userEvent.click(within(sheet).getByRole('button', { name: 'Next segment' }));
     expect(store().selectedSegment).toBe(1);
