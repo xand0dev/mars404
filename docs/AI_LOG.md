@@ -154,4 +154,5 @@
 |---|---|---|---|---|---|---|
 | 2026-11-14 | Олександр | Claude Code · claude-opus-5-5 | F8 T1–T3: сценарій 30 с, субтитри, чернетка сабміту, слайди, чекліст | docs/demo/*, docs/submission/*, specs/F8/spec.md | npm run check; тексти звірено з docs/SPEC.md §3, §7.6, §8 | feat/F8 (draft) |
 | 2026-11-15 | Оля | Claude Code | F8: фінальний сценарій 30 с і субтитри, слайди ≤7 | docs/demo/SCRIPT.md, docs/demo/subtitles.srt, docs/demo/SLIDES.md | числа звірено в браузері на `main` 9a88ecd (Playwright, 1440×900); npm run check | #13 |
+| 2026-11-15 | Оля | Claude Code | F8: `SUBMISSION.md` — поля форми Space Apps англійською (summary, description, NASA data від Максима, Validity від Влада, use of AI з AI_LOG, посилання); тексти Олександра й посилання на відео / слайди — COMING SOON | docs/submission/SUBMISSION.md | твердження звірено з `docs/SOURCES.md`, `specs/F5/assumptions-en.md`, `docs/AI_LOG.md` і UI на `main`; npm run check | #13 |
 
