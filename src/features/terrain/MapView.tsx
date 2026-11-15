@@ -3,7 +3,7 @@
 // У store пише лише addAnnotation — мітку екіпажу в режимі «Add mark» (F2-AC8, SPEC §7.12).
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { validateGrid } from '../../contracts/planning';
+import { regionKind, validateGrid } from '../../contracts/planning';
 import { mockModel } from '../../mocks';
 import { useMission } from '../../store/useMission';
 import { EvaLegend, Panel, StatusNote } from '../../ui';
@@ -137,7 +137,10 @@ export function MapView({ globe }: MapViewProps) {
   const plan = useMission((s) => s.plan);
   const selectedSegment = useMission((s) => s.selectedSegment);
   const reach = useMission((s) => s.reach);
-  const base = useMission((s) => s.base);
+  // Overview (Olympus Mons, Valles Marineris): лише рельєф — без бази, ореолу досяжності й міток.
+  const overview = useMission((s) => regionKind(s.region) === 'overview');
+  const missionBase = useMission((s) => s.base);
+  const base = overview ? null : missionBase;
   const position = useMission((s) => s.position);
   const mode = useCameraMode((s) => s.mode);
   const annotations = useMission((s) => s.annotations);
@@ -156,7 +159,7 @@ export function MapView({ globe }: MapViewProps) {
   const valid = gridErrors.length === 0;
   const cells = useMemo(() => (valid ? classifyCells(grid, { noData, maxSlopeDeg }) : null), [valid, grid, noData, maxSlopeDeg]);
   const heights = useMemo(() => (valid ? displayHeights(grid, noData) : null), [valid, grid, noData]);
-  const mask = reach?.mask;
+  const mask = overview ? undefined : reach?.mask;
   // F2-AC6 (SPEC §7.8): червоні відрізки без повернення; рахує F5 у reach.abort.
   const abort = useMemo(() => readAbort(reach), [reach]);
   const noReturn = useMemo(() => noReturnRuns(plan, abort), [plan, abort]);
@@ -322,7 +325,7 @@ export function MapView({ globe }: MapViewProps) {
           warnings={[...(sceneData?.warnings ?? []), ...traverseWarnings, ...(noReturn.warning ? [noReturn.warning] : [])]}
         />
       )}
-      {site !== null && valid && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
+      {site !== null && valid && !overview && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
       <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
         {show3D ? (
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
@@ -377,7 +380,7 @@ export function MapView({ globe }: MapViewProps) {
           </p>
         )}
       </div>
-      {site !== null && valid && (
+      {site !== null && valid && !overview && (
         <div className="terrain-legend-eva">
           <EvaLegend kinds={['base', 'target', 'astronaut', 'ponr']} size={16} />
           <ul className="terrain-legend-marks" aria-label="Crew mark legend">

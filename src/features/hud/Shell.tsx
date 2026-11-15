@@ -5,6 +5,7 @@
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { SITE_LABEL } from '../../contracts';
+import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { PanelGroupContext, type PanelGroup } from '../../ui';
 import { GloveContext, readGlove, writeGlove } from './glove';
@@ -37,6 +38,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
   }, []);
 
   const site = useMission((s) => s.site);
+  const overview = useMission((s) => s.site !== null && s.region?.id === s.site && regionKind(s.region) === 'overview');
   const step = useMission((s) => panelStep(s));
   const [overrides, setOverrides] = useState<PanelOverrides>({
     step,
@@ -69,10 +71,12 @@ export function Shell({ hud, map, side, status }: ShellProps) {
 
   return (
     <GloveContext.Provider value={glove}>
-      <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}`}>
+      <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}${overview ? ' shell--overview' : ''}`}>
         <header className="shell__bar">
           <div className="shell__brand">
-            <h1 className="shell__title">MARS::404 · {site ? SITE_LABEL[site] : 'Mars'} EVA planner</h1>
+            <h1 className="shell__title">
+              MARS::404 · {site ? SITE_LABEL[site] : 'Mars'} {overview ? 'terrain overview' : 'EVA planner'}
+            </h1>
             <p className="shell__disclaimer">Demonstration model, not certified navigation.</p>
           </div>
           <ol className="shell__steps" aria-label="Demo steps">
