@@ -90,6 +90,7 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | F4: точка неповернення в пульті — повзунок червоніє з неї до кінця, «Show on map» у шторці обирає її відрізок (маркер карти стрибає туди) | src/features/route/** | npm run check (645) | — |
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | Спека `specs/F4/rover.md`: марсохід у маршруті — джерела LRV (8.7 kWh, 20.1 км, 7.6 км), walkback 10 км і O₂ на ровері (Jones), модель walk / drive, walkback limit, зміни контракту, задачі V1–V8 | specs/F4/** | цитати звірено (NSSDC, LA-UR-89-3858) | — |
 | 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | F4 rover V1: джерела LRV (швидкість 9.2–16 км/год, схил 25°, 1.87 Ah/км, 8.7 kWh), walkback 9.5 км (SP-4204, SEV fact sheet), Mars DRA 5.0 (~15 км walkback, ровери 3–10 км/год); прибрано непідтверджене «SEV 40°» | specs/F4/rover.md | цитати дослівно зі сторінок NASA / Wayback-копій ALSJ; OCR LRV handbook — candidate | — |
+| 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | F4-AC6 «View from here»: підпис з даних джерела — «NASA source» лише для https *.nasa.gov, позначка точності місця (rover stop / approximate — assumption), камера NAVCAM_LEFT (PDS Spirit) = Navcam; спільні PhotoSourceLink / PhotoLocationNote для панелі й пульта. Підготовлено для F6/F3: photos.geojson Gale (27 кадрів, bind_photos verify 27/27) і Columbia Hills (24 Navcam Spirit з PDS, approximate) | src/features/route/** | npm run check (705 тестів, build ok); URL перевірено curl (200) | — |
 
 ## F5
 
