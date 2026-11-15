@@ -135,3 +135,13 @@
 }
 
 /* ── Шари карти зверху: іконка + назва, той самий стан, що в панелі Layers ── */
+
+/* ── Чистий вигляд для журі (15.11, UX-прогін): службове — геть з очей ── */
+/* Бейджі власників фіч (F2 · Олександр …) — для команди, не для користувача. */
+.shell .ui-badge--owner { display: none; }
+/* Рядок «Grid 256×256 · 10 m/cell · Data: verified» над рельєфом; легенду кольорів лишаємо. */
+.shell .terrain-facts { display: none; }
+/* «VERIFIED» на кожній цілі — шум; «approximate» лишається, бо це попередження. */
+.shell .ui-panel:has(#F6-title) .ui-badge--verified { display: none; }
+/* До побудови маршруту станції GO / NO-GO майже всі HOLD, а ручне поле «Elapsed, s» нічого не дає — ховаємо до кроку Checklist. */
+.shell:is(.shell--step-site, .shell--step-targets, .shell--step-route) :is(.gonogo-stations, .hud__elapsed) { display: none; }
