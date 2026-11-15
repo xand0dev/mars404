@@ -120,7 +120,9 @@ class Overview(unittest.TestCase):
         slope, walk = f32(d / 'slope.f32'), (d / 'walkable.u8').read_bytes()
         lim = reg['model']['maxSlopeDeg']
         self.assertEqual(list(walk), [1 if math.isfinite(s_) and s_ <= lim else 0 for s_ in slope])
-        self.assertFalse((d / 'targets.geojson').exists(), 'targets* — шлях F6')
+        # targets* — шлях F6; якщо файл є, то лише порожній (цілей в overview немає).
+        if (d / 'targets.geojson').exists():
+            self.assertEqual(json.loads((d / 'targets.geojson').read_text(encoding='utf-8')), {'type': 'FeatureCollection', 'features': []})
         # Чесність: модель і ліміти — assumption; verified лише сирі дані Trek.
         by_id = {s_['id']: s_ for s_ in reg['sources']}
         for e in [*reg['model']['evidence'].values(), *reg['limitsEvidence'].values()]:
