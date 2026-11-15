@@ -32,7 +32,10 @@ import { useOptionalTexture } from './useRegionTexture';
 import { useTraverse } from './useTraverse';
 import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
+import { markCursorFor } from './lib/markCursor';
 import { navOverlay, useNavPlan, useNavView } from './navStore';
+import { NavChip } from './NavChip';
+import { MapLayerBar } from './MapLayerBar';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -191,6 +194,10 @@ export function MapView({ globe }: MapViewProps) {
   };
   const segmentPoint = keyboardMarkPoint(plan, selectedSegment);
   const onPick = adding && valid ? place : null;
+  // Курсор Add mark (#134): pin над місцем, де стане мітка, not-allowed поза ним.
+  const [pickValid, setPickValid] = useState(true);
+  const onPickHover = onPick ? setPickValid : undefined;
+  const stageCursor = markCursorFor(onPick ? (pickValid ? 'valid' : 'invalid') : 'off');
 
   const reason: PlanReason | null = site === null ? null : planReason({ webgl, lost, gridErrors, forced: forced2D });
   const show3D = webgl && !lost && (site === null || reason === null);
@@ -291,6 +298,7 @@ export function MapView({ globe }: MapViewProps) {
         nav={navMap}
         marks={marks}
         onPick={onPick}
+        onPickHover={onPickHover}
       />
     ) : (
       <StatusNote level="danger" live="alert">
@@ -326,7 +334,9 @@ export function MapView({ globe }: MapViewProps) {
         />
       )}
       {site !== null && valid && !overview && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
-      <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
+      <div className={`terrain-stage${onPick ? ' is-adding' : ''}`} style={stageCursor ? { cursor: stageCursor } : undefined}>
+        {site !== null && <NavChip />}
+        {site !== null && valid && <MapLayerBar />}
         {show3D ? (
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas
@@ -357,6 +367,7 @@ export function MapView({ globe }: MapViewProps) {
                       mode={mode}
                       marks={marks}
                       onPick={onPick}
+                      onPickHover={onPickHover}
                       inReach={inReach}
                       ponr={ponrMarker}
                       nav={navMap}
@@ -381,7 +392,17 @@ export function MapView({ globe }: MapViewProps) {
         )}
       </div>
       {site !== null && valid && !overview && (
-        <div className="terrain-legend-eva">
+        <details className="terrain-legend-eva">
+          {/* Легенда згорнута: на десктопі з панеллю прогулянки карті потрібна висота. */}
+          <summary>
+            Map legend
+            {marks.length > 0 && (
+              <>
+                {' · '}
+                <span className="terrain-counter">{marks.length} crew mark{marks.length === 1 ? '' : 's'} on map</span>
+              </>
+            )}
+          </summary>
           <EvaLegend kinds={['base', 'target', 'astronaut', 'ponr']} size={16} />
           <ul className="terrain-legend-marks" aria-label="Crew mark legend">
             {(['impassable', 'hazard', 'note', 'plan'] as const).map((k) => (
@@ -391,8 +412,7 @@ export function MapView({ globe }: MapViewProps) {
               </li>
             ))}
           </ul>
-          {marks.length > 0 && <p className="terrain-counter" style={{ margin: 0, fontWeight: 400 }}>{marks.length} crew mark{marks.length === 1 ? '' : 's'} on map</p>}
-        </div>
+        </details>
       )}
     </Panel>
   );

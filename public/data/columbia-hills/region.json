@@ -28,6 +28,7 @@
     "hazard": "hazard.f32",
     "texture": "hillshade.jpg",
     "targets": "targets.geojson",
+    "photos": "photos/photos.geojson",
     "traverse": "traverse.geojson",
     "elevationRender": "elevation_render.f32"
   },
