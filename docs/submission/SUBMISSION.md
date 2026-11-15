@@ -1,4 +1,4 @@
-# Submission — MARS::404 (NASA Space Apps 2026)
+# Submission — MARS//404 (NASA Space Apps 2026)
 
 > Тексти для форми Space Apps, англійською. Форму заповнює й відправляє Олександр (чернетка 20:00, фінал 21:00).
 > Назви розділів = поля форми з Project Submission Guide (spaceappschallenge.org, 13.11.2026). Усе — англійською; посилання — публічні, без входу (перевірити в приватному вікні).
@@ -6,7 +6,7 @@
 > `COMING SOON` — чекаємо текст / посилання від людини в дужках. Перед відправкою — прибрати цей блок і всі `COMING SOON`.
 
 ## Project name
-MARS::404 — know when to turn back
+MARS//404 — know when to turn back
 
 ## Challenge
 Interplanetary Survival Guide: Martian Map
@@ -31,7 +31,7 @@ Only one demo counts; anything over 30 s or 7 slides is not eligible for Global 
 - Source code (Apache-2.0): https://github.com/xand0dev/mars404
 
 ## High-Level Project Summary
-On Mars an astronaut on foot has no GPS and no live help from Earth, and the same oxygen, energy and time must last the way back. MARS::404 is a tablet planner for walking spacewalks that answers one question: when do I have to turn back? Built on real NASA terrain of Gale crater (Curiosity) and the Columbia Hills (Spirit), it plans a walking route around steep and unknown ground, counts down “Return in N min”, marks the point of no return, gives a GO / NO-GO before the walk starts and, when oxygen drops, suggests a closer target. It works offline, finds the position without GPS from beacons, and is honest about its limits: every model number shows its source or the word “assumption”.
+On Mars an astronaut on foot has no GPS and no live help from Earth, and the same oxygen, energy and time must last the way back. MARS//404 is a tablet planner for walking spacewalks that answers one question: when do I have to turn back? Built on real NASA terrain of Gale crater (Curiosity) and the Columbia Hills (Spirit), it plans a walking route around steep and unknown ground, counts down “Return in N min”, marks the point of no return, gives a GO / NO-GO before the walk starts and, when oxygen drops, suggests a closer target. It works offline, finds the position without GPS from beacons, and is honest about its limits: every model number shows its source or the word “assumption”.
 
 ## Detailed Project Description
 
@@ -84,7 +84,7 @@ Full list with product IDs, dates and licences: `docs/SOURCES.md`.
 ## Validity: model assumptions
 Text from Vlad (`specs/F5/assumptions-en.md`, #139, updated in #177), short form for the form field:
 
-> MARS::404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled “assumption”. The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
+> MARS//404 plans EVAs on foot or by rover on real HiRISE terrain. The walk and life-support model is a transparent estimate, not flight software. Every coefficient is shown in the app with its source, and anything without a verified source is labelled “assumption”. The same coefficients are used for both detailed sites (Gale crater and Columbia Hills).
 >
 > - Terrain: 256 × 256 grid of 10 m cells (2.56 km × 2.56 km) from HiRISE 1 m elevation models; features smaller than 10 m are not resolved.
 > - Cells steeper than 25° and NoData cells are blocked (25° is an assumption).

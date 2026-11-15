@@ -1,4 +1,4 @@
-# MARS::404 — презентація (текст для агента)
+# MARS//404 — презентація (текст для агента)
 
 Остання версія слайдів (7, англійською) у форматі, який агент може прочитати без PowerPoint.
 
@@ -13,7 +13,7 @@
 <!-- Slide number: 1 -->
 ![Mars globe — screenshot by Ivan](Image 0)
 NASA SPACE APPS 2026 · CHALLENGE: INTERPLANETARY SURVIVAL GUIDE — MARTIAN MAP
-MARS::404
+MARS//404
 know when to turn back
 An offline tablet planner for walking spacewalks on Mars: where to go for science, how to get there safely, and the exact minute to turn back — built on real NASA terrain.
 4
@@ -24,13 +24,13 @@ NASA / USGS / ESA datasets
 map layers per site
 0
 network calls in the field — works offline
-Team: MARS::404 · Members: Oleksandr — integration, 3D terrain · Olia — UI, HUD, pitch · Ivan — 3D globe · Maksym — NASA data pipeline · Vlad — route & return model · Nastia — science targets, QA
+Team: MARS//404 · Members: Oleksandr — integration, 3D terrain · Olia — UI, HUD, pitch · Ivan — 3D globe · Maksym — NASA data pipeline · Vlad — route & return model · Nastia — science targets, QA
 Live: xand0dev.github.io/mars404   Code (Apache-2.0): github.com/xand0dev/mars404
 JUDGING: PRESENTATION · RELEVANCE
 1
 
 ### Notes:
-[0:00–0:20] Ми — MARS::404. Планшет для пішого виходу на Марсі: куди йти по науку, як дійти безпечно і коли рівно розвертатися. 4 райони на 3D-глобусі, 10 наборів даних NASA / USGS / ESA, 6 шарів карти на район, у полі працює без мережі. Команда — 6 людей, ролі на слайді.
+[0:00–0:20] Ми — MARS//404. Планшет для пішого виходу на Марсі: куди йти по науку, як дійти безпечно і коли рівно розвертатися. 4 райони на 3D-глобусі, 10 наборів даних NASA / USGS / ESA, 6 шарів карти на район, у полі працює без мережі. Команда — 6 людей, ролі на слайді.
 
 <!-- Slide number: 2 -->
 The walk back is the dangerous part
@@ -186,10 +186,10 @@ On Earth
 the same turn-back logic for hikers and rescue teams without signal
 More sites
 Jezero (Perseverance) and new landing zones
-MARS::404 — know when to turn back.  xand0dev.github.io/mars404
+MARS//404 — know when to turn back.  xand0dev.github.io/mars404
 Demonstration model · not certified navigation · SI tools (AI coding agents) used and logged in docs/AI_LOG.md · SI-generated video frames carry a visible watermark · no NASA logos used
 JUDGING: IMPACT
 7
 
 ### Notes:
-[2:40–3:00] Кому допомагає: астронавту на виході — одне число замість розрахунків під стресом; екіпажу й плановикам — перевірити план і побачити, що ламається при падінні O₂; аналоговим місіям і тренуванням — прорепетирувати вихід на справжньому рельєфі; на Землі — та сама логіка розвороту для туристів і рятувальників без зв’язку. Далі: пішки або ровером (джерела LRV — specs/F4/rover.md), зони покриття супутників, енергія скафандра за часом (батарея EMU ≈ 922 Wh, NTRS 20050217305), Jezero. Фінал: MARS::404 — know when to turn back.
+[2:40–3:00] Кому допомагає: астронавту на виході — одне число замість розрахунків під стресом; екіпажу й плановикам — перевірити план і побачити, що ламається при падінні O₂; аналоговим місіям і тренуванням — прорепетирувати вихід на справжньому рельєфі; на Землі — та сама логіка розвороту для туристів і рятувальників без зв’язку. Далі: пішки або ровером (джерела LRV — specs/F4/rover.md), зони покриття супутників, енергія скафандра за часом (батарея EMU ≈ 922 Wh, NTRS 20050217305), Jezero. Фінал: MARS//404 — know when to turn back.

@@ -7,9 +7,9 @@
 
 | Час | Блок гайду | Що в кадрі | Субтитр (EN) |
 |---|---|---|---|
-| 0:00–0:02 | **Introduce yourself** | AI-інтро від першої особи (шолом, Gale) з водяним знаком **«AI-generated footage»**; поверх — **«Team MARS::404»** і рядок імен: Oleksandr · Olia · Ivan · Maksym · Vlad · Nastia | We're team MARS::404. |
+| 0:00–0:02 | **Introduce yourself** | AI-інтро від першої особи (шолом, Gale) з водяним знаком **«AI-generated footage»**; поверх — **«Team MARS//404»** і рядок імен: Oleksandr · Olia · Ivan · Maksym · Vlad · Nastia | We're team MARS//404. |
 | 0:02–0:05 | **Lead us in**: челендж і чому | Те саме AI-інтро (знак видно); поверх — **«Challenge: Interplanetary Survival Guide — Martian Map»** | We got lost on a mountain with no signal. On Mars, when do you turn back? |
-| 0:05–0:08 | **Name your project**: назва + tagline | Титр поверх інтро: **MARS::404 — know when to turn back** | MARS::404 — know when to turn back. |
+| 0:05–0:08 | **Name your project**: назва + tagline | Титр поверх інтро: **MARS//404 — know when to turn back** | MARS//404 — know when to turn back. |
 | 0:08–0:10.5 | **Describe your idea**: дані NASA | Gale → панель **Layers** над картою: **Optical (HiRISE)** → **Thermal IR night (THEMIS)** → **Slope (derived)**. Підпис у куті: «Data: NASA Mars Trek — HiRISE, THEMIS · ESA Mars Express HRSC» | Real NASA data: HiRISE terrain, THEMIS heat, slope. |
 | 0:10.5–0:12.5 | Describe: досвід користувача | Targets → **Open Mont Mercou**: фото Curiosity, «why go», credit | Targets at real Curiosity outcrops. |
 | 0:12.5–0:15 | Describe: маршрут | **Add Brantôme**, **Add Mont Mercou** → **Build route** → HUD **«Return in 28 min»**, **GO · CAUTION** | Route on foot. Return in 28 minutes. |
@@ -18,7 +18,7 @@
 | 0:20–0:23 | **Look into the future**: люди | **▶ Walk the route**, камера **Follow**, ×60 | For the first crews walking on Mars… |
 | 0:23–0:26 | Future: світ | **Columbia Hills (Gusev)**: Comanche Outcrop + Home Plate → **«Return in 10 min»**; 1 с — **Olympus Mons** | …and for hikers and rescuers on Earth with no signal. |
 | 0:26–0:28 | Future: далі | Глобус, камера віддаляється | Next: rover routes and satellite coverage. |
-| 0:28–0:30 | Кінцевий титр | **MARS::404 — know when to turn back** · Team MARS::404 · Challenge: Martian Map · xand0dev.github.io/mars404 | — (лише титр) |
+| 0:28–0:30 | Кінцевий титр | **MARS//404 — know when to turn back** · Team MARS//404 · Challenge: Martian Map · xand0dev.github.io/mars404 | — (лише титр) |
 
 ## Вимоги гайду до відео
 - **≤ 30,0 с** разом із титрами; довше — не допускається до Global Judging.

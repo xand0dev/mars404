@@ -1,4 +1,4 @@
-# Інструкції агенту MARS::404
+# Інструкції агенту MARS//404
 
 Перед роботою прочитай: `CONSTITUTION.md`, `docs/SPEC.md` (особливо §5–7 і свою фічу в §9), `specs/F<N>/spec.md`, `src/contracts/`.
 
