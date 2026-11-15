@@ -34,6 +34,7 @@
 | 2026-11-15 | Іван | Claude Code / Claude Opus 5.5 | Глобус без порожніх панелей: лише карта й Location, HUD/Layers/Targets/Route/Navigation/Resources/камери — після вибору району; прокрутка на початок після вибору | `src/app/App.tsx`, `src/app/app.css`, `src/features/globe/SitePanel.tsx`, тести, `e2e/demo.spec.ts`, `specs/F1/screenshots/globe-clean-*` | `npm run check` зелений (735); `npm run e2e` 55 passed / 26 skipped; скриншоти Chrome headless 1920 і 400 px | #155 |
 | 2026-11-15 | Настя | Codex · GPT-5 | #150: one-click перехід до modelled site — поворот, zoom-in, `Entering…`, crossfade; Skip / reduced motion / card-only без регресій | `src/features/globe/**`, `specs/F1/**` | red→green; `npm run check` — 81 files / 769 tests; `npm run e2e` — 55 passed / 26 skipped; Chrome 400/768/1440 без overflow, 0 console errors; JPEG 18–99 КБ | #181 (draft) |
 | 2026-11-15 | Іван | Claude Code / Claude Opus 5.5 | Баг: бейдж MOCK на панелі «Mars globe» до вибору району (текстура глобуса справжня) | `src/features/terrain/MapView.tsx`, `MapView.test.tsx` | red→green; `npm run check` 81 files / 770 tests; `npm run e2e` 55 passed / 26 skipped; `vite preview` 1440 і 400 px — MOCK на глобусі немає | fix/globe-mock-badge |
+| 2026-11-15 | Іван | Claude Code / Claude Opus 5.5 | README для суддів англійською (10 розділів), 3 скріни живого сайту 1440×900 | `README.md`, `docs/screens/*.jpg` | `npm run check` зелений (81 files / 769 tests); `npm run e2e` 55 passed / 26 skipped; скріни — Playwright + Chrome на xand0dev.github.io/mars404 | #182 |
 
 ## F2
 
