@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "columbia-hills",
+  "title": "Gusev Crater · Columbia Hills",
+  "subtitle": "Spirit rover field site",
+  "mode": "eva",
+  "summary": "Spirit crossed the floor of Gusev Crater and climbed into the Columbia Hills. From Husband Hill, its panorama revealed layered terrain and the Inner Basin.",
+  "whyGo": "Inspect bedrock and layered materials that reveal how the Columbia Hills formed and changed.",
+  "facts": [
+    { "label": "Center", "value": "14.59911° S, 175.527995° E", "sourceId": "trek-spirit-waypoints" },
+    { "label": "Rover", "value": "Spirit", "sourceId": "nasa-husband-hill-top" },
+    { "label": "Instrument", "value": "Panoramic Camera", "sourceId": "nasa-husband-hill-top" },
+    { "label": "Landform", "value": "Husband Hill summit", "sourceId": "nasa-husband-hill-top" }
+  ],
+  "image": {
+    "file": "columbia-hills.jpg",
+    "alt": "Spirit rover panorama from Husband Hill showing rippled sand and distant terrain",
+    "credit": "NASA/JPL-Caltech/Cornell",
+    "sourceUrl": "https://science.nasa.gov/photojournal/top-of-the-world/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "trek-spirit-waypoints",
+      "title": "Spirit waypoints — midpoint of Husband Hill and Home Plate",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/spirit_waypoints/MapServer/0",
+      "credit": "NASA/JPL-Caltech, Mars Trek",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "nasa-husband-hill-top",
+      "title": "Top of the World — Spirit at Husband Hill",
+      "url": "https://science.nasa.gov/photojournal/top-of-the-world/",
+      "credit": "NASA/JPL-Caltech/Cornell",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}

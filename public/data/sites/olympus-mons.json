@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "olympus-mons",
+  "title": "Olympus Mons",
+  "subtitle": "Viking orbital overview",
+  "mode": "overview",
+  "summary": "Olympus Mons is a vast volcanic edifice surrounded by a steep scarp and an extensive aureole. Its summit contains nested collapse calderas.",
+  "whyGo": "Survey caldera collapse structures, lava flows and the surrounding scarp before any future surface campaign.",
+  "facts": [
+    { "label": "Center", "value": "18.40° N, 226.00° E", "sourceId": "iau-gazetteer-4453" },
+    { "label": "Height", "value": "27 km", "sourceId": "nasa-olympus-viking" },
+    { "label": "Base", "value": "Over 600 km across", "sourceId": "nasa-olympus-viking" },
+    { "label": "Summit caldera", "value": "~3 km deep and 25 km across", "sourceId": "nasa-olympus-viking" }
+  ],
+  "image": {
+    "file": "olympus-mons.jpg",
+    "alt": "Viking 1 orbital mosaic of Olympus Mons and its summit calderas",
+    "credit": "NASA/JPL-Caltech/USGS",
+    "sourceUrl": "https://science.nasa.gov/resource/viking-1-orbiter-image-olympus-mons/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "iau-gazetteer-4453",
+      "title": "IAU Gazetteer of Planetary Nomenclature — Olympus Mons",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/4453",
+      "credit": "IAU WGPSN / USGS Astrogeology",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "nasa-olympus-viking",
+      "title": "Viking 1 Orbiter Image Olympus Mons",
+      "url": "https://science.nasa.gov/resource/viking-1-orbiter-image-olympus-mons/",
+      "credit": "NASA/JPL-Caltech/USGS",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}

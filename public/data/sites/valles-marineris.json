@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "valles-marineris",
+  "title": "Valles Marineris",
+  "subtitle": "Viking orbital overview",
+  "mode": "overview",
+  "summary": "Valles Marineris is a connected canyon system extending from Noctis Labyrinthus toward chaotic terrain in the east. Viking imagery shows its immense scale and layered interior.",
+  "whyGo": "Map structural breaks, layered deposits and access hazards before selecting a future exploration zone.",
+  "facts": [
+    { "label": "Center", "value": "13.74° S, 300.80° E", "sourceId": "iau-gazetteer-6288" },
+    { "label": "Length", "value": "Over 3,000 km", "sourceId": "nasa-valles-viking" },
+    { "label": "Average depth", "value": "8 km", "sourceId": "nasa-valles-viking" },
+    { "label": "Spacecraft", "value": "Viking Orbiters 1 and 2", "sourceId": "nasa-valles-viking" }
+  ],
+  "image": {
+    "file": "valles-marineris.jpg",
+    "alt": "Viking orbital mosaic showing the branching canyons of Valles Marineris",
+    "credit": "NASA/JPL/USGS",
+    "sourceUrl": "https://science.nasa.gov/photojournal/valles-marineris/",
+    "status": "verified"
+  },
+  "sources": [
+    {
+      "id": "iau-gazetteer-6288",
+      "title": "IAU Gazetteer of Planetary Nomenclature — Valles Marineris",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/6288",
+      "credit": "IAU WGPSN / USGS Astrogeology",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    },
+    {
+      "id": "nasa-valles-viking",
+      "title": "Valles Marineris — Viking mosaic",
+      "url": "https://science.nasa.gov/photojournal/valles-marineris/",
+      "credit": "NASA/JPL/USGS",
+      "accessedAt": "2026-11-15",
+      "status": "verified"
+    }
+  ]
+}
