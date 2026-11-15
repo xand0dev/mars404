@@ -24,3 +24,27 @@
 | Valles Marineris | Дірок немає; штриховка «Blocked» на бортах каньйону, як в Olympus | `screenshots/f3-qa-valles-top.png` |
 
 **Чому кільце вилазить.** Дані узгоджені: медіана висот на краю району й кільця одразу за ним різниться на 3 м (Gale і Columbia), датум один (ареоїд MOLA). Але кільце — 240 м клітинка, згладжене: над районом Columbia воно в середньому на 11 м вище за DEM 1 м, а місцями (над западинами) — до 44 м (Gale теж до 44 м, але в середньому кільце там на 10 м нижче, тому майже не видно). Рендер (`src/features/terrain/Environment.tsx`, `lowerUnderTile(grid, ctx, 12)`) опускає кільце під районом лише на 12 м. Це код F2 — issue з кадром і числами Олександру; у даних виправляти нічого (підганяти MOLA під DEM було б нечесно).
+
+## Релізна перевірка (15.11, ~15:45, `main` 292f528)
+
+### Вага й час на Pages (та сама методика)
+| Район | МБ | до рельєфу, с (звич. / Fast 4G) | усе, с (звич. / Fast 4G) |
+|---|---|---|---|
+| Gale | 5,54 | 3,8 / 5,6 | 8,8 / 9,6 |
+| Columbia Hills | 4,40 | 3,5 / 4,6 | 8,6 / 10,6 |
+| Olympus Mons | 2,19 | 3,1 / 3,9 | 7,2 / 9,0 |
+| Valles Marineris | 2,24 | 4,0 / 4,1 | 9,1 / 9,1 |
+
+Рельєф скрізь < 6 с на Fast 4G; повне завантаження ≈ 9–11 с (найважче — `elevation_render.f32`, 2,7–2,8 МБ після gzip). `targets.geojson` в overview тепер є (#152) — 404 на Olympus / Valles зник.
+
+### Офлайн (F8-AC2), `npm run build && npx vite preview`
+Мережу «вимкнено» в Playwright: кожен запит не на localhost обривається (`internetdisconnected`) і записується.
+
+| Що | Результат |
+|---|---|
+| Демо Gale (2D): Brantôme + Mont Mercou → Build route | **Return in 28 min**; «O₂ −40%» → **16 min** (збігається з #28 після #161) |
+| Columbia Hills: Comanche Outcrop + Home Plate → Build route | Return in 10 min |
+| 3D: Gale, Columbia Hills, Olympus Mons, Valles Marineris | усі `Data: verified` |
+| Спроби вийти в мережу | **0** (2D і 3D) |
+| HTTP ≥ 400 / помилки консолі | 0 / 0 |
+| Резервне відео | у репо ще немає (монтаж до 19:30) — перевірити після |
