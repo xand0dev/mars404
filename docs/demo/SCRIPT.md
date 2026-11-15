@@ -1,30 +1,50 @@
-# Демо-відео · 30 с (F8)
+# Демо-відео · 30 с (F8) — фінальний сценарій
 
-Сценарій за `docs/SPEC.md` §3. Відео ≤30 с з англійськими субтитрами (`subtitles.srt`); запас — ≤7 слайдів (`SLIDES.md`).
-Статус: **чернетка**. Кадри звіряємо з реальним UI на сб 21:00, записуємо в нд 12:00–18:00.
+Монтує Олександр. Субтитри — `docs/demo/subtitles.srt` (EN, вшити в кадр і лишити окремим файлом).
+Статус: **фінал для запису** (нд 15.11). Числа звірено на `main` 9a88ecd (білд `npm run build && npm run preview`, 1440×900) — див. «Числа» нижче.
+
+## Структура
+
+| Час | Блок | Що в кадрі | Субтитр (EN) |
+|---|---|---|---|
+| 0:00–0:08 | Інтро (готове) | Від першої особи: шолом, Gale, планшет у рукавиці. Видимий напис **«AI-generated footage»** у кадрі | Gale crater, Mars. Every spacewalk has one question: when do I have to turn back? |
+| 0:08–0:12 | Gale → маршрут | Location → «Gale / Mount Sharp» → Targets: **Add Brantôme**, **Add Mont Mercou** → **Build route** → HUD **«Return in 24 min»**, **GO · CAUTION** | Pick targets on real NASA terrain. Return in 24 minutes. |
+| 0:12–0:16 | Прогулянка | **▶ Walk the route**, камера **Follow** (третя особа), швидкість ×60. Лічильник EVA time іде | Rehearse the walk: time, oxygen and energy, minute by minute. |
+| 0:16–0:20 | «O₂ −40%» → Replace | **Окремий дубль** (див. «Кадр Replace»): Mont Mercou + Champeaux → What if: **O₂ −40%** → **NO-GO**, **Deficit: O₂**, **«Point of no return in 7 min»**, червоні відрізки → **«Replace Champeaux with Brantôme»** → **«Return in 12 min»**, **GO · CAUTION** | Oxygen down 40%? It finds the point of no return and swaps in a closer target. |
+| 0:20–0:24 | Навігація без GPS | Панель **Navigation**: **98 % of the route with a precise position**, **Beacons: Base + 3**, список маяків | No GPS on Mars: beacons guide the way back. |
+| 0:24–0:28 | Другий район | Location → **Columbia Hills (Gusev)**: рельєф HiRISE, шлях Spirit; Add **Comanche Outcrop** + **Home Plate** → Build route → **«Return in 8 min»**, **GO · CAUTION** | Same tool, second site: Spirit's Columbia Hills. |
+| 0:28–0:30 | Титр | **MARS::404 — know when to turn back** · Team MARS::404 · Challenge: Martian Map | — (лише титр) |
+
+## Кадр Replace (0:16–0:20)
+З **Brantôme + Mont Mercou** після «O₂ −40%» план живий (Return in 12 min, Point of no return in 8 min), тому кнопки Replace **немає**. Для цього кадру — окремий дубль:
+1. Gale → **Add Mont Mercou**, **Add Champeaux** → **Build route** (Return in 11 min, GO · CAUTION — цю частину не показуємо або 0,5 с).
+2. What if: **O₂ −40%** → **Return in 0 min**, **NO-GO**, **Deficit: O₂**, **Point of no return in 7 min**, червоні відрізки.
+3. **Replace Champeaux with Brantôme** → маршрут перебудовано на Brantôme + Mont Mercou (1092.1 m) → **Return in 12 min**, **GO · CAUTION**.
+
+Після заміни маршрут збігається з кадром 0:08–0:12, тож склейка логічна: «план, який рятує модель, — це той самий маршрут».
+
+## Числа (перевірено в браузері на `main` 9a88ecd, нд 15.11)
+
+| Кадр | Що на екрані |
+|---|---|
+| Gale, Brantôme + Mont Mercou, Build route | Return in 24 min · GO · CAUTION · Route found (model estimate): 1092.1 m · 24.0 min · 44.58 g O₂ · 54.60 Wh · dose no data |
+| Те саме + «O₂ −40%» | Return in 12 min · GO · CAUTION · Point of no return in 8 min · Replace немає |
+| Дубль Replace: Mont Mercou + Champeaux, Build route | Return in 11 min · GO · CAUTION · 1612.5 m · 36.8 min · 68.46 g O₂ |
+| + «O₂ −40%» | Return in 0 min · NO-GO · Deficit: O₂ · Point of no return in 7 min · «Replace Champeaux with Brantôme» |
+| + Replace | Return in 12 min · GO · CAUTION · 1092.1 m · 24.0 min · 44.58 g O₂ · Point of no return in 7 min |
+| Navigation (Brantôme + Mont Mercou) | 98 % of the route with a precise position · Beacons: Base + 3 · Max drift ±1 m |
+| Columbia Hills, Comanche Outcrop + Home Plate | Return in 8 min · GO · CAUTION · 1655.2 m · 39.5 min · 73.52 g O₂ · 82.76 Wh |
+
+Набір із коментаря Влада в #28 (сб 19:16: Nontron Quadrant + Mont Mercou + Gardonne → Replace → Return in 6 min) **на поточному `main` не відтворюється**: після «Replace Nontron Quadrant with Brantôme» лишається NO-GO, Return in 0 min, Deficit: O₂. Перебрано всі 84 набори з 2–3 цілей Gale: Replace рятує план лише в 3 (Mont Mercou + Champeaux; Mont Mercou + Gourdon + Champeaux; Brantôme + Mont Mercou + Chalagnac Ridge). Беремо перший — він закінчується на демо-маршруті Brantôme + Mont Mercou. Якщо Влад змінить модель до freeze — перезвірити цей рядок.
 
 ## Запис
-- Локальний релізний build без мережі: `npm ci && npm run build && npm run preview` → Wi-Fi вимкнено (F8-AC2).
-- Браузер 1440×900, масштаб 100 %, без розширень у кадрі; reduced motion вимкнено.
-- Перед записом: перезавантажити сторінку (стан з нуля), закрити DevTools.
-- Запис екрана 60 fps; монтаж — обрізати до ≤30 с, вшити субтитри (burn-in) і окремо лишити `.srt`.
-- Резервна копія відео лежить у пакеті сабміту й відтворюється офлайн.
-
-## Кадри
-
-| Час | Дія в UI | Що бачить суддя | Субтитр (EN) | Залежить від |
-|---|---|---|---|---|
-| 0:00–0:03 | Старт: глобус Марса, курсор на панелі Location | Планетарний контекст | Planning a spacewalk on Mars. | F1, F2 |
-| 0:03–0:06 | «Gale / Mount Sharp» → рельєф Gale, камера Orbit | Один детальний район, реальний DEM | Gale crater, real NASA terrain. | F1, F2, F3 |
-| 0:06–0:10 | Шари: HiRISE → THEMIS → slope | ≥3 типи даних, легенда й джерело | HiRISE, THEMIS and slope layers. | F3 |
-| 0:10–0:13 | Картка цілі: фото Curiosity, «why go», credit | Наукова мета, справжнє фото | Science targets with rover photos. | F6 |
-| 0:13–0:17 | Додати 2 цілі → «Build route» | Замкнений маршрут база → цілі → база | Route avoids steep and unknown ground. | F4 |
-| 0:17–0:21 | Профіль висоти, вибраний відрізок підсвічено | Модельний час, асиметрія схилів | Uphill costs more than downhill. | F4, F2 |
-| 0:21–0:25 | «O₂ −40%» → ореол звужується, «Return in N min» падає | Модель враховує повернення | Less oxygen, smaller safe zone. | F5, F2, F7 |
-| 0:25–0:28 | «Replace ‹A› with ‹B›» → маршрут перебудовано | Рішення, а не лише попередження | Swap to a closer target. | F7, F5, F4 |
-| 0:28–0:30 | Плашка «Demonstration model, not certified navigation» + назва | Чесність моделі | MARS::404 — a model, not certified navigation. | F7 |
+- Релізний build: `npm ci && npm run build && npm run preview`, Chrome 1440×900, масштаб 100 %, 3D (без `?2d`).
+- Перед записом: очистити мітки екіпажу («Crew map notes» → Remove) — вони зберігаються в браузері; «How it works» → Got it; закрити DevTools.
+- Кожен блок — окремий дубль по ~4 с; монтаж і переходи — Олександр.
+- Інтро: напис «AI-generated footage» лишається видимим (SPEC, `docs/AI_LOG.md`).
+- Відео ≤30 с → YouTube (unlisted); резервна копія — у пакеті сабміту (офлайн, F8-AC2).
 
 ## План Б
-- Фіча не встигла до freeze → її кадр показуємо на mock із видимим бейджем MOCK (без підміни даних) або вирізаємо; час віддаємо сусіднім кадрам.
-- Немає 3D на ноутбуці демо → кадри 0:03–0:21 у 2D-плані (F2), субтитри ті самі.
-- Відео не вкладається в 30 с → першими скорочуємо кадр 0:17–0:21 (профіль).
+- Columbia Hills не в релізі до freeze 15:00 → кадр 0:24–0:28 замінюємо на картку «Columbia Hills — coming soon» або віддаємо час кадрам 0:08–0:20.
+- Прогулянка гальмує на ноутбуці запису → знімаємо з камерою Top; субтитр той самий.
+- 3D недоступне → 2D-план (`?2d`), субтитри ті самі.
