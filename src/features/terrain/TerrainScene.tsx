@@ -12,7 +12,7 @@ import { RENDER_ORDER } from './lib/layerRaster';
 import { CSS } from './lib/overlay';
 import { segmentMarker } from './lib/segment';
 import { LABEL_HEIGHT, Label3D } from './Label3D';
-import { MARK_CHAR, MARK_COLOR, markLabel, r3fToXY } from './lib/marks';
+import { MARK_CHAR, MARK_COLOR, MARK_LABEL, markLabel, r3fToXY } from './lib/marks';
 import { labelAspect, labelledTargetIds, stackLabels } from './lib/labels';
 import { useOptionalTexture } from './useRegionTexture';
 import { renderPoint, renderShape, sampleRender, type RenderHeights } from './lib/hd';
@@ -491,7 +491,12 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   // Підписи без накладань: текст — лише обрані цілі й та, що під курсором;
   // ті, що злипаються на екрані, піднімаємо сходинками (рахуємо в пікселях після кожного кадру).
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const labelled = useMemo(() => labelledTargetIds(targets, selectedIds, hoveredId), [targets, selectedIds, hoveredId]);
+  // Поки маршруту немає — підписані всі цілі (людина обирає, що це за точки); після — лише обрані й під курсором.
+  const routed = plan?.status === 'ok';
+  const labelled = useMemo(
+    () => (routed ? labelledTargetIds(targets, selectedIds, hoveredId) : new Set(targets.map((t) => t.id))),
+    [routed, targets, selectedIds, hoveredId],
+  );
   const labelText = (t: Target, sel: boolean, out: boolean, heightUnknown: boolean) =>
     `${out ? '◌! ' : sel ? '● ' : '○ '}${t.name}${out ? ' · outside reach' : ''}${heightUnknown ? ' · elev. unknown' : ''}`;
   const anchors = useMemo(() => {
@@ -711,8 +716,9 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
               }}
               onPointerOut={() => setHoveredId((h) => (h === t.id ? null : h))}
             >
-              <coneGeometry args={[markerR * (sel ? 1.3 : 0.9), markerR * 2.5, 12]} />
-              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent />
+              <coneGeometry args={[markerR * (sel ? 1.3 : routed ? 0.6 : 0.9), markerR * (sel || !routed ? 2.5 : 1.6), 12]} />
+              {/* Після маршруту необрані цілі — тихі (лишаються для «Replace»), щоб не плутати з мітками. */}
+              <meshBasicMaterial color={sel ? '#e0673c' : '#f3ece6'} transparent opacity={sel || !routed ? 1 : 0.45} />
             </mesh>
             {labelled.has(t.id) && (
               <Label3D
@@ -772,7 +778,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
                 </mesh>
               </>
             )}
-            <Label3D position={[0, markerR * 3.4, 0]} color={c} text={`${MARK_CHAR[m.kind]} ${m.text || m.kind}${m.origin === 'imported' ? ' · prev EVA' : ''}`} />
+            <Label3D position={[0, markerR * 3.4, 0]} color={c} text={`${MARK_CHAR[m.kind]} ${m.text ? `${MARK_LABEL[m.kind]}: ${m.text}` : MARK_LABEL[m.kind]}${m.origin === 'imported' ? ' · prev EVA' : ''}`} />
           </group>
         );
       })}

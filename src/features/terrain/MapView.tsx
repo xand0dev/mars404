@@ -34,6 +34,7 @@ import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
 import { navOverlay, useNavPlan, useNavView } from './navStore';
 import { NavChip } from './NavChip';
+import { MapLayerBar } from './MapLayerBar';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -329,6 +330,7 @@ export function MapView({ globe }: MapViewProps) {
       {site !== null && valid && !overview && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
       <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
         {site !== null && <NavChip />}
+        {site !== null && valid && <MapLayerBar />}
         {show3D ? (
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas
@@ -383,7 +385,17 @@ export function MapView({ globe }: MapViewProps) {
         )}
       </div>
       {site !== null && valid && !overview && (
-        <div className="terrain-legend-eva">
+        <details className="terrain-legend-eva">
+          {/* Легенда згорнута: на десктопі з панеллю прогулянки карті потрібна висота. */}
+          <summary>
+            Map legend
+            {marks.length > 0 && (
+              <>
+                {' · '}
+                <span className="terrain-counter">{marks.length} crew mark{marks.length === 1 ? '' : 's'} on map</span>
+              </>
+            )}
+          </summary>
           <EvaLegend kinds={['base', 'target', 'astronaut', 'ponr']} size={16} />
           <ul className="terrain-legend-marks" aria-label="Crew mark legend">
             {(['impassable', 'hazard', 'note', 'plan'] as const).map((k) => (
@@ -393,8 +405,7 @@ export function MapView({ globe }: MapViewProps) {
               </li>
             ))}
           </ul>
-          {marks.length > 0 && <p className="terrain-counter" style={{ margin: 0, fontWeight: 400 }}>{marks.length} crew mark{marks.length === 1 ? '' : 's'} on map</p>}
-        </div>
+        </details>
       )}
     </Panel>
   );
