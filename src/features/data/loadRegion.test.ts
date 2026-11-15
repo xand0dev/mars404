@@ -64,6 +64,29 @@ describe('F3-AC2: справжня сітка Gale', () => {
   });
 });
 
+describe('#113: overview-пакети тим самим завантажувачем', () => {
+  const from = (d: string): GetFile => async (path) => {
+    try {
+      return toAB(await readFile(d + path));
+    } catch {
+      throw new FileMissingError(path);
+    }
+  };
+
+  it.each(['olympus-mons', 'valles-marineris'])('Given public/data/%s, Then real, kind overview, 256² по 2400 м, без помилок шарів', async (id) => {
+    const r = await loadRegion(from(`public/data/${id}/`));
+    expect(r.kind).toBe('real');
+    if (r.kind !== 'real') return;
+    expect(r.region).toMatchObject({ id, kind: 'overview' });
+    expect([r.grid.width, r.grid.height, r.grid.metersPerPixel]).toEqual([256, 256, 2400]);
+    expect(r.issues).toEqual([]);
+    // targets.geojson в overview немає (шлях F6) → порожньо з попередженням, не помилка шару.
+    expect(r.targets).toEqual([]);
+    // Модель в overview — лише assumption (не для планування).
+    expect(Object.values(r.region.model.evidence).every((e) => e.status === 'assumption')).toBe(true);
+  });
+});
+
 describe('F3-AC4: битий шар', () => {
   it('Given slope.f32 іншого розміру, Then помилка саме slope, сітка реальна, slope не в grid', async () => {
     const r = await loadRegion(patched({ 'slope.f32': new ArrayBuffer(100) }));

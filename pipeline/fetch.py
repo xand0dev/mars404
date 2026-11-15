@@ -1,7 +1,7 @@
 """F3 крок 1 (мережа, один раз): сирі файли bbox у pipeline/.cache/<region> + fetch.json (URL, дата, розмір, sha256).
 Далі prepare.py працює офлайн лише з кешем — тому два запуски prepare дають однакові байти (AC1).
 Файли, що вже є в кеші й у fetch.json, не перекачуються (дата доступу лишається їхня); --force — усе заново.
-Запуск з кореня: python pipeline/fetch.py [--region gale|columbia-hills] [каталог] [--force]
+Запуск з кореня: python pipeline/fetch.py [--region gale|columbia-hills|olympus-mons|valles-marineris] [каталог] [--force]
 """
 import argparse
 import datetime
@@ -26,6 +26,12 @@ def _query(service):
 def items(region='gale'):
     r = cfg.REGIONS[region]
     bbox = r['bbox']
+    if r['kind'] == 'overview':
+        # #113: рельєф MOLA/HRSC 600 м (білінійно, сервер) і колір Viking 2048², той самий bbox; THEMIS не треба.
+        px, tx = cfg.OVERVIEW_DEM_PX, cfg.OVERVIEW_TEXTURE_PX
+        return {'dem.tif': trek.export_url(r['dem'], bbox, px, px, interpolation='RSP_BilinearInterpolation'),
+                'texture.jpg': trek.export_url(r['texture'], bbox, tx, tx, fmt='jpg', pixel_type='U8')
+                + f'&compressionQuality={cfg.OVERVIEW_JPEG_Q}'}
     out = {'dem.tif': trek.export_url(r['dem'], bbox, cfg.NATIVE_PX, cfg.NATIVE_PX, interpolation='RSP_NearestNeighbor')}
     if region == 'gale':
         out['hirise.jpg'] = trek.export_url(trek.HIRISE, bbox, cfg.TEXTURE_PX, cfg.TEXTURE_PX, fmt='jpg', pixel_type='U8')
@@ -43,7 +49,7 @@ def items(region='gale'):
 def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument('cache', nargs='?')
-    p.add_argument('--region', default='gale', choices=cfg.EVA)
+    p.add_argument('--region', default='gale', choices=list(cfg.REGIONS))
     p.add_argument('--force', action='store_true')
     a = p.parse_args(argv)
     cache = Path(a.cache) if a.cache else Path(__file__).parent / '.cache' / a.region

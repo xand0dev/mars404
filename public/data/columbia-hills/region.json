@@ -35,6 +35,17 @@
     "width": 1024,
     "height": 1024
   },
+  "context": {
+    "file": "context.f32",
+    "width": 256,
+    "height": 256,
+    "metersPerPixel": 240.0,
+    "originM": [
+      -29440.0,
+      32000.0
+    ],
+    "noData": -9999.0
+  },
   "noData": -9999.0,
   "base": [
     1285.0,
@@ -446,6 +457,15 @@
       "title": "Radiation dose limit",
       "status": "assumption",
       "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
+    },
+    {
+      "id": "trek-mola-hrsc-200m-context",
+      "title": "Mars MOLA + HRSC blended DEM 200 m — 61 km context around the EVA site (3D only)",
+      "status": "verified",
+      "note": "exportImage 256×256 (240 m cells, bilinear by Trek) on bbox 174.992439…176.063551 E, -15.117375…-14.080845; min -2118 m, max -1531 m (Gusev floor and Columbia Hills). Not used for planning.",
+      "url": "https://trek.nasa.gov/mars/trekarcgis/rest/services/Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw/ImageServer",
+      "credit": "NASA/JPL/GSFC (MOLA), ESA/DLR/FU Berlin (HRSC), USGS Astrogeology, via NASA Mars Trek",
+      "accessedAt": "2026-11-15"
     }
   ],
   "hazardFromSlope": {

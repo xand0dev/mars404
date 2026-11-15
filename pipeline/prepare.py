@@ -253,6 +253,36 @@ def pick_base(walk, slope, W, H, cells, points, need=3):
     raise ValueError(f'немає бази з досяжними ≥ {need} точками')
 
 
+def model_sources():
+    """Джерела моделі ходьби й лімітів (#20, #64) — спільні для всіх районів."""
+    return [
+        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'assumption',
+            f'"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr"; "1560 BTU/hr at 3.5 km/hr" -> ~113 g/h = {O2_G_PER_S} g/s (o2GPerS). '
+            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).',
+            JONES_URL, 'LA-UR-89-3858', 'E. M. Jones, Apollo Lunar Surface Journal', '2026-11-14'),
+        src('emu-sop-30min', 'Emergency O2 reserve (EMU Secondary Oxygen Package)', 'verified',
+            f'NASA EVA overview (NTRS 20140009556): the EMU SOP "provides a minimum of {EMERGENCY_O2_MIN} minutes of emergency O2". '
+            f'Grams = {EMERGENCY_O2_MIN * 60} s x {O2_G_PER_S} g/s = {EMERGENCY_O2_MIN * 60 * O2_G_PER_S:.1f} -> {EMERGENCY_O2_G} g. ISS suit, not a Mars suit.',
+            EMU_SOP_URL, 'NTRS 20140009556', 'NASA', '2026-11-14'),
+        src('model-assumption', 'Walk model coefficients', 'assumption', 'uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5).'),
+        src('limit-time-assumption', 'EVA time limit', 'assumption', f'{LIMIT_TIME_S} s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556).'),
+        src('limit-o2-assumption', 'O2 available for this EVA', 'assumption', f'{LIMIT_O2_G} g: 1 h of walking at the Apollo rate after the {round(RESERVE_FRACTION * 100)}% reserve ({O2_G_PER_S} g/s x {LIMIT_TIME_S} s / {1 - RESERVE_FRACTION:g} = {round(O2_G_PER_S * LIMIT_TIME_S)} / {1 - RESERVE_FRACTION:g}); decision #20.'),
+        src('limit-energy-assumption', 'Suit energy limit', 'assumption', '600 Wh; not set in SPEC.'),
+        src('limit-dose-assumption', 'Radiation dose limit', 'assumption', 'No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6).'),
+    ]
+
+
+def model_and_limits(by_id):
+    """→ (model, limits, limitsEvidence) з evidence на джерела model_sources()."""
+    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None,
+                      maxSlopeDeg=MAX_SLOPE_DEG, hazardWeight=0.5, reserveFraction=RESERVE_FRACTION)
+    evidence = {key: by_id['model-assumption'] for key in model_vals}
+    evidence.update(speedMps=by_id['jones-apollo-walk'], o2GPerS=by_id['jones-apollo-walk'], emergencyO2G=by_id['emu-sop-30min'])
+    model = dict(model_vals, emergencyO2G=EMERGENCY_O2_G, evidence=evidence)
+    limits = dict(time=LIMIT_TIME_S, o2=LIMIT_O2_G, energy=600, dose=None)
+    return model, limits, {k_: by_id[f'limit-{k_}-assumption'] for k_ in limits}
+
+
 def build(cache, region='gale', out=None):
     rc = cfg.REGIONS[region]
     if rc['kind'] != 'eva':
@@ -379,28 +409,10 @@ def build(cache, region='gale', out=None):
         *thermal_sources,
         src('hazard-from-slope', 'Hazard derived from slope', 'assumption', f"hazard = min(1, slopeDeg / {HAZARD_MODEL['slopeDegAtMax']}) x {HAZARD_MODEL['maxHazard']}; NoData = 1. Test coefficients, not measured hazard."),
         src('base-assumption', 'Habitat base', 'assumption', base_note),
-        src('jones-apollo-walk', 'Apollo EVA walking: O2 use and speed', 'assumption',
-            f'"Oxygen use was about 0.16 lb/hr per 1000 BTU/hr"; "1560 BTU/hr at 3.5 km/hr" -> ~113 g/h = {O2_G_PER_S} g/s (o2GPerS). '
-            f'Emergency return "3.6 km/hr for periods of up to an hour" -> {SPEED_MPS} m/s (speedMps). Apollo, Moon; transferred to Mars (1/6 g -> 0.38 g).',
-            JONES_URL, 'LA-UR-89-3858', 'E. M. Jones, Apollo Lunar Surface Journal', '2026-11-14'),
-        src('emu-sop-30min', 'Emergency O2 reserve (EMU Secondary Oxygen Package)', 'verified',
-            f'NASA EVA overview (NTRS 20140009556): the EMU SOP "provides a minimum of {EMERGENCY_O2_MIN} minutes of emergency O2". '
-            f'Grams = {EMERGENCY_O2_MIN * 60} s x {O2_G_PER_S} g/s = {EMERGENCY_O2_MIN * 60 * O2_G_PER_S:.1f} -> {EMERGENCY_O2_G} g. ISS suit, not a Mars suit.',
-            EMU_SOP_URL, 'NTRS 20140009556', 'NASA', '2026-11-14'),
-        src('model-assumption', 'Walk model coefficients', 'assumption', 'uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5).'),
-        src('limit-time-assumption', 'EVA time limit', 'assumption', f'{LIMIT_TIME_S} s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556).'),
-        src('limit-o2-assumption', 'O2 available for this EVA', 'assumption', f'{LIMIT_O2_G} g: 1 h of walking at the Apollo rate after the {round(RESERVE_FRACTION * 100)}% reserve ({O2_G_PER_S} g/s x {LIMIT_TIME_S} s / {1 - RESERVE_FRACTION:g} = {round(O2_G_PER_S * LIMIT_TIME_S)} / {1 - RESERVE_FRACTION:g}); decision #20.'),
-        src('limit-energy-assumption', 'Suit energy limit', 'assumption', '600 Wh; not set in SPEC.'),
-        src('limit-dose-assumption', 'Radiation dose limit', 'assumption', 'No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6).'),
+        *model_sources(),
     ]
     by_id = {s_['id']: s_ for s_ in sources}
-    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None,
-                      maxSlopeDeg=MAX_SLOPE_DEG, hazardWeight=0.5, reserveFraction=RESERVE_FRACTION)
-    evidence = {key: by_id['model-assumption'] for key in model_vals}
-    evidence.update(speedMps=by_id['jones-apollo-walk'], o2GPerS=by_id['jones-apollo-walk'], emergencyO2G=by_id['emu-sop-30min'])
-    model = dict(model_vals, emergencyO2G=EMERGENCY_O2_G, evidence=evidence)
-    limits = dict(time=LIMIT_TIME_S, o2=LIMIT_O2_G, energy=600, dose=None)
-    limits_evidence = {k_: by_id[f'limit-{k_}-assumption'] for k_ in limits}
+    model, limits, limits_evidence = model_and_limits(by_id)
     lo, hi = math.floor(min(finite_e)), math.ceil(max(finite_e))
 
     def layer(id, name, kind, url, srcs, units, native, method, legend):

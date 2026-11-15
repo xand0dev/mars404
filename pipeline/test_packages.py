@@ -1,4 +1,4 @@
-"""#101: перевірка готових EVA-пакетів у public/data/<region> (розміри, NoData %, межі висот, SHA256SUMS).
+"""#101, #113: перевірка готових EVA- і overview-пакетів у public/data/<region> (розміри, NoData %, межі висот, SHA256SUMS).
 Пакета ще немає в репо — тест для нього пропускається. Запуск з кореня:
 python -m unittest discover -s pipeline -p "test_*.py"
 """
@@ -78,6 +78,68 @@ class Packages(unittest.TestCase):
         self.assertEqual(layers['slope']['status'], 'assumption')
         self.assertGreaterEqual(sum(w['reachableFromBase'] for w in src['waypoints']), 3)
         self.assertEqual((reg['limits']['o2'], reg['limits']['time'], reg['model']['emergencyO2G']), (140, 3600, 56))
+        # #113: кільце контексту з render_context.py, той самий центр, що й у сітки (originM як у Gale).
+        ctx = reg['context']
+        self.assertEqual((ctx['file'], ctx['width'], ctx['metersPerPixel'], ctx['originM']), ('context.f32', 256, 240.0, [-29440.0, 32000.0]))
+        vals = f32(ROOT / 'columbia-hills' / ctx['file'])
+        self.assertEqual(len(vals), 256 * 256)
+        good = [v for v in vals if v != ctx['noData']]
+        self.assertLessEqual(1 - len(good) / len(vals), 0.05)
+        # Кільце ширше за EVA-район: його висоти мають покривати діапазон району.
+        self.assertLess(min(good), src['native']['elevMinM'])
+        self.assertGreater(max(good), src['native']['elevMaxM'])
+
+
+class Overview(unittest.TestCase):
+    """#113: overview-пакети — 256² по 2400 м, NoData ≤ 5 %, район ≤ 3 МБ, модель лише assumption."""
+
+    def check(self, region):
+        d = ROOT / region
+        if not (d / 'region.json').exists():
+            self.skipTest(f'{region}: пакета ще немає')
+        reg = json.loads((d / 'region.json').read_text(encoding='utf-8'))
+        src = json.loads((d / 'source.json').read_text(encoding='utf-8'))
+        self.assertEqual((reg['id'], reg['kind']), (region, 'overview'))
+        g = reg['grid']
+        self.assertEqual((g['width'], g['height'], g['metersPerPixel'], g['originM']), (256, 256, 2400, [0, 614400]))
+        self.assertEqual(g['boundsLonLat'], list(cfg.REGIONS[region]['bbox']))
+        n = 256 * 256
+        for key, size in (('elevation', n * 4), ('slope', n * 4), ('hazard', n * 4), ('walkable', n), ('elevationRender', 512 * 512 * 4)):
+            self.assertEqual((d / reg['files'][key]).stat().st_size, size, key)
+        self.assertLessEqual((d / 'texture.jpg').stat().st_size, 1.5 * MB)
+        self.assertEqual((d / 'texture.jpg').read_bytes()[:3], bytes([0xFF, 0xD8, 0xFF]))
+        self.assertLessEqual(sum(p.stat().st_size for p in d.rglob('*') if p.is_file()), 3 * MB)
+        elev = f32(d / 'elevation.f32')
+        good = [v for v in elev if v != reg['noData'] and math.isfinite(v)]
+        self.assertLessEqual(1 - len(good) / n, 0.05)
+        self.assertGreaterEqual(min(good), src['native']['elevMinM'] - 1e-3)
+        self.assertLessEqual(max(good), src['native']['elevMaxM'] + 1e-3)
+        # walkable = схил ≤ maxSlopeDeg (#113); NaN-схил — не walkable.
+        slope, walk = f32(d / 'slope.f32'), (d / 'walkable.u8').read_bytes()
+        lim = reg['model']['maxSlopeDeg']
+        self.assertEqual(list(walk), [1 if math.isfinite(s_) and s_ <= lim else 0 for s_ in slope])
+        self.assertFalse((d / 'targets.geojson').exists(), 'targets* — шлях F6')
+        # Чесність: модель і ліміти — assumption; verified лише сирі дані Trek.
+        by_id = {s_['id']: s_ for s_ in reg['sources']}
+        for e in [*reg['model']['evidence'].values(), *reg['limitsEvidence'].values()]:
+            self.assertEqual(e['status'], 'assumption', e['id'])
+        self.assertEqual({k for k, s_ in by_id.items() if s_['status'] == 'verified'}, {'trek-mola-hrsc-200m', 'trek-viking-mdim21-color'})
+        for line in (d / 'SHA256SUMS').read_text(encoding='utf-8').splitlines():
+            digest, name = line.split('  ', 1)
+            self.assertEqual(hashlib.sha256((d / name).read_bytes()).hexdigest(), digest, name)
+        return good
+
+    def test_olympus_mons(self):
+        good = self.check('olympus-mons')
+        # Вершина ≈ 21,2 км над ареоїдом (MOLA); середнє 4×4 по 600 м трохи нижче.
+        self.assertTrue(20000 < max(good) < 22000, max(good))
+        self.assertLess(min(good), 0)
+
+    def test_valles_marineris(self):
+        good = self.check('valles-marineris')
+        # Дно Coprates Chasma нижче −4 км, плато вище +2 км: перепад > 8 км.
+        self.assertLess(min(good), -4000)
+        self.assertGreater(max(good) - min(good), 8000)
 
 
 if __name__ == '__main__':
