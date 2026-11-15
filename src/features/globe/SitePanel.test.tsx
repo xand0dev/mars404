@@ -160,6 +160,14 @@ describe('F1-AC4 · підпис текстури / MOCK', () => {
     expect(useMission.getState().site).toBe('gale');
   });
 
+  it('Given текстура ще вантажиться (район відкрили швидко); Then без «MOCK», підпис «loading»', () => {
+    useGlobe.getState().setTexture({ status: 'loading' });
+    render(<SitePanel />);
+    const panel = screen.getByRole('region', { name: 'Location' });
+    expect(within(panel).queryByText('MOCK')).not.toBeInTheDocument();
+    expect(within(panel).getByText(/Globe texture loading/)).toBeInTheDocument();
+  });
+
   it('Given текстуру завантажено; Then видно підпис джерела, без «MOCK»', () => {
     useGlobe.getState().setTexture({ status: 'ok', credit: 'TEST CREDIT' });
     render(<SitePanel />);

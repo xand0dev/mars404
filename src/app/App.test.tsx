@@ -47,7 +47,8 @@ describe('F0 · композиція', () => {
     const { container } = render(<App />);
     await user.click(screen.getByRole('button', { name: 'Gale / Mount Sharp' }));
     expect(container.querySelector('.shell__hud')).not.toBeEmptyDOMElement();
-    for (const name of ['HUD', 'Location', 'Layers', 'Science targets', 'Route', 'Resources']) {
+    // Location — MOCK лише коли текстура глобуса справді відсутня (не поки вантажиться).
+    for (const name of ['HUD', 'Layers', 'Science targets', 'Route', 'Resources']) {
       const region = screen.getByRole('region', { name });
       expect(within(region).getByText('MOCK')).toBeInTheDocument();
     }

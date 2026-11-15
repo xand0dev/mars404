@@ -76,7 +76,8 @@ export function SitePanel() {
   const opened = site === null ? undefined : siteById(site);
 
   return (
-    <Panel title="Location" featureId="F1" owner="Іван" mock={texture.status !== 'ok'}>
+    // MOCK — лише коли текстури справді немає; «loading» (район відкрили раніше, ніж довантажився глобус) — не MOCK.
+    <Panel title="Location" featureId="F1" owner="Іван" mock={texture.status === 'missing'}>
       <ul style={listStyle}>
         {SITES.map((s) => (
           <li key={s.id}>
@@ -120,7 +121,9 @@ export function SitePanel() {
       <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
         {texture.status === 'ok'
           ? `Texture: ${texture.credit}`
-          : 'Texture not loaded — procedural sphere (MOCK).'}
+          : texture.status === 'missing'
+            ? 'Texture not loaded — procedural sphere (MOCK).'
+            : 'Globe texture loading…'}
       </p>
     </Panel>
   );
