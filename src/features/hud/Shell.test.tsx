@@ -170,20 +170,3 @@ describe('підказка першого візиту', () => {
     expect(dialog()).toBeNull();
   });
 });
-
-describe('глобус: лише карта й Location', () => {
-  it('site = null → клас shell--globe; без hud і status їхніх слотів немає', () => {
-    const { container } = render(<Shell map={<section aria-label="Mars globe">globe</section>} side={<section aria-label="Location">loc</section>} />);
-    expect(container.querySelector('.shell')).toHaveClass('shell--globe');
-    expect(container.querySelector('.shell__hud')).toBeNull();
-    expect(container.querySelector('.shell__status')).toBeNull();
-    expect(screen.getByRole('region', { name: 'Location' })).toBeVisible();
-  });
-
-  it('обрано район → shell--globe знято', () => {
-    act(() => useMission.getState().setSite('gale'));
-    const { container } = page();
-    expect(container.querySelector('.shell')).not.toHaveClass('shell--globe');
-    expect(container.querySelector('.shell__hud')).not.toBeNull();
-  });
-});

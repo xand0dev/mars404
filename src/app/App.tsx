@@ -10,6 +10,7 @@ import { TargetsPanel } from '../features/science';
 import { CameraModes, MapView, NavPanel } from '../features/terrain';
 import { regionKind } from '../contracts/planning';
 import { useMission } from '../store/useMission';
+import './app.css';
 
 export function App() {
   // Overview-район (Olympus Mons, Valles Marineris): лише рельєф і шари — панелі планування EVA ховаємо.
@@ -21,7 +22,7 @@ export function App() {
       <DataLoader />
       <BudgetEngine />
       <Shell
-        hud={globe ? undefined : <Hud />}
+        hud={globe ? null : <Hud />}
         map={
           <>
             <MapView globe={<GlobeScene />} />

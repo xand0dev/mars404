@@ -38,7 +38,7 @@ describe('F0 · композиція', () => {
       expect(screen.queryByRole('region', { name }), name).toBeNull();
     }
     expect(screen.queryByRole('group', { name: 'Camera mode' })).toBeNull();
-    expect(container.querySelector('.shell')).toHaveClass('shell--globe');
+    expect(container.querySelector('.shell__hud')).toBeEmptyDOMElement();
     expect(screen.getByText(/Demonstration model, not certified navigation/)).toBeInTheDocument();
   });
 
@@ -46,7 +46,7 @@ describe('F0 · композиція', () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
     await user.click(screen.getByRole('button', { name: 'Gale / Mount Sharp' }));
-    expect(container.querySelector('.shell')).not.toHaveClass('shell--globe');
+    expect(container.querySelector('.shell__hud')).not.toBeEmptyDOMElement();
     for (const name of ['HUD', 'Location', 'Layers', 'Science targets', 'Route', 'Resources']) {
       const region = screen.getByRole('region', { name });
       expect(within(region).getByText('MOCK')).toBeInTheDocument();

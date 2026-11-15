@@ -130,16 +130,3 @@
 .shell--overview .shell__steps {
   visibility: hidden;
 }
-
-/* Глобус (район не обрано): лише карта й Location — глобус на всю ширину без порожніх колонок HUD і стану. */
-.shell--globe:not(.shell--glove) { grid-template-areas: 'bar' 'map' 'side'; }
-.shell--globe.shell--glove { grid-template-areas: 'bar' 'map' 'more'; }
-@media (min-width: 1200px) and (min-height: 600px) {
-  .shell.shell--globe:not(.shell--glove) {
-    grid-template-columns: clamp(300px, 22vw, 380px) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: 'bar bar' 'side map';
-  }
-  .shell.shell--globe:not(.shell--glove) > .shell__side,
-  .shell.shell--globe:not(.shell--glove) > .shell__map { grid-row: 2; }
-}

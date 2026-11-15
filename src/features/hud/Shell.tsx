@@ -14,8 +14,7 @@ import { readOnboarded, writeOnboarded } from './onboardingStore';
 import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
 
 export interface ShellProps {
-  /** HUD; на глобусі не передається — слота немає. */
-  hud?: ReactNode;
+  hud: ReactNode;
   map: ReactNode;
   /** Підготовка виходу: Location, Layers, Science targets, Route. */
   side: ReactNode;
@@ -39,7 +38,6 @@ export function Shell({ hud, map, side, status }: ShellProps) {
   }, []);
 
   const site = useMission((s) => s.site);
-  const globe = site === null;
   const overview = useMission((s) => s.site !== null && s.region?.id === s.site && regionKind(s.region) === 'overview');
   const step = useMission((s) => panelStep(s));
   const [overrides, setOverrides] = useState<PanelOverrides>({
@@ -73,7 +71,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
 
   return (
     <GloveContext.Provider value={glove}>
-      <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}${overview ? ' shell--overview' : ''}${globe ? ' shell--globe' : ''}`}>
+      <div className={`shell shell--step-${step}${glove ? ' shell--glove' : ''}${overview ? ' shell--overview' : ''}`}>
         <header className="shell__bar">
           <div className="shell__brand">
             <h1 className="shell__title">
@@ -102,7 +100,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
             Glove mode
           </button>
         </header>
-        {hud && <div className="shell__hud">{hud}</div>}
+        <div className="shell__hud">{hud}</div>
         <main className="shell__map">
           {help && <Onboarding step={step} onClose={closeHelp} />}
           {map}
