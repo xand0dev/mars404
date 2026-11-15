@@ -4,7 +4,7 @@ import { useThree } from '@react-three/fiber';
 import { BackSide, BufferAttribute, BufferGeometry, Color, Fog, ShaderMaterial, type DirectionalLight } from 'three';
 import type { PlanningGrid } from '../../contracts';
 import { buildTerrainGeometry } from './lib/geometry';
-import { contextColors, contextShape, lowerUnderTile, type ContextHeights } from './lib/context';
+import { CONTEXT_DROP_M, contextColors, contextShape, lowerUnderTile, type ContextHeights } from './lib/context';
 
 /** Колір обрію: пиловий «butterscotch» марсіанського неба вдень, приглушений під темний інтерфейс. */
 const HORIZON = '#b98a64';
@@ -13,7 +13,8 @@ const ZENITH = '#1a1310';
 /** Кільце рельєфу довкола району; під районом опущене, щоб щільний меш лежав зверху. */
 export function ContextTerrain({ grid, ctx }: { grid: PlanningGrid; ctx: ContextHeights }) {
   const geometry = useMemo(() => {
-    const heights = lowerUnderTile(grid, ctx, 12);
+    // Кільце (клітинка 240 м) над районом місцями до 44 м вище за DEM 1 м — опускаємо з запасом, щоб не вилазило над дном (#145).
+    const heights = lowerUnderTile(grid, ctx, CONTEXT_DROP_M);
     const g = buildTerrainGeometry(contextShape(grid, ctx), heights);
     const geo = new BufferGeometry();
     geo.setAttribute('position', new BufferAttribute(g.positions, 3));

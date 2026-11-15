@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mockGrid } from '../../../mocks';
-import { contextColors, contextShape, lowerUnderTile, parseContext } from './context';
+import { CONTEXT_DROP_M, contextColors, contextShape, lowerUnderTile, parseContext } from './context';
 
 const side = mockGrid.width * mockGrid.metersPerPixel;
 const ctxMeta = (n: number, mpp: number) => ({
@@ -35,5 +35,9 @@ describe('кільце контексту (Region.context)', () => {
   it('contextColors: нижче — темніше, вище — світліше', () => {
     const col = contextColors(new Float32Array([0, 1000]));
     expect(col[3]! + col[4]! + col[5]!).toBeGreaterThan(col[0]! + col[1]! + col[2]!);
+  });
+
+  it('CONTEXT_DROP_M більше за найбільше перевищення кільця над DEM з QA #145 (44,3 м)', () => {
+    expect(CONTEXT_DROP_M).toBeGreaterThan(44.3);
   });
 });

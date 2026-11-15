@@ -27,6 +27,12 @@ export function contextShape(grid: PlanningGrid, c: ContextHeights): PlanningGri
  * Під EVA-районом контекст опускаємо на dropM, щоб щільний меш району
  * лежав зверху без мерехтіння. Повертає нову копію висот.
  */
+/**
+ * На скільки опускати кільце під районом, м. QA #145: кільце MOLA/HRSC (240 м) над DEM 1 м
+ * вище до 44,1 м (Gale) і 44,3 м (Columbia Hills); 60 м — з запасом. Дані не змінюються, лише показ.
+ */
+export const CONTEXT_DROP_M = 60;
+
 export function lowerUnderTile(grid: PlanningGrid, c: ContextHeights, dropM: number): Float32Array {
   const out = c.data.slice();
   const [gx, gy] = grid.originM;

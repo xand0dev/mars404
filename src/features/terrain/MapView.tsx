@@ -221,12 +221,12 @@ export function MapView({ globe }: MapViewProps) {
       baseRGBA: buildOverlay(grid, cells.classes, { heights }).data,
       topRGBA: top.data,
       render,
-      zoneRGBA: buildZoneMask(grid.width, grid.height, cells.classes, mask),
+      zoneRGBA: overview ? withoutBlocked(buildZoneMask(grid.width, grid.height, cells.classes, mask)) : buildZoneMask(grid.width, grid.height, cells.classes, mask),
       context: contextHeights,
       haloCells: top.haloCells,
       warnings: top.warnings,
     };
-  }, [cells, heights, grid, noData, mask, render, contextHeights]);
+  }, [cells, heights, grid, noData, mask, render, contextHeights, overview]);
 
   const raster2D = useMemo(
     () => (reason && cells && heights ? buildOverlay(grid, cells.classes, { heights, northUp: true }).data : null),
@@ -416,4 +416,10 @@ export function MapView({ globe }: MapViewProps) {
       )}
     </Panel>
   );
+}
+
+/** Огляд (overview) — не EVA-район: штрихування «Blocked» (схил > 25°) там нічого не означає, лишаємо лише NoData (#145). */
+function withoutBlocked(rgba: Uint8Array): Uint8Array {
+  for (let i = 0; i < rgba.length; i += 4) rgba[i] = 0;
+  return rgba;
 }
