@@ -4,7 +4,13 @@
     {
       "type": "Feature",
       "id": "navcam-886246",
-      "geometry": { "type": "Point", "coordinates": [137.4011643, -4.73350736] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4011643,
+          -4.73350736
+        ]
+      },
       "properties": {
         "id": "navcam-886246",
         "url": "./data/gale/photos/nontron-quadrant-sol3008.jpg",
@@ -20,7 +26,13 @@
     {
       "type": "Feature",
       "id": "navcam-894938",
-      "geometry": { "type": "Point", "coordinates": [137.4060989, -4.73349744] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4060989,
+          -4.73349744
+        ]
+      },
       "properties": {
         "id": "navcam-894938",
         "url": "./data/gale/photos/brantome-sol3025.jpg",
@@ -36,7 +48,13 @@
     {
       "type": "Feature",
       "id": "navcam-908724",
-      "geometry": { "type": "Point", "coordinates": [137.412544, -4.73538556] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.412544,
+          -4.73538556
+        ]
+      },
       "properties": {
         "id": "navcam-908724",
         "url": "./data/gale/photos/nontron-drill-sol3052.jpg",
@@ -52,7 +70,13 @@
     {
       "type": "Feature",
       "id": "navcam-920315",
-      "geometry": { "type": "Point", "coordinates": [137.4123619, -4.73579377] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4123619,
+          -4.73579377
+        ]
+      },
       "properties": {
         "id": "navcam-920315",
         "url": "./data/gale/photos/mont-mercou-sol3086.jpg",
@@ -68,7 +92,13 @@
     {
       "type": "Feature",
       "id": "navcam-928696",
-      "geometry": { "type": "Point", "coordinates": [137.4118801, -4.73595798] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4118801,
+          -4.73595798
+        ]
+      },
       "properties": {
         "id": "navcam-928696",
         "url": "./data/gale/photos/gourdon-sol3110.jpg",
@@ -84,7 +114,13 @@
     {
       "type": "Feature",
       "id": "navcam-948930",
-      "geometry": { "type": "Point", "coordinates": [137.4035221, -4.74180507] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4035221,
+          -4.74180507
+        ]
+      },
       "properties": {
         "id": "navcam-948930",
         "url": "./data/gale/photos/gardonne-sol3161.jpg",
@@ -100,7 +136,13 @@
     {
       "type": "Feature",
       "id": "navcam-955046",
-      "geometry": { "type": "Point", "coordinates": [137.4030554, -4.74188868] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4030554,
+          -4.74188868
+        ]
+      },
       "properties": {
         "id": "navcam-955046",
         "url": "./data/gale/photos/linear-ridge-sol3185.jpg",
@@ -116,7 +158,13 @@
     {
       "type": "Feature",
       "id": "navcam-958556",
-      "geometry": { "type": "Point", "coordinates": [137.401711, -4.74242398] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.401711,
+          -4.74242398
+        ]
+      },
       "properties": {
         "id": "navcam-958556",
         "url": "./data/gale/photos/champeaux-sol3192.jpg",
@@ -124,6 +172,94 @@
         "sourceUrl": "https://mars.nasa.gov/raw_images/958556",
         "credit": "NASA/JPL-Caltech",
         "sol": 3192,
+        "camera": "NAV_LEFT_B",
+        "locationAccuracy": "rover-stop",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "navcam-938523",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4087069,
+          -4.73906894
+        ]
+      },
+      "properties": {
+        "id": "navcam-938523",
+        "url": "./data/gale/photos/navcam-938523.jpg",
+        "alt": "Left Navcam view from Curiosity rover stop RMC 88_2130, sol 3143",
+        "sourceUrl": "https://mars.nasa.gov/raw_images/938523",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 3143,
+        "camera": "NAV_LEFT_B",
+        "locationAccuracy": "rover-stop",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "navcam-903442",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4104638,
+          -4.73391735
+        ]
+      },
+      "properties": {
+        "id": "navcam-903442",
+        "url": "./data/gale/photos/navcam-903442.jpg",
+        "alt": "Left Navcam view from Curiosity rover stop RMC 86_2596, sol 3042",
+        "sourceUrl": "https://mars.nasa.gov/raw_images/903442",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 3042,
+        "camera": "NAV_LEFT_B",
+        "locationAccuracy": "rover-stop",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "navcam-887529",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4018954,
+          -4.73354913
+        ]
+      },
+      "properties": {
+        "id": "navcam-887529",
+        "url": "./data/gale/photos/navcam-887529.jpg",
+        "alt": "Left Navcam view from Curiosity rover stop RMC 85_1486, sol 3011",
+        "sourceUrl": "https://mars.nasa.gov/raw_images/887529",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 3011,
+        "camera": "NAV_LEFT_B",
+        "locationAccuracy": "rover-stop",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "navcam-954668",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4034999,
+          -4.74186256
+        ]
+      },
+      "properties": {
+        "id": "navcam-954668",
+        "url": "./data/gale/photos/navcam-954668.jpg",
+        "alt": "Left Navcam view from Curiosity rover stop RMC 89_2034, sol 3183",
+        "sourceUrl": "https://mars.nasa.gov/raw_images/954668",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 3183,
         "camera": "NAV_LEFT_B",
         "locationAccuracy": "rover-stop",
         "status": "verified"

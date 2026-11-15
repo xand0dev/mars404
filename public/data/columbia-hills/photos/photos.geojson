@@ -1,0 +1,533 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n137921319eff5100p1846l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5061185,
+          -14.5821399
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n137921319eff5100p1846l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol130-site51.jpg",
+        "alt": "Left Navcam view from Spirit rover site 51, sol 130 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0130/edr/2n137921319eff5100p1846l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 130,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n138983202eff5500p1846l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5100735,
+          -14.5846437
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n138983202eff5500p1846l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol142-site55.jpg",
+        "alt": "Left Navcam view from Spirit rover site 55, sol 142 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0142/edr/2n138983202eff5500p1846l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 142,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n139336834eff5906p1846l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5138331,
+          -14.5864411
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n139336834eff5906p1846l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol146-site59.jpg",
+        "alt": "Left Navcam view from Spirit rover site 59, sol 146 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0146/edr/2n139336834eff5906p1846l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 146,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n139762970eff6200p1846l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5141032,
+          -14.5880022
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n139762970eff6200p1846l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol151-site62.jpg",
+        "alt": "Left Navcam view from Spirit rover site 62, sol 151 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0151/edr/2n139762970eff6200p1846l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 151,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n140036942eff6600p1926l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.517841,
+          -14.5904004
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n140036942eff6600p1926l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol154-site66.jpg",
+        "alt": "Left Navcam view from Spirit rover site 66, sol 154 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0154/edr/2n140036942eff6600p1926l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 154,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n142603476eff7000p1554l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5188282,
+          -14.5908114
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n142603476eff7000p1554l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol183-site70.jpg",
+        "alt": "Left Navcam view from Spirit rover site 70, sol 183 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0183/edr/2n142603476eff7000p1554l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 183,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n143333579eff7400p1748l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5189579,
+          -14.5902109
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n143333579eff7400p1748l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol191-site74.jpg",
+        "alt": "Left Navcam view from Spirit rover site 74, sol 191 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0191/edr/2n143333579eff7400p1748l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 191,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n144131602eff7700p1748l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5192999,
+          -14.5906136
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n144131602eff7700p1748l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol200-site77.jpg",
+        "alt": "Left Navcam view from Spirit rover site 77, sol 200 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0200/edr/2n144131602eff7700p1748l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 200,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n144479898eff8100p1746l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5196883,
+          -14.5912161
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n144479898eff8100p1746l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol204-site81.jpg",
+        "alt": "Left Navcam view from Spirit rover site 81, sol 204 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0204/edr/2n144479898eff8100p1746l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 204,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n146350007eff8522p1949l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5198478,
+          -14.5913153
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n146350007eff8522p1949l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol225-site85.jpg",
+        "alt": "Left Navcam view from Spirit rover site 85, sol 225 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0225/edr/2n146350007eff8522p1949l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 225,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n151400725eff8987p1735l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5201021,
+          -14.591184
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n151400725eff8987p1735l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol282-site89.jpg",
+        "alt": "Left Navcam view from Spirit rover site 89, sol 282 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0282/edr/2n151400725eff8987p1735l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 282,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n154160043eff9300p0645l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5215164,
+          -14.5906078
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n154160043eff9300p0645l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol313-site93.jpg",
+        "alt": "Left Navcam view from Spirit rover site 93, sol 313 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0313/edr/2n154160043eff9300p0645l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 313,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n155310244eff9600p0865l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5231947,
+          -14.5902104
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n155310244eff9600p0865l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol326-site96.jpg",
+        "alt": "Left Navcam view from Spirit rover site 96, sol 326 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0326/edr/2n155310244eff9600p0865l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 326,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n156291307effa000p0665l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5243563,
+          -14.5899312
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n156291307effa000p0665l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol337-site100.jpg",
+        "alt": "Left Navcam view from Spirit rover site 100, sol 337 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0337/edr/2n156291307effa000p0665l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 337,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n161346166effa432p0675l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5257856,
+          -14.5904648
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n161346166effa432p0675l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol394-site104.jpg",
+        "alt": "Left Navcam view from Spirit rover site 104, sol 394 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0394/edr/2n161346166effa432p0675l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 394,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n164013816effa8b3p1705l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5263341,
+          -14.5908544
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n164013816effa8b3p1705l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol424-site108.jpg",
+        "alt": "Left Navcam view from Spirit rover site 108, sol 424 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0424/edr/2n164013816effa8b3p1705l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 424,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n173953008effacb9p0683l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5252081,
+          -14.5928692
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n173953008effacb9p0683l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol536-site112.jpg",
+        "alt": "Left Navcam view from Spirit rover site 112, sol 536 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0536/edr/2n173953008effacb9p0683l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 536,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n182910071effaf00p1735l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5298608,
+          -14.5931506
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n182910071effaf00p1735l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol637-site115.jpg",
+        "alt": "Left Navcam view from Spirit rover site 115, sol 637 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0637/edr/2n182910071effaf00p1735l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 637,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n185581306effajnzp1925l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5328445,
+          -14.5931622
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n185581306effajnzp1925l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol667-site119.jpg",
+        "alt": "Left Navcam view from Spirit rover site 119, sol 667 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0667/edr/2n185581306effajnzp1925l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 667,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n191884780effankcp0725l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5323289,
+          -14.6014035
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n191884780effankcp0725l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol738-site123.jpg",
+        "alt": "Left Navcam view from Spirit rover site 123, sol 738 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0738/edr/2n191884780effankcp0725l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 738,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n198008466effar00p1987l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5324432,
+          -14.6072907
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n198008466effar00p1987l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol807-site127.jpg",
+        "alt": "Left Navcam view from Spirit rover site 127, sol 807 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol0807/edr/2n198008466effar00p1987l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 807,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n237339278effaucmp1665l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5326215,
+          -14.6066166
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n237339278effaucmp1665l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol1250-site130.jpg",
+        "alt": "Left Navcam view from Spirit rover site 130, sol 1250 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol1250/edr/2n237339278effaucmp1665l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 1250,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n259356202effay00p1809l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5319572,
+          -14.6059884
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n259356202effay00p1809l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol1498-site134.jpg",
+        "alt": "Left Navcam view from Spirit rover site 134, sol 1498 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol1498/edr/2n259356202effay00p1809l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 1498,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "spirit-navcam-2n315991384effb2byp1809l0m1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.5312051,
+          -14.6068398
+        ]
+      },
+      "properties": {
+        "id": "spirit-navcam-2n315991384effb2byp1809l0m1",
+        "url": "./data/columbia-hills/photos/spirit-navcam-sol2136-site138.jpg",
+        "alt": "Left Navcam view from Spirit rover site 138, sol 2136 (PDS EDR browse image)",
+        "sourceUrl": "https://planetarydata.jpl.nasa.gov/img/data/mer/spirit/mer2no_0xxx/data/sol2136/edr/2n315991384effb2byp1809l0m1.img",
+        "credit": "NASA/JPL-Caltech",
+        "sol": 2136,
+        "camera": "NAVCAM_LEFT",
+        "locationAccuracy": "approximate",
+        "status": "verified"
+      }
+    }
+  ]
+}
