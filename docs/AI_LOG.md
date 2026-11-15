@@ -131,6 +131,7 @@
 | 2026-11-14 | Влад | Claude Code · claude-opus-5-5 | Ресерч і спеки: `specs/F5/research-real-data.md` (реальні ресурси замість mock: батарея EMU 922 Wh, EVA 7 год, NASA-STD-3001 600 мЗв, енергія за часом, задачі R1–R8) і `specs/F4/rover.md` (марсохід: LRV 8.7 kWh / 20.1 км / 7.6 км, walkback 10 км, O₂ на ровері, модель, контракт, задачі V1–V8) | specs/F4/**, specs/F5/** | цитати звірено в PDF / сторінках NASA (pdftotext) | — |
 | 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | F5: «Model assumptions» англійською для поля Validity форми Space Apps — 14 припущень з числами й джерелами, «What the model does NOT do», де живе кожне число | specs/F5/assumptions-en.md | кожне число звірено з region.json (Gale, Columbia Hills), src/core, docs/SOURCES.md | — |
 | 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | #153 R5 + R2: доза RAD 0.0078 мкЗв/с (Gale verified, Columbia Hills assumption), `limits.energy` 922 Wh (EMU), `limits.dose` = кар'єрний ліміт 600 мЗв — статус більше не «incomplete»; `pipeline/prepare.py` пише ті самі числа | pipeline/prepare.py, public/data/{gale,columbia-hills}/region.json + SHA256SUMS, loadRegion.test.ts, SOURCES ## F5 | npm run check; pipeline unittest; Chromium: Return in без змін | — |
+| 2026-11-15 | Влад | Claude Code · claude-opus-5-5 | `assumptions-en.md` для поля Validity: доза RAD (#160), батарея EMU 922 Wh, ровер (LRV, walkback) замість «walking only» — на прохання Олі в #28 | specs/F5/assumptions-en.md | звірено з region.json, pipeline/prepare.py, src/core/rover.ts | — |
 
 ## F6
 
