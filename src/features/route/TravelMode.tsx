@@ -22,10 +22,18 @@ export function TravelModeToggle({ mode, onChange, className }: { mode: TravelMo
 
 export function RoverNote({ plan }: { plan: RoutePlan | null }) {
   const usedWh = roverEnergyWh(plan);
+  const overBattery = usedWh !== null && usedWh > ROVER.batteryWh;
   return (
-    <StatusNote level="info">
-      Rover: {ROVER.speedMps} m/s, crew O₂ {ROVER.o2GPerSRiding} g/s while riding. If the rover fails, return is checked on foot from every point (walkback).
-      {usedWh !== null && <> Rover battery: {Math.round(usedWh)} Wh of {ROVER.batteryWh} Wh.</>} Apollo LRV data — assumption for Mars.
-    </StatusNote>
+    <>
+      <StatusNote level="info">
+        Rover: {ROVER.speedMps} m/s, crew O₂ {ROVER.o2GPerSRiding} g/s while riding; slope and soil penalties as for walking. If the rover fails, return is checked on foot from every point (walkback).
+        {usedWh !== null && !overBattery && <> Rover battery: {Math.round(usedWh)} Wh of {ROVER.batteryWh} Wh.</>} Apollo LRV data — assumption for Mars.
+      </StatusNote>
+      {overBattery && (
+        <StatusNote level="danger" live="alert">
+          Route exceeds the rover battery: {Math.round(usedWh)} Wh of {ROVER.batteryWh} Wh. Shorten the route or go on foot.
+        </StatusNote>
+      )}
+    </>
   );
 }
