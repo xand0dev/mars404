@@ -83,7 +83,7 @@
 .map-layers__bar { display: flex; flex-wrap: wrap; gap: 6px; }
 .map-layers__btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; font-size: 0.85rem; background: rgb(5 5 6 / 0.72); backdrop-filter: blur(6px); }
 .map-layers__btn[aria-pressed='true'] { border-color: var(--accent); color: var(--text); box-shadow: 0 0 14px -6px var(--accent); }
-.map-layers__icon { font-size: 1rem; line-height: 1; }
+.map-layers__icon { flex: none; }
 .map-layers__legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0 0; padding: 4px 10px; border-radius: var(--radius-sm); background: rgb(5 5 6 / 0.72); font-size: 0.78rem; color: var(--text-muted); max-width: 100%; }
 .map-layers__legend-name { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim, var(--text-muted)); }
 .map-layers__ramp { display: inline-block; width: 90px; height: 8px; border-radius: 4px; border: 1px solid var(--line); }

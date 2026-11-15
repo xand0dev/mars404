@@ -9,7 +9,6 @@ import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { PanelGroupContext, type PanelGroup } from '../../ui';
 import { GloveContext, readGlove, writeGlove } from './glove';
-import { LayerBar } from './LayerBar';
 import { Onboarding } from './Onboarding';
 import { readOnboarded, writeOnboarded } from './onboardingStore';
 import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
@@ -104,7 +103,6 @@ export function Shell({ hud, map, side, status }: ShellProps) {
         <div className="shell__hud">{hud}</div>
         <main className="shell__map">
           {help && <Onboarding step={step} onClose={closeHelp} />}
-          <LayerBar />
           {map}
         </main>
         {glove ? (
