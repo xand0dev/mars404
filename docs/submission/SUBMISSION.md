@@ -40,7 +40,8 @@ On Mars an astronaut on foot has no GPS and no live help from Earth, and the sam
 - **Choose science targets.** Real rover stops with surface photos, a short “why go” and credit (Curiosity Navcam, Spirit Pancam).
 - **Build a walking route.** A loop from base through the chosen targets and back, avoiding steep, blocked and no-data ground, with an elevation profile and “View from here” — the nearest real surface photo to a route segment.
 - **Know when to turn back.** “Return in N min” from oxygen, energy and time with a fixed reserve; the reachable area on the map; segments with no safe return turn red; “Point of no return in N min”.
-- **What if.** “O₂ −40%” shows instantly whether the plan still brings you home; if not, the app offers a closer target (for example, “Replace Champeaux with Brantôme” → Return in 12 min, GO · CAUTION).
+- **What if.** “O₂ −40%” shows instantly whether the plan still brings you home; if not, the app offers a closer target (for example, Nontron Quadrant + Mont Mercou + Gardonne → NO-GO → “Replace Nontron Quadrant with Brantôme” → Return in 4 min, GO · CAUTION).
+- **Walk or drive.** “On foot” and “Rover” cards compare time, O₂, “Return in” and battery for the same plan; in Rover mode a Curiosity 3D model (NASA 3D Resources, public domain) drives the route.
 - **GO / NO-GO checklist** before the EVA: route, life support, return time, targets, abort path, map data, radiation, walk model and equipment.
 - **Navigation without GPS.** Beacons placed along the route by line of sight plus inertial position with drift; the app shows how much of the route has a precise position.
 - **Walk preview.** An astronaut walks the planned route over the terrain (Follow camera, 1× to 60×) with elapsed time, O₂ and energy.
@@ -88,12 +89,13 @@ Text from Vlad (`specs/F5/assumptions-en.md`, #139), short form for the form fie
 > - Terrain: 256 × 256 grid of 10 m cells (2.56 km × 2.56 km) from HiRISE 1 m elevation models; features smaller than 10 m are not resolved.
 > - Cells steeper than 25° and NoData cells are blocked (25° is an assumption).
 > - Walking speed 1.0 m/s and O₂ use 0.031 g/s come from Apollo walking data (Moon, 1/6 g) — assumptions for Mars.
-> - Slope penalty (×2 uphill, ×0.5 downhill), soil slowdown up to +40% from THEMIS night IR, hazard weight, 20% reserve, 140 g O₂ and 1 h time limits, 0.05 Wh/m energy and a 600 Wh battery are assumptions; the small O₂ limit is chosen so the “O₂ −40%” scenario visibly changes the plan.
+> - Slope penalty (×2 uphill, ×0.5 downhill), soil slowdown up to +40% from THEMIS night IR, hazard weight, 20% reserve, 140 g O₂ and 1 h time limits and 0.05 Wh/m energy use are assumptions; the small O₂ limit is chosen so the “O₂ −40%” scenario visibly changes the plan.
 > - 30 minutes of emergency O₂ for the walk home is from the NASA EMU Secondary Oxygen Package (verified); the 56 g figure is an assumption (ISS suit, Apollo rate).
-> - Radiation dose is unknown, so every result is marked “incomplete — return not fully assessed”; an unknown dose is never shown as zero.
-> - Not certified navigation; no real-time telemetry, weather or dust storms; walking only, no rover.
+> - Suit battery 922 Wh (NASA EMU, 20.5 V × 45 Ah, NTRS 20050217305) — verified.
+> - Radiation: surface dose rate 0.67 mSv/day measured by Curiosity RAD at Gale (Hassler et al. 2014) → 0.0078 µSv/s — verified; shown against the NASA-STD-3001 career limit of 600 mSv (NASA has no per-EVA limit). One point measurement, not a terrain radiation map.
+> - Not certified navigation; no real-time telemetry, weather or dust storms. 2 of 10 model coefficients are verified (emergency O₂, dose rate); the app says so on screen.
 
-Full text with sources and the file where each number lives: `specs/F5/assumptions-en.md`.
+Full text with sources and the file where each number lives: `specs/F5/assumptions-en.md` (F5; dose, battery and rover lines there predate #160 / #169 — Vlad to update).
 
 ## Use of Super Intelligence (SI)
 Yes. SI tools were used as accelerators, not to come up with the idea; people chose the challenge, wrote the specification and decided what to merge.
