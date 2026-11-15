@@ -130,3 +130,10 @@
 .shell--overview .shell__steps {
   visibility: hidden;
 }
+
+/* ── Шари карти зверху: іконка + назва, той самий стан, що в панелі Layers ── */
+.layerbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.layerbar__label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); margin-right: 4px; }
+.layerbar__btn { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 0 10px 0 8px; font-size: 0.74rem; font-weight: 600; color: var(--text-muted); background: var(--surface); }
+.layerbar__btn svg { flex: none; }
+.layerbar__btn[aria-pressed='true'] { color: var(--text); border-color: rgb(255 42 42 / 0.55); background: rgb(224 16 26 / 0.12); box-shadow: 0 0 14px -6px rgb(224 16 26 / 0.9); }

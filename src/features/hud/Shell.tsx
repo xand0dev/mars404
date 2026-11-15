@@ -1,5 +1,5 @@
 // F7: застосунок на весь екран. Шапка з кроками демо; ліворуч — підготовка виходу (Location → Layers → Targets → Route),
-// у центрі — карта, праворуч — стан місії (HUD, Resources, Pre-EVA checklist, Crew map notes).
+// у центрі — шари карти (іконки зверху) і карта, праворуч — стан місії (HUD, Resources, Pre-EVA checklist, Crew map notes).
 // Колонки прокручуються самі, сторінка — ні (≥ 1200 px). Вужче — одна колонка: HUD → карта → план → стан.
 // Панелі в колонках згортаються; відкриті ті, що потрібні для наступного кроку (T24).
 // Glove mode (F7-AC9, SPEC §7.14): лише HUD і карта, решта — у «More panels».
@@ -9,6 +9,7 @@ import { regionKind } from '../../contracts/planning';
 import { useMission } from '../../store/useMission';
 import { PanelGroupContext, type PanelGroup } from '../../ui';
 import { GloveContext, readGlove, writeGlove } from './glove';
+import { LayerBar } from './LayerBar';
 import { Onboarding } from './Onboarding';
 import { readOnboarded, writeOnboarded } from './onboardingStore';
 import { STEPS, isPanelOpen, panelStep, togglePanel, type PanelOverrides } from './panelStep';
@@ -103,6 +104,7 @@ export function Shell({ hud, map, side, status }: ShellProps) {
         <div className="shell__hud">{hud}</div>
         <main className="shell__map">
           {help && <Onboarding step={step} onClose={closeHelp} />}
+          <LayerBar />
           {map}
         </main>
         {glove ? (
