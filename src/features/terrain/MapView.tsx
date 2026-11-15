@@ -33,6 +33,7 @@ import { useTraverse } from './useTraverse';
 import { useContextHeights, useRenderHeights } from './useRenderHeights';
 import { buildZoneMask } from './lib/hd';
 import { navOverlay, useNavPlan, useNavView } from './navStore';
+import { NavChip } from './NavChip';
 import './terrain.css';
 
 export interface MapViewProps {
@@ -327,6 +328,7 @@ export function MapView({ globe }: MapViewProps) {
       )}
       {site !== null && valid && !overview && <MarkTools onMarkSegment={segmentPoint ? () => place(segmentPoint) : null} />}
       <div className={`terrain-stage${onPick ? ' is-adding' : ''}`}>
+        {site !== null && <NavChip />}
         {show3D ? (
           <SceneBoundary fallback={site === null ? globeFallback : plan2D({ code: 'render-error', text: '3D render failed' })}>
             <Canvas

@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import type { PlanningGrid, RoutePlan, XY } from '../../contracts';
 import { useMission } from '../../store/useMission';
-import { driftRuns, planNavigation, type NavPlan } from './lib/nav';
+import { driftRuns, planNavigation, type BeaconLink, type NavNow, type NavPlan } from './lib/nav';
 
 export const useNavView = create<{ show: boolean; setShow: (v: boolean) => void }>((set) => ({
   show: true,
@@ -36,3 +36,10 @@ export function navOverlay(nav: NavPlan | null) {
     checkpoints: nav.checkpoints,
   };
 }
+
+/** Живий зв'язок під час прогулянки: пише сцена (NavLinks) ~5 разів на секунду, читає панель Navigation. */
+export const useNavLive = create<{ now: NavNow | null; links: BeaconLink[]; set: (now: NavNow | null, links: BeaconLink[]) => void }>((set) => ({
+  now: null,
+  links: [],
+  set: (now, links) => set({ now, links }),
+}));

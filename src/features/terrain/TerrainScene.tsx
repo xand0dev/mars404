@@ -19,6 +19,7 @@ import { renderPoint, renderShape, sampleRender, type RenderHeights } from './li
 import { tileFramePoints, type ContextHeights } from './lib/context';
 import { Atmosphere, ContextTerrain, Sun } from './Environment';
 import { Astronaut } from './Astronaut';
+import { NavLinks } from './NavLinks';
 import { useWalk, walkPose } from './walkStore';
 import { BLOCKED_RGB, HALO_RGB } from './lib/overlay';
 
@@ -476,6 +477,16 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   const walkActive = useWalk((w) => w.active);
   const ground = mode === 'follow' || (mode === 'free' && walkActive);
   const markerR = ground ? 0.8 : Math.max(grid.metersPerPixel, Math.max(grid.width, grid.height) * grid.metersPerPixel / 100);
+  // Вершина щогли маяка (там, де конус маяка) — звідти йде лінія сигналу до скафандра.
+  /* eslint-disable react-hooks/exhaustive-deps -- sp() залежить від grid / heights / noData / render */
+  const mastTop = useMemo(
+    () => (xy: XY): [number, number, number] | null => {
+      const s = sp(xy, LIFT_M);
+      return s ? [s.position[0], s.position[1] + markerR * 5, s.position[2]] : null;
+    },
+    [grid, heights, noData, render, markerR],
+  );
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Підписи без накладань: текст — лише обрані цілі й та, що під курсором;
   // ті, що злипаються на екрані, піднімаємо сходинками (рахуємо в пікселях після кожного кадру).
@@ -767,6 +778,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       })}
 
       {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} lifeSize={ground} />}
+      {walkActive && nav && plan && plan.status === 'ok' && plan.segments.length > 0 && <NavLinks grid={grid} plan={plan} mastTop={mastTop} markerR={markerR} />}
       <OrbitControls makeDefault enableDamping={false} enabled={mode !== 'follow'} />
       <FreeFly enabled={mode === 'free'} scale={tileSize} />
       <CameraRig data={data} plan={plan} mode={mode} pov={pov} />
