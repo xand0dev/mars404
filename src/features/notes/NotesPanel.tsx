@@ -160,6 +160,17 @@ function NotesBody({ site }: { site: SiteId }) {
           Import marks
           <input type="file" accept="application/json,.json" onChange={importMarks} />
         </label>
+        {annotations.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              // Мітки живуть лише в цьому браузері (localStorage) — прибрати все одним кліком, з підтвердженням.
+              if (window.confirm(`Remove all ${annotations.length} marks on this site? This cannot be undone.`)) setAnnotations([]);
+            }}
+          >
+            Remove all marks ({annotations.length})
+          </button>
+        )}
       </div>
       {importMsg &&
         (importMsg.ok ? (

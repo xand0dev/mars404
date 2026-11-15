@@ -46,11 +46,18 @@ test('наступна дія підсвічена на кожному кроц�
 });
 
 test('перший екран: видно поточний крок і що зробити далі', async ({ page }) => {
+  // Глобус: лише карта й Location — крок «Location» підсвічений, Gale — у першому екрані; HUD і панелі планування сховані.
   await expect(currentStep(page)).toContainText('Location');
+  if (isDesktop(page)) await expect(page.getByRole('button', { name: 'Gale / Mount Sharp' })).toBeInViewport();
+  for (const name of ['Layers', 'Science targets', 'Route', 'Navigation', 'Resources']) {
+    await expect(page.getByRole('region', { name, exact: true }), name).toHaveCount(0);
+  }
+  await expect(page.locator('.hud__status')).toHaveCount(0);
+  // Після вибору району HUD підказує наступний крок.
+  await page.getByRole('button', { name: 'Gale / Mount Sharp' }).click();
   const hint = page.locator('.hud__status');
   await expect(hint).toContainText('Next:');
   await expect(hint, 'підказка «що далі» — у першому екрані').toBeInViewport();
-  if (isDesktop(page)) await expect(page.getByRole('button', { name: 'Gale / Mount Sharp' })).toBeInViewport();
 });
 
 test('демо: Gale → Brantôme + Mont Mercou → Build route → GO / NO-GO', async ({ page }) => {
@@ -113,15 +120,27 @@ test('glove mode: великі цілі, вердикт і «Return in» у пе
   await page.getByRole('button', { name: 'Glove mode' }).click();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Glove mode' })).toHaveAttribute('aria-pressed', 'true');
+  const small = (scope: string) =>
+    page.evaluate(
+      (sel) =>
+        [...document.querySelectorAll(`${sel} :is(button, input, select, summary)`)]
+          .filter((e) => {
+            const b = e.getBoundingClientRect();
+            return b.width > 0 && b.height > 0 && (b.height < 63.5 || b.width < 63.5);
+          })
+          .map((e) => (e.textContent ?? '').trim().slice(0, 30)),
+      scope,
+    );
+  expect(await small('body'), 'у glove mode усі цілі на глобусі ≥ 64 px').toEqual([]);
+  // HUD є лише в районі: Gale з «More panels» → Location.
+  await page.locator('details.shell__more > summary').click();
+  const loc = page.getByRole('button', { name: 'Location', exact: true });
+  if ((await loc.count()) > 0 && (await loc.getAttribute('aria-expanded')) === 'false') await loc.click();
+  await page.getByRole('button', { name: 'Gale / Mount Sharp' }).click();
+  await expect(page.getByRole('region', { name: 'Gale terrain' })).toBeVisible();
+  // Згорнути «More panels» назад, як на першому екрані (клік по summary прокрутив би сторінку до нього).
+  await page.locator('details.shell__more').evaluate((d) => ((d as HTMLDetailsElement).open = false));
   await expect(page.locator('.hud__return')).toBeInViewport();
   await expect(page.getByTestId('gonogo-verdict')).toBeInViewport();
-  const small = await page.evaluate(() =>
-    [...document.querySelectorAll('button, input, select, summary')]
-      .filter((e) => {
-        const b = e.getBoundingClientRect();
-        return b.width > 0 && b.height > 0 && (b.height < 63.5 || b.width < 63.5);
-      })
-      .map((e) => (e.textContent ?? '').trim().slice(0, 30)),
-  );
-  expect(small, 'у glove mode усі цілі ≥ 64 px').toEqual([]);
+  expect(await small('.shell__hud'), 'у glove mode цілі HUD ≥ 64 px').toEqual([]);
 });

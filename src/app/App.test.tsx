@@ -30,14 +30,28 @@ describe('F0 · композиція', () => {
     expect([typeof ui.Panel, typeof ui.Gauge, typeof ui.StatusNote, typeof ui.OwnerBadge, typeof ui.MockBadge]).toEqual([fn, fn, fn, fn, fn]);
   });
 
-  it('F0-AC1: усі слоти видно з бейджем MOCK і власником', () => {
-    render(<App />);
-    for (const name of ['HUD', 'Mars globe', 'Location', 'Layers', 'Science targets', 'Route', 'Resources']) {
+  it('глобус: лише глобус і Location, панелі планування й HUD сховані', () => {
+    const { container } = render(<App />);
+    expect(screen.getByRole('region', { name: 'Mars globe' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Location' })).toBeInTheDocument();
+    for (const name of ['HUD', 'Layers', 'Science targets', 'Route', 'Navigation', 'Resources']) {
+      expect(screen.queryByRole('region', { name }), name).toBeNull();
+    }
+    expect(screen.queryByRole('group', { name: 'Camera mode' })).toBeNull();
+    expect(container.querySelector('.shell__hud')).toBeEmptyDOMElement();
+    expect(screen.getByText(/Demonstration model, not certified navigation/)).toBeInTheDocument();
+  });
+
+  it('F0-AC1: після вибору EVA-району всі слоти видно з бейджем MOCK і власником', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Gale / Mount Sharp' }));
+    expect(container.querySelector('.shell__hud')).not.toBeEmptyDOMElement();
+    for (const name of ['HUD', 'Location', 'Layers', 'Science targets', 'Route', 'Resources']) {
       const region = screen.getByRole('region', { name });
       expect(within(region).getByText('MOCK')).toBeInTheDocument();
     }
     expect(screen.getAllByText(/F2 · Олександр/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Demonstration model, not certified navigation/)).toBeInTheDocument();
   });
 
   it('без WebGL полотно показує 2D-план Б, а не порожнечу', () => {
