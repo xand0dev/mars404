@@ -63,6 +63,20 @@ describe('F1-AC6 · додати й видалити', () => {
     expect(screen.getByText(/No marks yet/)).toBeInTheDocument();
   });
 
+  it('Remove all marks: після підтвердження — усі мітки району прибрано; скасування — нічого', async () => {
+    const user = userEvent.setup();
+    openGale();
+    st().setAnnotations([old, { ...old, id: 'old-2', kind: 'note' }]);
+    render(<NotesPanel />);
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    await user.click(screen.getByRole('button', { name: 'Remove all marks (2)' }));
+    expect(st().annotations).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Remove all marks (2)' }));
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(st().annotations).toEqual([]);
+    expect(screen.queryByRole('button', { name: /Remove all marks/ })).not.toBeInTheDocument();
+  });
+
   it('порожній текст — кнопка Add mark недоступна', () => {
     openGale();
     render(<NotesPanel />);
