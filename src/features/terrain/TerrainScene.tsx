@@ -101,6 +101,46 @@ function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan
   // OrbitControls (makeDefault) реєструються пізніше за перший ефект; без цієї залежності вони
   // перенаводять камеру на (0, 0, 0) — кут району, і Orbit показує порожнечу.
   const controlsReady = useThree((s) => s.controls !== null);
+  // Follow: камеру можна покрутити навколо астронавта — тягнути мишею / пальцем (кут і нахил), колесо — відстань.
+  // Відпустили — ракурс лишається; новий вхід у Follow — знову ззаду.
+  const orbit = useRef({ yaw: 0, pitch: 0, zoom: 1 });
+  useEffect(() => {
+    if (mode !== 'follow') return;
+    orbit.current = { yaw: 0, pitch: 0, zoom: 1 };
+    const el = get().gl.domElement;
+    let drag: { x: number; y: number } | null = null;
+    const down = (e: PointerEvent) => {
+      drag = { x: e.clientX, y: e.clientY };
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const move = (e: PointerEvent) => {
+      if (!drag) return;
+      const o = orbit.current;
+      o.yaw -= (e.clientX - drag.x) * 0.008;
+      o.pitch = Math.min(1.1, Math.max(-0.3, o.pitch + (e.clientY - drag.y) * 0.006));
+      drag = { x: e.clientX, y: e.clientY };
+      get().invalidate();
+    };
+    const up = () => {
+      drag = null;
+    };
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const o = orbit.current;
+      o.zoom = Math.min(4, Math.max(0.5, o.zoom * Math.exp(e.deltaY * 0.001)));
+      get().invalidate();
+    };
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      el.removeEventListener('wheel', wheel);
+    };
+  }, [mode, get]);
   const regionFrame = useMemo(() => gridFrame(data.grid, data.heights), [data.grid, data.heights]);
   // #94: після «Build route» Orbit / Top наводяться на маршрут. Кадр тримаємо, доки не збудують новий маршрут
   // або не змінять район, — щоб клік по цілі (план скинуто) не відкидав камеру назад.
@@ -175,16 +215,25 @@ function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan
       // Вид від третьої особи: 4,5 м позаду, 1,9 м над ступнями, погляд на 6 м уперед на рівні грудей.
       const p = walkPose.position;
       const h = walkPose.heading;
-      const back = walkPose.rover ? 9 : 4.5;
-      const up = walkPose.rover ? 3.6 : 1.9;
-      const want = new Vector3(p.x - Math.cos(h) * back, p.y + up, p.z + Math.sin(h) * back);
+      const o = orbit.current;
+      const a = h + o.yaw;
+      const back0 = (walkPose.rover ? 9 : 4.5) * o.zoom;
+      const up0 = (walkPose.rover ? 3.6 : 1.9) * o.zoom;
+      // Нахил: базовий кут (up0/back0) плюс те, що натягали мишею.
+      const tilt = Math.atan2(up0, back0) + o.pitch;
+      const dist = Math.hypot(back0, up0);
+      const back = Math.cos(tilt) * dist;
+      const up = Math.sin(tilt) * dist;
+      const want = new Vector3(p.x - Math.cos(a) * back, p.y + up, p.z + Math.sin(a) * back);
       // Камера не провалюється в рельєф позаду (на підйомі ґрунт за спиною вищий).
       const gCam = walkPose.groundAt?.([want.x, -want.z]);
       if (gCam !== null && gCam !== undefined) want.y = Math.max(want.y, gCam * VERTICAL_EXAGGERATION + 0.8);
       // Плавно наздоганяє; на великій швидкості або після стрибка перемотування — одразу на місці.
       const k = camera.position.distanceTo(want) > back * 4 ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
       camera.position.lerp(want, k);
-      const look = new Vector3(p.x + Math.cos(h) * 6, p.y + 1.1, p.z - Math.sin(h) * 6);
+      // Ззаду — погляд на 6 м уперед; коли камеру розвернули — на самого астронавта.
+      const ahead = Math.max(0, 1 - Math.abs(Math.atan2(Math.sin(o.yaw), Math.cos(o.yaw))) / 0.6) * Math.max(0, 1 - Math.abs(o.pitch) / 0.6);
+      const look = new Vector3(p.x + Math.cos(h) * 6 * ahead, p.y + 1.1, p.z - Math.sin(h) * 6 * ahead);
       camera.lookAt(look);
       const c = controls as unknown as { target?: { copy(v: Vector3): void } } | null;
       c?.target?.copy(look);
