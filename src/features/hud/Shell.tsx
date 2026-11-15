@@ -134,10 +134,18 @@ export function Shell({ hud, map, side, status }: ShellProps) {
       {glove ? (
         <div className="tablet">
           <div className="tablet__bezel">
-            <span className="tablet__bump tablet__bump--tl" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--tr" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--bl" aria-hidden="true" />
-            <span className="tablet__bump tablet__bump--br" aria-hidden="true" />
+            {/* Фізичний корпус (лише декор): бампери з гвинтами, кріплення ремінця, кнопки, камера, маркування. */}
+            {(['tl', 'tr', 'bl', 'br'] as const).map((c) => (
+              <span key={c} className={`tablet__bump tablet__bump--${c}`} aria-hidden="true" />
+            ))}
+            <span className="tablet__lug tablet__lug--l" aria-hidden="true" />
+            <span className="tablet__lug tablet__lug--r" aria-hidden="true" />
+            <span className="tablet__key tablet__key--1" aria-hidden="true" />
+            <span className="tablet__key tablet__key--2" aria-hidden="true" />
+            <span className="tablet__cam" aria-hidden="true" />
+            <span className="tablet__mark" aria-hidden="true">
+              EVA-PAD · MARS::404
+            </span>
             <div className="tablet__screen">{shell}</div>
           </div>
         </div>
