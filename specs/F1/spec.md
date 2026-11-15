@@ -3,6 +3,16 @@
 Власник: Іван (@gonivanko) · гілка `feat/F1` · згенеровано з `docs/SPEC.md` §9.
 **За розбіжності перемагає `docs/SPEC.md`.** Власник може уточнювати цей файл (план, задачі, відкриті питання), не суперечачи SPEC.
 
+## #105 · Режими точок: EVA / Overview / Card (15.11)
+Контракт — #103 (`SITE_IDS`, `isSiteId()`, `Region.kind`). Гілка `feat/F1-sites`, PR #128.
+
+- `Site.modelled` → `Site.mode: 'eva' | 'overview' | 'card'` (+ `comingSoon?`). EVA — Gale, Columbia Hills; Overview — Olympus Mons, Valles Marineris (id = SiteId, пакети в main); Card — Jezero, Meridiani.
+- `canOpenSite()` = не card, не coming soon, id — SiteId → переліт і `setSite(id)`, як для Gale. Coming soon — кнопка `disabled`, `chooseSite` нічого не робить.
+- Картка словами: «EVA site — plan a route» / «Overview — terrain only, no EVA planning» / «Card only — no terrain data». Картка показується й для відкритого району. **Уточнення F1-AC2:** замість «next site — not modelled» — «Card only…» (за #105).
+- Форма (§7.7): маркер eva — октаедр ◆, overview — тетраедр ▲, card — сфера ●; такий самий значок у кнопці + режим в `aria-describedby`.
+- Columbia Hills: у IAU Gazetteer назви немає → центр із Trek spirit_waypoints (SOURCES §F1).
+- Notes: `parseAnnotationsFile(text, site)` — `isSiteId()` і збіг із поточним районом; панель працює на будь-якому відкритому районі.
+
 ## Нові задачі (14.11): Abort map + «View from here»
 План — #25, правила — `docs/SPEC.md` §7.8–7.9 (PR #24). До мержу contract-PR (#26, сб 16:00) — на mocks. Тести з AC → red → код → green.
 

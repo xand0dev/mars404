@@ -79,7 +79,7 @@ describe('#105 · EVA і Overview з глобуса', () => {
 
   it('Given точка «coming soon»; Then кнопка вимкнена, chooseSite нічого не робить', async () => {
     const i = SITES.findIndex((s) => s.id === 'olympus-mons');
-    const orig = SITES[i];
+    const orig = SITES[i]!;
     (SITES as Site[])[i] = { ...orig, comingSoon: true };
     try {
       render(<SitePanel />);
