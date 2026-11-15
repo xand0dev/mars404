@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetMission, useMission } from '../../store/useMission';
 import { SitePanel } from './SitePanel';
 import { resetGlobe, useGlobe } from './globeState';
-import { SITES } from './sites';
+import { SITES, type Site } from './sites';
+import { chooseSite } from './choose';
 import { FLY_MS } from './motion';
 import { ZOOM_MIN, ZOOM_STEP, resetZoom, useZoom } from './zoom';
 
@@ -39,20 +40,77 @@ describe('F1-AC1 · вибір Gale', () => {
     await user.click(screen.getByRole('button', { name: 'Jezero' }));
     await user.click(galeButton());
     expect(useGlobe.getState().previewId).toBeNull();
-    expect(screen.queryByText(/next site — not modelled/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Jezero' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Gale / Mount Sharp' })).getByText('EVA site — plan a route')).toBeInTheDocument();
+  });
+});
+
+describe('#105 · EVA і Overview з глобуса', () => {
+  it.each([
+    ['Columbia Hills (Gusev)', 'columbia-hills', 'EVA site — plan a route'],
+    ['Olympus Mons', 'olympus-mons', 'Overview — terrain only, no EVA planning'],
+    ['Valles Marineris', 'valles-marineris', 'Overview — terrain only, no EVA planning'],
+  ])('Given site = null; When обрано %s; Then setSite("%s") і картка «%s»', async (name, id, label) => {
+    const user = userEvent.setup();
+    render(<SitePanel />);
+    await user.click(screen.getByRole('button', { name }));
+    expect(useMission.getState().site).toBe(id);
+    expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(screen.getByRole('region', { name })).getByText(label)).toBeInTheDocument();
+  });
+
+  it('Given сцена, без reduced motion; When обрано Columbia Hills; Then переліт, setSite після FLY_MS', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    useGlobe.getState().setSceneReady(true);
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      render(<SitePanel />);
+      await user.click(screen.getByRole('button', { name: 'Columbia Hills (Gusev)' }));
+      expect(useMission.getState().site).toBeNull();
+      expect(screen.getByText(/Flying to Columbia Hills/)).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(FLY_MS));
+      expect(useMission.getState().site).toBe('columbia-hills');
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Given точка «coming soon»; Then кнопка вимкнена, chooseSite нічого не робить', async () => {
+    const i = SITES.findIndex((s) => s.id === 'olympus-mons');
+    const orig = SITES[i]!;
+    (SITES as Site[])[i] = { ...orig, comingSoon: true };
+    try {
+      render(<SitePanel />);
+      const btn = screen.getByRole('button', { name: 'Olympus Mons' });
+      expect(btn).toBeDisabled();
+      expect(btn).toHaveAccessibleDescription(/Coming soon/);
+      chooseSite('olympus-mons');
+      expect(useMission.getState().site).toBeNull();
+      expect(useGlobe.getState().flying).toBe(false);
+      expect(useGlobe.getState().previewId).toBeNull();
+    } finally {
+      (SITES as Site[])[i] = orig;
+    }
+  });
+
+  it('кожна кнопка має режим у описі (не лише колір / форма)', () => {
+    render(<SitePanel />);
+    for (const s of SITES) expect(screen.getByRole('button', { name: s.name })).toHaveAccessibleDescription(/EVA site|Overview|Card only/);
   });
 });
 
 describe('F1-AC2 · не-Gale точки', () => {
-  const others = SITES.filter((s) => !s.modelled);
+  const others = SITES.filter((s) => s.mode === 'card');
 
-  it.each(others.map((s) => [s.name, s] as const))('Given панель; When обрано %s; Then опис і «next site — not modelled», site не змінюється', async (name, s) => {
+  it.each(others.map((s) => [s.name, s] as const))('Given панель; When обрано %s; Then опис і «Card only», site не змінюється', async (name, s) => {
     const user = userEvent.setup();
     render(<SitePanel />);
     await user.click(screen.getByRole('button', { name }));
     const card = screen.getByRole('region', { name });
     expect(within(card).getByText(s.summary)).toBeInTheDocument();
-    expect(within(card).getByText(/next site — not modelled/)).toBeInTheDocument();
+    expect(within(card).getByText(/Card only/)).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /IAU Gazetteer/ })).toHaveAttribute('href', s.source.url);
     expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
     expect(useMission.getState().site).toBeNull();
@@ -63,7 +121,7 @@ describe('F1-AC2 · не-Gale точки', () => {
     useMission.getState().setSite('gale');
     render(<SitePanel />);
     await user.click(screen.getByRole('button', { name: 'Jezero' }));
-    expect(screen.getByText(/next site — not modelled/)).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Jezero' })).getByText(/Card only/)).toBeInTheDocument();
     expect(useMission.getState().site).toBe('gale');
   });
 });
@@ -189,7 +247,7 @@ describe('#5 · доступність Location (аудит F7-AC2)', () => {
     }
   });
 
-  it.each(SITES.filter((s) => !s.modelled).map((s) => [s.name] as const))(
+  it.each(SITES.filter((s) => s.mode === 'card').map((s) => [s.name] as const))(
     'Given фокус на %s; When Enter; Then картка «next site» читається як текст, site не змінюється',
     async (name) => {
       const user = userEvent.setup();
@@ -197,7 +255,7 @@ describe('#5 · доступність Location (аудит F7-AC2)', () => {
       screen.getByRole('button', { name }).focus();
       await user.keyboard('{Enter}');
       const card = screen.getByRole('region', { name });
-      expect(within(card).getByText(/next site — not modelled/)).toBeInTheDocument();
+      expect(within(card).getByText(/Card only/)).toBeInTheDocument();
       expect(useMission.getState().site).toBeNull();
     },
   );

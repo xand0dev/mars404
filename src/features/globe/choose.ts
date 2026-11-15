@@ -4,7 +4,7 @@ import { useMission } from '../../store/useMission';
 import { useGlobe } from './globeState';
 import { prefersReducedMotion } from './motion';
 import type { SiteId } from '../../contracts';
-import { GALE_ID, isModelledSite, siteById } from './sites';
+import { GALE_ID, canOpenSite, siteById } from './sites';
 
 /** Відкрити район одразу (кінець переходу, Skip, reduced motion, без WebGL). Без аргументу — куди летимо. */
 export function openSite(id: SiteId = useGlobe.getState().flyTo): void {
@@ -18,7 +18,9 @@ export function chooseSite(id: string): void {
   const site = siteById(id);
   if (!site) return;
   const g = useGlobe.getState();
-  if (isModelledSite(site)) {
+  // «Coming soon» (пакета ще немає) — не обирається взагалі.
+  if (site.comingSoon) return;
+  if (canOpenSite(site)) {
     g.preview(null);
     if (g.flying || !g.sceneReady || prefersReducedMotion()) openSite(site.id);
     else g.setFlying(true, site.id);

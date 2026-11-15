@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COLUMBIA_HILLS_ID, GALE_ID, SITES, siteById } from './sites';
+import { COLUMBIA_HILLS_ID, GALE_ID, SITES, canOpenSite, modeLabel, siteById, type Site } from './sites';
 import { isSiteId } from '../../contracts/planning';
 
 describe('sites — точки глобуса з IAU Gazetteer (F1-AC2, F1-AC4)', () => {
@@ -9,10 +9,31 @@ describe('sites — точки глобуса з IAU Gazetteer (F1-AC2, F1-AC4)'
     expect(new Set(SITES.map((s) => s.id)).size).toBe(SITES.length);
   });
 
-  it('Given список; Then змодельовано Gale і Columbia Hills, їхні id — SiteId (public/data/<id>)', () => {
-    expect(SITES.filter((s) => s.modelled).map((s) => s.id)).toEqual([GALE_ID, COLUMBIA_HILLS_ID]);
-    expect(SITES.filter((s) => s.modelled).every((s) => isSiteId(s.id))).toBe(true);
+  it('#105 режими: eva — Gale і Columbia Hills, overview — Olympus Mons і Valles Marineris, card — Jezero і Meridiani', () => {
+    const ids = (mode: Site['mode']) => SITES.filter((s) => s.mode === mode).map((s) => s.id);
+    expect(ids('eva')).toEqual([GALE_ID, COLUMBIA_HILLS_ID]);
+    expect(ids('overview')).toEqual(['olympus-mons', 'valles-marineris']);
+    expect(ids('card')).toEqual(['jezero', 'meridiani']);
     expect(GALE_ID).toBe('gale');
+  });
+
+  it('#105 відкриваються рівно точки з SiteId (пакет public/data/<id> є в main)', () => {
+    const openable = SITES.filter(canOpenSite).map((s) => s.id);
+    expect(openable).toEqual([GALE_ID, COLUMBIA_HILLS_ID, 'olympus-mons', 'valles-marineris']);
+    expect(openable.every(isSiteId)).toBe(true);
+    expect(SITES.filter((s) => !canOpenSite(s)).every((s) => s.mode === 'card')).toBe(true);
+  });
+
+  it('#105 «coming soon» не відкривається, навіть якщо режим eva / overview', () => {
+    const soon: Site = { ...siteById('olympus-mons')!, comingSoon: true };
+    expect(canOpenSite(soon)).toBe(false);
+    expect(modeLabel(soon)).toMatch(/Coming soon/);
+  });
+
+  it('#105 картка каже режим словами', () => {
+    expect(modeLabel(siteById(COLUMBIA_HILLS_ID)!)).toBe('EVA site — plan a route');
+    expect(modeLabel(siteById('valles-marineris')!)).toBe('Overview — terrain only, no EVA planning');
+    expect(modeLabel(siteById('jezero')!)).toMatch(/^Card only/);
   });
 
   it('Columbia Hills: центр пакета (Trek spirit_waypoints), без назви в Gazetteer', () => {

@@ -1,6 +1,6 @@
 // «Crew map notes» — жива карта (SPEC §7.12, F1-AC6): список міток, збереження в браузері, експорт / імпорт JSON.
 import { useEffect, useId, useState, type ChangeEvent, type FormEvent } from 'react';
-import type { Annotation, AnnotationKind } from '../../contracts';
+import type { Annotation, AnnotationKind, SiteId } from '../../contracts';
 import { useMission } from '../../store/useMission';
 import { Panel, StatusNote } from '../../ui';
 import { ANNOTATION_KINDS, mergeImported, parseAnnotationsFile, toAnnotationsFile } from './annotationsFile';
@@ -42,12 +42,12 @@ export function NotesPanel() {
   const site = useMission((s) => s.site);
   return (
     <Panel title="Crew map notes" featureId="F1" owner="Іван" id="notes">
-      {site === 'gale' ? <NotesBody /> : <p className="ui-stub">Open Gale / Mount Sharp to add and share crew marks.</p>}
+      {site !== null ? <NotesBody site={site} /> : <p className="ui-stub">Open Gale / Mount Sharp or another site to add and share crew marks.</p>}
     </Panel>
   );
 }
 
-function NotesBody() {
+function NotesBody({ site }: { site: SiteId }) {
   const annotations = useMission((s) => s.annotations);
   const at = useMission((s) => s.position ?? s.base);
   const addAnnotation = useMission((s) => s.addAnnotation);
@@ -68,11 +68,11 @@ function NotesBody() {
   };
 
   const exportMarks = () => {
-    const file = toAnnotationsFile('gale', annotations);
+    const file = toAnnotationsFile(site, annotations);
     const url = URL.createObjectURL(new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `mars404-marks-gale-${file.exportedAt.replace(/[:.]/g, '-')}.json`;
+    a.download = `mars404-marks-${site}-${file.exportedAt.replace(/[:.]/g, '-')}.json`;
     document.body.append(a);
     a.click();
     a.remove();
@@ -83,7 +83,7 @@ function NotesBody() {
     const input = e.currentTarget;
     const f = input.files?.[0];
     if (!f) return;
-    const res = parseAnnotationsFile(await f.text());
+    const res = parseAnnotationsFile(await f.text(), site);
     input.value = '';
     if (!res.ok) {
       setImportMsg({ ok: false, text: `Import failed: ${res.error}. Marks unchanged.` });
