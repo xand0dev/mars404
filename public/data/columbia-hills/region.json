@@ -58,7 +58,7 @@
     "downhillFactor": 0.5,
     "o2GPerS": 0.031,
     "energyWhPerM": 0.05,
-    "doseUSvPerS": null,
+    "doseUSvPerS": 0.0078,
     "maxSlopeDeg": 25,
     "hazardWeight": 0.5,
     "reserveFraction": 0.2,
@@ -103,10 +103,13 @@
         "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
       },
       "doseUSvPerS": {
-        "id": "model-assumption",
-        "title": "Walk model coefficients",
+        "id": "msl-rad-transfer",
+        "title": "Surface radiation dose rate: Gale RAD used for this site",
         "status": "assumption",
-        "note": "uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5)."
+        "note": "0.0078 uSv/s measured by Curiosity RAD at Gale; no surface measurement here, the dose depends on altitude and season.",
+        "url": "https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/",
+        "credit": "NASA/JPL-Caltech/SwRI",
+        "accessedAt": "2026-11-15"
       },
       "maxSlopeDeg": {
         "id": "model-assumption",
@@ -141,8 +144,8 @@
   "limits": {
     "time": 3600,
     "o2": 140,
-    "energy": 600,
-    "dose": null
+    "energy": 922,
+    "dose": 600000
   },
   "limitsEvidence": {
     "time": {
@@ -158,16 +161,24 @@
       "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20."
     },
     "energy": {
-      "id": "limit-energy-assumption",
-      "title": "Suit energy limit",
-      "status": "assumption",
-      "note": "600 Wh; not set in SPEC."
+      "id": "emu-battery",
+      "title": "Suit energy limit: EMU battery",
+      "status": "verified",
+      "note": "\"silver-zinc battery that is 20.5 V and 45 Ah capacity\" -> 20.5 x 45 = 922 Wh. ISS suit, not a Mars suit.",
+      "url": "https://ntrs.nasa.gov/citations/20050217305",
+      "productId": "NTRS 20050217305",
+      "credit": "NASA",
+      "accessedAt": "2026-11-15"
     },
     "dose": {
-      "id": "limit-dose-assumption",
-      "title": "Radiation dose limit",
-      "status": "assumption",
-      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
+      "id": "nasa-std-3001-career",
+      "title": "Radiation dose limit: NASA career limit",
+      "status": "verified",
+      "note": "\"total career effective radiation dose ... shall be less than 600 mSv\" -> 600000 uSv. NASA has no per-EVA dose limit; the career limit is shown for scale.",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf",
+      "productId": "NASA-STD-3001",
+      "credit": "NASA OCHMO",
+      "accessedAt": "2026-11-15"
     }
   },
   "layers": [
@@ -448,16 +459,42 @@
       "note": "140 g: 1 h of walking at the Apollo rate after the 20% reserve (0.031 g/s x 3600 s / 0.8 = 112 / 0.8); decision #20."
     },
     {
-      "id": "limit-energy-assumption",
-      "title": "Suit energy limit",
-      "status": "assumption",
-      "note": "600 Wh; not set in SPEC."
+      "id": "emu-battery",
+      "title": "Suit energy limit: EMU battery",
+      "status": "verified",
+      "note": "\"silver-zinc battery that is 20.5 V and 45 Ah capacity\" -> 20.5 x 45 = 922 Wh. ISS suit, not a Mars suit.",
+      "url": "https://ntrs.nasa.gov/citations/20050217305",
+      "productId": "NTRS 20050217305",
+      "credit": "NASA",
+      "accessedAt": "2026-11-15"
     },
     {
-      "id": "limit-dose-assumption",
-      "title": "Radiation dose limit",
+      "id": "msl-rad-gale",
+      "title": "Surface radiation dose rate: Curiosity RAD at Gale",
+      "status": "verified",
+      "note": "\"0.67 millisieverts per day\" (Aug 2012 - Jun 2013, Hassler et al. 2014, Science) -> 670 uSv / 86400 s = 0.0078 uSv/s.",
+      "url": "https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/",
+      "credit": "NASA/JPL-Caltech/SwRI",
+      "accessedAt": "2026-11-15"
+    },
+    {
+      "id": "msl-rad-transfer",
+      "title": "Surface radiation dose rate: Gale RAD used for this site",
       "status": "assumption",
-      "note": "No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6)."
+      "note": "0.0078 uSv/s measured by Curiosity RAD at Gale; no surface measurement here, the dose depends on altitude and season.",
+      "url": "https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/",
+      "credit": "NASA/JPL-Caltech/SwRI",
+      "accessedAt": "2026-11-15"
+    },
+    {
+      "id": "nasa-std-3001-career",
+      "title": "Radiation dose limit: NASA career limit",
+      "status": "verified",
+      "note": "\"total career effective radiation dose ... shall be less than 600 mSv\" -> 600000 uSv. NASA has no per-EVA dose limit; the career limit is shown for scale.",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf",
+      "productId": "NASA-STD-3001",
+      "credit": "NASA OCHMO",
+      "accessedAt": "2026-11-15"
     },
     {
       "id": "trek-mola-hrsc-200m-context",

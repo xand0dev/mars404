@@ -63,7 +63,12 @@
 | trek-viking-mdim21-color | Колір overview (`texture.jpg` 2048², ≈ 300 м/пікс.) | `Mars_Viking_MDIM21_ClrMosaic_global_232m/ImageServer/exportImage`, `compressionQuality=80` | NASA/JPL (Viking), USGS Astrogeology (MDIM 2.1, колоризація) via Mars Trek | 2026-11-15 | verified | Колір художній (колоризація USGS), не справжній; лише відображення |
 
 ### NASA data for the Space Apps form (EN, 15.11)
-Готова таблиця для поля «NASA data» у формі й для `docs/submission/SUBMISSION.md` (F8). Тут лише дані, які реально завантажені в пакети `public/data/*` (статус `verified` у рядках вище). Фото Curiosity — `## F6`, глобус Viking — `## F1`.
+Готова таблиця для поля «NASA data» у формі й для `docs/submission/SUBMISSION.md` (F8). Тут лише дані, які реально завантажені в пакети `public/data/*` (статус `verified` у рядках вище). Фото Curiosity — `
+| msl-rad-gale | Доза на поверхні Gale: «0.67 millisieverts per day» (серп. 2012 – черв. 2013, Curiosity RAD, Hassler et al. 2014) → 670 мкЗв / 86400 с = **0.0078 мкЗв/с** (`model.doseUSvPerS`) | https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/ | NASA/JPL-Caltech/SwRI | 2026-11-15 | verified (Gale); для Columbia Hills — `msl-rad-transfer`, assumption | #153 R5 |
+| emu-battery | «silver-zinc battery that is 20.5 V and 45 Ah capacity» → **922 Wh** (`limits.energy`) | https://ntrs.nasa.gov/citations/20050217305 | NASA | 2026-11-15 | verified (скафандр МКС, не марсіанський) | #153 R2 |
+| nasa-std-3001-career | «total career effective radiation dose … shall be less than 600 mSv» → `limits.dose` = 600 000 мкЗв; ліміту на один вихід у NASA немає — показуємо кар'єрний для масштабу | https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf | NASA OCHMO | 2026-11-15 | verified | #153 R6 |
+
+## F6`, глобус Viking — `## F1`.
 
 | Dataset | Mission / instrument | Where in MARS::404 | Source (NASA Mars Trek unless noted) | Credit | Licence / terms |
 |---|---|---|---|---|---|

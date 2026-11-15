@@ -209,13 +209,22 @@ describe('F3-AC5: photos і emergencyO2G', () => {
     expect(reg.model.evidence.speedMps).toMatchObject({ id: 'jones-apollo-walk', status: 'assumption' });
   });
 
-  it('Then limits.o2 = 140 г (assumption, #64) і limitsEvidence має джерело на кожен ліміт (§7.6)', async () => {
+  it('Then limits: час і O₂ — демо-assumption (#64), енергія — батарея EMU, доза — кар\'єрний ліміт NASA (#153); джерело на кожен ліміт (§7.6)', async () => {
     const reg = await realRegion();
-    expect(reg.limits).toEqual({ time: 3600, o2: 140, energy: 600, dose: null });
+    expect(reg.limits).toEqual({ time: 3600, o2: 140, energy: 922, dose: 600_000 });
+    expect(reg.limitsEvidence?.time).toMatchObject({ status: 'assumption' });
+    expect(reg.limitsEvidence?.o2).toMatchObject({ status: 'assumption' });
+    expect(reg.limitsEvidence?.energy).toMatchObject({ id: 'emu-battery', status: 'verified' });
+    expect(reg.limitsEvidence?.dose).toMatchObject({ id: 'nasa-std-3001-career', status: 'verified' });
     for (const k of ['time', 'o2', 'energy', 'dose'] as const) {
-      expect(reg.limitsEvidence?.[k]).toMatchObject({ status: 'assumption' });
       expect(reg.sources.some((s) => s.id === reg.limitsEvidence?.[k].id)).toBe(true);
     }
+  });
+
+  it('Then доза RAD у Gale — verified (#153, R5)', async () => {
+    const reg = await realRegion();
+    expect(reg.model.doseUSvPerS).toBe(0.0078);
+    expect(reg.model.evidence.doseUSvPerS).toMatchObject({ id: 'msl-rad-gale', status: 'verified' });
   });
 
   it('Then loadRegion повертає region з limitsEvidence (іде в store через setRegionData)', async () => {

@@ -36,6 +36,10 @@ LIMIT_O2_G = round(round(O2_G_PER_S * LIMIT_TIME_S) / (1 - RESERVE_FRACTION))  #
 EMERGENCY_O2_G = round(EMERGENCY_O2_MIN * 60 * O2_G_PER_S)
 JONES_URL = 'https://www.osti.gov/servlets/purl/7168757'
 EMU_SOP_URL = 'https://ntrs.nasa.gov/api/citations/20140009556/downloads/20140009556.pdf'
+DOSE_USV_PER_S = 0.0078  # Curiosity RAD, Gale: 0.67 мЗв/добу = 670 мкЗв / 86400 с
+LIMIT_ENERGY_WH = 922  # батарея EMU: 20.5 В × 45 Ah
+LIMIT_DOSE_USV = 600_000  # NASA-STD-3001: кар'єрний ліміт 600 мЗв (ліміту на один вихід немає)
+RAD_URL = 'https://www.jpl.nasa.gov/news/nasa-curiosity-first-mars-age-measurement-and-human-exploration-help/'
 MAX_SLOPE_DEG = 25
 # Hillshade texture для районів без ортомозаїки (Columbia Hills): класичне сонце з північного заходу.
 HILLSHADE_AZ = 315
@@ -300,20 +304,32 @@ def model_sources():
         src('model-assumption', 'Walk model coefficients', 'assumption', 'uphill/downhill factors, max slope, hazard weight, reserve, energy: SPEC §7.3–7.4 values; no source (docs/SOURCES.md ## F5).'),
         src('limit-time-assumption', 'EVA time limit', 'assumption', f'{LIMIT_TIME_S} s: 1 h EVA for the demo (SPEC §7.4). For reference: EMU EVA up to 7 h (NTRS 20140009556).'),
         src('limit-o2-assumption', 'O2 available for this EVA', 'assumption', f'{LIMIT_O2_G} g: 1 h of walking at the Apollo rate after the {round(RESERVE_FRACTION * 100)}% reserve ({O2_G_PER_S} g/s x {LIMIT_TIME_S} s / {1 - RESERVE_FRACTION:g} = {round(O2_G_PER_S * LIMIT_TIME_S)} / {1 - RESERVE_FRACTION:g}); decision #20.'),
-        src('limit-energy-assumption', 'Suit energy limit', 'assumption', '600 Wh; not set in SPEC.'),
-        src('limit-dose-assumption', 'Radiation dose limit', 'assumption', 'No per-EVA dose limit -> null -> budget status incomplete (SPEC §7.6).'),
+        src('emu-battery', 'Suit energy limit: EMU battery', 'verified',
+            f'"silver-zinc battery that is 20.5 V and 45 Ah capacity" -> 20.5 x 45 = {LIMIT_ENERGY_WH} Wh. ISS suit, not a Mars suit.',
+            'https://ntrs.nasa.gov/citations/20050217305', 'NTRS 20050217305', 'NASA', '2026-11-15'),
+        src('msl-rad-gale', 'Surface radiation dose rate: Curiosity RAD at Gale', 'verified',
+            f'"0.67 millisieverts per day" (Aug 2012 - Jun 2013, Hassler et al. 2014, Science) -> 670 uSv / 86400 s = {DOSE_USV_PER_S} uSv/s.',
+            RAD_URL, None, 'NASA/JPL-Caltech/SwRI', '2026-11-15'),
+        src('msl-rad-transfer', 'Surface radiation dose rate: Gale RAD used for this site', 'assumption',
+            f'{DOSE_USV_PER_S} uSv/s measured by Curiosity RAD at Gale; no surface measurement here, the dose depends on altitude and season.',
+            RAD_URL, None, 'NASA/JPL-Caltech/SwRI', '2026-11-15'),
+        src('nasa-std-3001-career', 'Radiation dose limit: NASA career limit', 'verified',
+            f'"total career effective radiation dose ... shall be less than 600 mSv" -> {LIMIT_DOSE_USV} uSv. NASA has no per-EVA dose limit; the career limit is shown for scale.',
+            'https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf', 'NASA-STD-3001', 'NASA OCHMO', '2026-11-15'),
     ]
 
 
-def model_and_limits(by_id):
-    """→ (model, limits, limitsEvidence) з evidence на джерела model_sources()."""
-    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=None,
+def model_and_limits(by_id, region=None):
+    """→ (model, limits, limitsEvidence) з evidence на джерела model_sources(). Доза RAD виміряна лише в Gale."""
+    model_vals = dict(speedMps=SPEED_MPS, uphillFactor=2, downhillFactor=0.5, o2GPerS=O2_G_PER_S, energyWhPerM=0.05, doseUSvPerS=DOSE_USV_PER_S,
                       maxSlopeDeg=MAX_SLOPE_DEG, hazardWeight=0.5, reserveFraction=RESERVE_FRACTION)
     evidence = {key: by_id['model-assumption'] for key in model_vals}
-    evidence.update(speedMps=by_id['jones-apollo-walk'], o2GPerS=by_id['jones-apollo-walk'], emergencyO2G=by_id['emu-sop-30min'])
+    evidence.update(speedMps=by_id['jones-apollo-walk'], o2GPerS=by_id['jones-apollo-walk'], emergencyO2G=by_id['emu-sop-30min'],
+                    doseUSvPerS=by_id['msl-rad-gale' if region == 'gale' else 'msl-rad-transfer'])
     model = dict(model_vals, emergencyO2G=EMERGENCY_O2_G, evidence=evidence)
-    limits = dict(time=LIMIT_TIME_S, o2=LIMIT_O2_G, energy=600, dose=None)
-    return model, limits, {k_: by_id[f'limit-{k_}-assumption'] for k_ in limits}
+    limits = dict(time=LIMIT_TIME_S, o2=LIMIT_O2_G, energy=LIMIT_ENERGY_WH, dose=LIMIT_DOSE_USV)
+    limits_evidence = dict(time=by_id['limit-time-assumption'], o2=by_id['limit-o2-assumption'], energy=by_id['emu-battery'], dose=by_id['nasa-std-3001-career'])
+    return model, limits, limits_evidence
 
 
 def build(cache, region='gale', out=None):
@@ -445,7 +461,7 @@ def build(cache, region='gale', out=None):
         *model_sources(),
     ]
     by_id = {s_['id']: s_ for s_ in sources}
-    model, limits, limits_evidence = model_and_limits(by_id)
+    model, limits, limits_evidence = model_and_limits(by_id, region)
     lo, hi = math.floor(min(finite_e)), math.ceil(max(finite_e))
 
     def layer(id, name, kind, url, srcs, units, native, method, legend):
