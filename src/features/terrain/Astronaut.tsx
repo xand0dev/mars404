@@ -1,60 +1,112 @@
-// Демо-прогулянка: модель скафандра NASA Mark III іде маршрутом з модельною швидкістю F4.
-// Модель статична (без скелета): хода — покачування, нахил на схилі й поворот за курсом.
+// Демо-прогулянка: астронавт (модель Quaternius, CC0; рух — мокап Mixamo) іде маршрутом з модельною швидкістю F4.
+// Кліп і його темп — від швидкості над ґрунтом (gaitFor): ступні не ковзають; біля цілей і на паузі — Idle.
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Line, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { Box3, Group, Vector3, type Object3D } from 'three';
+import { AnimationMixer, Box3, Color, Group, LoopRepeat, Vector3, type AnimationAction, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import type { RoutePlan, XY } from '../../contracts';
+import { VERTICAL_EXAGGERATION } from '../../contracts';
 import { toR3F } from '../../contracts/planning';
-import { angleDelta, walkAt, walkTimeline } from './lib/walk';
+import { angleDelta, gaitFor, indexPath, pointAt, routeVertices, slicePath, smoothPath, walkAt, walkTimeline, type Gait } from './lib/walk';
 import { RENDER_ORDER } from './lib/layerRaster';
 import { useWalk, walkPose } from './walkStore';
-import modelUrl from './assets/mark3.glb?url';
+import modelUrl from './assets/astronaut.glb?url';
 
-/** Довжина кроку в скафандрі, м (assumption: ~0,7 м на крок, повний цикл — два кроки). */
-const STRIDE_M = 1.4;
+/** Біле перефарбування скафандра (у моделі він темний sci-fi); шви — сірі. */
+const SUIT_COLORS: Record<string, string> = {
+  SciFi_Main: '#ecebe7',
+  SciFi_MainDark: '#a4a29d',
+  SciFi_Light: '#ffffff',
+  SciFi_Light_Accent: '#8d8a85',
+  Grey: '#1e1b19',
+};
+const HEIGHT_M = 1.85;
+/** Скільки метрів уперед дивиться курс: плавний поворот на зламах замість ривка. */
+const LOOK_AHEAD_M = 3;
 
-function SuitModel() {
+interface Rig {
+  root: Group;
+  mixer: AnimationMixer;
+  actions: Partial<Record<Gait['clip'], AnimationAction>>;
+  durations: { Walk: number; Run: number };
+}
+
+function useRig(): Rig {
   const gltf = useGLTF(modelUrl);
-  // Нормалізуємо: ступні на y = 0, центр під ногами, висота ≈ 1,9 м.
-  const scene = useMemo(() => {
-    const root = gltf.scene.clone(true);
-    root.traverse((o: Object3D) => {
-      const m = o as Object3D & { castShadow?: boolean; receiveShadow?: boolean };
+  const rig = useMemo(() => {
+    // Астронавт на сцені один — беремо сцену моделі без клону (клон SkeletonUtils рве прив'язку 13 skin до кісток).
+    const model = gltf.scene as Group;
+    model.scale.setScalar(1);
+    model.position.set(0, 0, 0);
+    model.traverse((o: Object3D) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
       m.castShadow = true;
       m.receiveShadow = false;
+      m.frustumCulled = false;
+      const src = m.material as MeshStandardMaterial;
+      const c = SUIT_COLORS[src.name];
+      if (c) {
+        const mat = src.clone();
+        mat.color = new Color(c);
+        mat.roughness = 0.75;
+        mat.metalness = 0;
+        m.material = mat;
+      }
     });
-    const box = new Box3().setFromObject(root);
+    // Нормалізуємо: ступні на y = 0, центр під ногами, зріст ≈ 1,85 м.
+    // Габарити — з оригіналу з оновленими матрицями (у свіжого клону кістки ще без matrixWorld).
+    gltf.scene.updateMatrixWorld(true);
+    const box = new Box3().setFromObject(gltf.scene, true);
     const size = new Vector3();
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
-    const k = 1.9 / (size.y || 1);
-    const g = new Group();
-    root.position.set(-center.x * k, -box.min.y * k, -center.z * k);
-    root.scale.setScalar(k);
-    g.add(root);
-    return g;
+    const k = HEIGHT_M / (size.y || 1);
+    model.scale.setScalar(k);
+    model.position.set(-center.x * k, -box.min.y * k, -center.z * k);
+    // Без обгортки: у StrictMode useMemo виконується двічі, і друга Group забрала б ту саму сцену з першої.
+    const root = model;
+    const mixer = new AnimationMixer(model);
+    const actions: Rig['actions'] = {};
+    const durations = { Walk: 1.23, Run: 0.73 };
+    for (const clip of gltf.animations) {
+      const name = clip.name.split('|').pop() as Gait['clip'];
+      if (name !== 'Idle' && name !== 'Walk' && name !== 'Run') continue;
+      const a = mixer.clipAction(clip);
+      a.setLoop(LoopRepeat, Infinity);
+      a.enabled = true;
+      a.setEffectiveWeight(0);
+      a.play();
+      actions[name] = a;
+      if (name !== 'Idle') durations[name] = clip.duration;
+    }
+    actions.Idle?.setEffectiveWeight(1);
+    return { root, mixer, actions, durations };
   }, [gltf]);
-  return <primitive object={scene} />;
+  return rig;
 }
 
 export interface AstronautProps {
   plan: RoutePlan;
   /** Висота поверхні в точці (локальні метри), той самий меш, що й рельєф */
   groundAt: (xy: XY) => number | null;
+  /** Біля землі (Follow / Free) — справжній розмір; згори фігуру збільшуємо, щоб її було видно */
+  lifeSize: boolean;
 }
 
-/** Астронавт на маршруті + пройдений слід. Час іде лише в режимі Play. */
-export function Astronaut({ plan, groundAt }: AstronautProps) {
+function Figure({ plan, groundAt, lifeSize, onProgress }: AstronautProps & { onProgress: (d: number) => void }) {
   const group = useRef<Group>(null);
+  const rig = useRig();
   const timeline = useMemo(() => walkTimeline(plan), [plan]);
+  const path = useMemo(() => indexPath(smoothPath(routeVertices(plan))), [plan]);
+  const rawLength = useMemo(() => plan.segments.reduce((a, s) => a + (Number.isFinite(s.dist) ? s.dist : 0), 0), [plan]);
   const tRef = useRef(0);
   const pushed = useRef(0);
   const lastPush = useRef(0);
+  const lastProgress = useRef(-1);
   const heading = useRef<number | null>(null);
-  const [trailUntil, setTrailUntil] = useState(0);
-  const trailKey = useRef(-1);
+  const weights = useRef<Record<Gait['clip'], number>>({ Idle: 1, Walk: 0, Run: 0 });
 
   // Новий план — прогулянка з початку.
   useEffect(() => {
@@ -64,80 +116,95 @@ export function Astronaut({ plan, groundAt }: AstronautProps) {
     useWalk.getState().seek(0);
   }, [plan]);
 
-  useFrame(({ camera, invalidate }, dt) => {
+  useFrame(({ camera, invalidate }, dtRaw) => {
+    const dt = Math.min(dtRaw, 0.1);
     const st = useWalk.getState();
     // Перемотування з панелі — беремо час звідти.
     if (Math.abs(st.t - pushed.current) > 1e-6) tRef.current = st.t;
     if (st.playing) {
-      tRef.current = Math.min(timeline.total, tRef.current + Math.min(dt, 0.1) * st.speed);
+      tRef.current = Math.min(timeline.total, tRef.current + dt * st.speed);
       if (tRef.current >= timeline.total) st.pause();
     }
     const w = walkAt(plan, tRef.current, timeline);
     const g = group.current;
     if (!w || !g) return;
-    const ground = groundAt(w.xy);
-    const pos = toR3F(w.xy, ground ?? 0);
-    // Плавний поворот за курсом (до 4 рад/с), без ривків на зламах маршруту.
-    const target = w.heading;
-    heading.current = heading.current === null ? target : heading.current + angleDelta(heading.current, target) * Math.min(1, dt * 4);
+    // Позиція — на згладженому шляху, пропорційно пройденій модельній відстані.
+    const d = rawLength > 0 ? (w.dist / rawLength) * path.length : 0;
+    const xy = pointAt(path, d);
+    const ahead = pointAt(path, d + LOOK_AHEAD_M);
+    const behind = pointAt(path, d - 0.5);
+    const dx = ahead[0] - behind[0];
+    const dy = ahead[1] - behind[1];
+    const target = Math.hypot(dx, dy) > 0.05 ? Math.atan2(dy, dx) : w.heading;
+    heading.current = heading.current === null ? target : heading.current + angleDelta(heading.current, target) * Math.min(1, dt * 6);
     const h = heading.current;
-    // Хода: покачування вгору-вниз і з боку в бік, нахил уперед на підйомі.
-    const phase = (w.dist / STRIDE_M) * Math.PI * 2;
+    const pos = toR3F(xy, groundAt(xy) ?? 0);
+
+    // Хода: швидкість над ґрунтом у реальному часі = модельна швидкість відрізка × множник.
+    const seg = plan.segments[w.segment];
+    const segSpeed = seg && seg.time > 0 ? seg.dist / seg.time : 0;
     const moving = st.playing && !w.done;
-    const bob = moving ? Math.abs(Math.sin(phase)) * 0.06 : 0;
-    const roll = moving ? Math.sin(phase) * 0.06 : 0;
-    const pitch = Math.max(-0.25, Math.min(0.25, (w.slope * Math.PI) / 180 * 0.6));
-    // Далеко від камери фігуру збільшуємо, щоб її було видно (вона не входить у розрахунки).
-    const d = camera.position.distanceTo(new Vector3(pos[0], pos[1], pos[2]));
-    const s = Math.min(60, Math.max(1, d / 60));
-    g.position.set(pos[0], pos[1] + bob * s, pos[2]);
-    g.rotation.set(0, 0, 0);
-    // Обличчя моделі Mark III — у −Z; курс (cos h, −sin h) у площині R3F (x, −z).
-    g.rotation.y = Math.atan2(Math.cos(h), -Math.sin(h)) + Math.PI;
-    g.rotateX(pitch);
-    g.rotateZ(roll);
+    const gait = gaitFor(moving ? segSpeed * st.speed : 0, rig.durations.Walk, rig.durations.Run);
+    for (const name of ['Idle', 'Walk', 'Run'] as const) {
+      const a = rig.actions[name];
+      if (!a) continue;
+      if (!a.isRunning()) a.play();
+      const goal = name === gait.clip ? 1 : 0;
+      const cur = weights.current[name];
+      const next = cur + (goal - cur) * Math.min(1, dt * 8);
+      weights.current[name] = next;
+      a.setEffectiveWeight(next);
+      a.setEffectiveTimeScale(name === 'Idle' ? 1 : gait.clip === name ? gait.timeScale : 1);
+    }
+    rig.mixer.update(dt);
+
+    // Згори фігуру збільшуємо (вона не входить у розрахунки); біля землі — справжній зріст.
+    const dist = camera.position.distanceTo(new Vector3(pos[0], pos[1], pos[2]));
+    const s = lifeSize ? 1 : Math.min(60, Math.max(1, dist / 60));
+    g.position.set(pos[0], pos[1], pos[2]);
+    // Обличчя моделі — у −Z; курс (cos h, −sin h) у площині R3F (x, −z).
+    g.rotation.set(0, Math.atan2(Math.cos(h), -Math.sin(h)) + Math.PI, 0);
     g.scale.setScalar(s);
     walkPose.position.set(pos[0], pos[1], pos[2]);
     walkPose.heading = h;
     walkPose.ready = true;
-    // Час у панель — ~10 разів на секунду; слід — коли змінився відрізок.
+    walkPose.groundAt = groundAt;
+    walkPose.fastForward = gait.fastForward;
+
     const now = performance.now();
     if (st.playing && now - lastPush.current > 100) {
       lastPush.current = now;
       pushed.current = tRef.current;
       st.seek(tRef.current);
     }
-    if (w.segment !== trailKey.current) {
-      trailKey.current = w.segment;
-      setTrailUntil(w.segment);
+    // Слід / маршрут попереду — перебудовуємо кожні ~0,5 м (не частіше ~20 разів на секунду на великій швидкості).
+    const step = Math.max(0.5, segSpeed * st.speed * 0.05);
+    if (Math.abs(d - lastProgress.current) > step || (w.done && lastProgress.current !== path.length)) {
+      lastProgress.current = w.done ? path.length : d;
+      onProgress(lastProgress.current);
     }
-    if (st.playing) invalidate();
+    invalidate();
   });
 
-  // Маршрут попереду (від поточного відрізка до бази): біля землі повний маршрут перетинає ближню площину камери.
-  const ahead = useMemo(() => {
-    const pts: [number, number, number][] = [];
-    for (let i = trailUntil; i < plan.segments.length; i++) {
-      const xy = plan.segments[i]!.to;
-      const g = groundAt(xy);
-      pts.push(toR3F(xy, (g ?? 0) + 0.6));
-    }
-    return pts;
-  }, [trailUntil, plan, groundAt]);
+  return (
+    <group ref={group}>
+      <primitive object={rig.root} />
+    </group>
+  );
+}
 
-  const trail = useMemo(() => {
-    const pts: [number, number, number][] = [];
-    for (let i = 0; i <= trailUntil && i < plan.segments.length; i++) {
-      const xy = plan.segments[i]!.from;
-      const g = groundAt(xy);
-      pts.push(toR3F(xy, (g ?? 0) + 0.6));
-    }
-    return pts;
-  }, [trailUntil, plan, groundAt]);
+/** Астронавт на маршруті + пройдений слід і маршрут попереду, що лягають на рельєф і починаються від астронавта. */
+export function Astronaut(props: AstronautProps) {
+  const { plan, groundAt } = props;
+  const [progress, setProgress] = useState(0);
+  const path = useMemo(() => indexPath(smoothPath(routeVertices(plan))), [plan]);
+  const done = useMemo(() => drape(slicePath(path, 0, progress), groundAt), [path, progress, groundAt]);
+  const ahead = useMemo(() => drape(slicePath(path, progress, path.length), groundAt), [path, progress, groundAt]);
 
   useEffect(
     () => () => {
       walkPose.ready = false;
+      walkPose.fastForward = false;
     },
     [],
   );
@@ -145,14 +212,18 @@ export function Astronaut({ plan, groundAt }: AstronautProps) {
   return (
     <>
       {ahead.length >= 2 && <Line points={ahead} color="#ffb347" lineWidth={3} transparent opacity={0.95} renderOrder={RENDER_ORDER.lines + 1} />}
-      {trail.length >= 2 && <Line points={trail} color="#7fe3ff" lineWidth={3} transparent opacity={0.9} renderOrder={RENDER_ORDER.segment} />}
-      <group ref={group}>
-        <Suspense fallback={null}>
-          <SuitModel />
-        </Suspense>
-      </group>
+      {/* Біля землі пройдений слід тягнеться від камери до ступнів і виглядає як стовп — показуємо лише згори. */}
+      {!props.lifeSize && done.length >= 2 && <Line points={done} color="#7fe3ff" lineWidth={3} transparent opacity={0.9} renderOrder={RENDER_ORDER.segment} />}
+      <Suspense fallback={null}>
+        <Figure {...props} onProgress={setProgress} />
+      </Suspense>
     </>
   );
+}
+
+/** Лінія на 0,25 м над поверхнею (не тоне в рельєфі й не висить у повітрі). */
+function drape(xs: XY[], groundAt: (xy: XY) => number | null): [number, number, number][] {
+  return xs.map((xy) => toR3F(xy, (groundAt(xy) ?? 0) + 0.25 / VERTICAL_EXAGGERATION));
 }
 
 useGLTF.preload(modelUrl);

@@ -4,6 +4,7 @@ import { Line, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Color, DataTexture, LinearFilter, NearestFilter, RGBAFormat, ShaderMaterial, Vector3, type Texture } from 'three';
 import type { Annotation, PlanningGrid, RoutePlan, Target, XY } from '../../contracts';
+import { VERTICAL_EXAGGERATION } from '../../contracts';
 import { toR3F, xyToCell } from '../../contracts/planning';
 import { cameraPose, gridFrame, routeFrame, type CameraMode, type Frame } from './lib/camera';
 import { buildTerrainGeometry, surfacePoint } from './lib/geometry';
@@ -120,7 +121,7 @@ function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan
     // Free і Follow не скидають камеру: Free продовжує з поточного ракурсу, Follow веде useFrame.
     if (mode === 'free' || mode === 'follow') {
       anim.current = null;
-      camera.near = 0.5;
+      camera.near = mode === 'follow' ? 0.2 : 0.5;
       camera.far = wide ? 400_000 : regionFrame.size * 20 + (regionFrame.maxY - regionFrame.minY) * 4;
       camera.updateProjectionMatrix();
       invalidate();
@@ -168,17 +169,19 @@ function CameraRig({ data, plan, mode, pov }: { data: SceneData; plan: RoutePlan
   }, [get, frame, regionFrame, routeView, mode, povKey, aspect, controlsReady, wide, data.grid]);
   useFrame(({ camera, invalidate, controls }, dt) => {
     if (mode === 'follow' && walkPose.ready) {
-      // Камера позаду й трохи вище астронавта, плавно наздоганяє.
+      // Вид від третьої особи: 4,5 м позаду, 1,9 м над ступнями, погляд на 6 м уперед на рівні грудей.
       const p = walkPose.position;
       const h = walkPose.heading;
-      const back = 7.5;
-      const up = 3.2;
+      const back = 4.5;
+      const up = 1.9;
       const want = new Vector3(p.x - Math.cos(h) * back, p.y + up, p.z + Math.sin(h) * back);
-      // При ×60 астронавт іде ~50 м/с — камера тримається жорстко позаду (курс уже згладжено в Astronaut).
-      const k = camera.position.distanceTo(want) > back * 6 ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 12);
+      // Камера не провалюється в рельєф позаду (на підйомі ґрунт за спиною вищий).
+      const gCam = walkPose.groundAt?.([want.x, -want.z]);
+      if (gCam !== null && gCam !== undefined) want.y = Math.max(want.y, gCam * VERTICAL_EXAGGERATION + 0.8);
+      // Плавно наздоганяє; на великій швидкості або після стрибка перемотування — одразу на місці.
+      const k = camera.position.distanceTo(want) > back * 4 ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
       camera.position.lerp(want, k);
-      // Дивимось трохи вперед по курсу — видно, куди йде астронавт.
-      const look = new Vector3(p.x + Math.cos(h) * 4, p.y + 1.4, p.z - Math.sin(h) * 4);
+      const look = new Vector3(p.x + Math.cos(h) * 6, p.y + 1.1, p.z - Math.sin(h) * 6);
       camera.lookAt(look);
       const c = controls as unknown as { target?: { copy(v: Vector3): void } } | null;
       c?.target?.copy(look);
@@ -469,7 +472,10 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   }, [position, base, targets, selectedIds, grid, heights]);
 
   // Розмір маркера — від розміру району, щоб його було видно і на 128×128 по 10 м, і на більших сітках.
-  const markerR = Math.max(grid.metersPerPixel, Math.max(grid.width, grid.height) * grid.metersPerPixel / 100);
+  // Біля землі (Follow, або Free під час прогулянки) маркери справжнього розміру: прапорець ~2 м, а не конус у десятки метрів.
+  const walkActive = useWalk((w) => w.active);
+  const ground = mode === 'follow' || (mode === 'free' && walkActive);
+  const markerR = ground ? 0.8 : Math.max(grid.metersPerPixel, Math.max(grid.width, grid.height) * grid.metersPerPixel / 100);
 
   // Підписи без накладань: текст — лише обрані цілі й та, що під курсором;
   // ті, що злипаються на екрані, піднімаємо сходинками (рахуємо в пікселях після кожного кадру).
@@ -512,7 +518,6 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
   });
 
   const tileSize = Math.max(grid.width, grid.height) * grid.metersPerPixel;
-  const walkActive = useWalk((w) => w.active);
   const groundAt = useMemo(
     () => (xy: XY) => {
       const v = render ? sampleRender(grid, render, xy) : null;
@@ -579,10 +584,11 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
       >
         <meshStandardMaterial map={texture ?? baseTex} color={texture && render ? '#f0c9a2' : '#ffffff'} roughness={1} metalness={0} />
       </mesh>
-      {layerUrls.map((l, k) => (
+      {/* Біля землі (Follow / прогулянка) растрові шари не накладаємо: видно сам ґрунт HiRISE; згори шари як були. */}
+      {!ground && layerUrls.map((l, k) => (
         <LayerOverlay key={l.id} url={l.url} geometry={geometry} order={k} />
       ))}
-      {gridLayers.map((l, k) => (
+      {!ground && gridLayers.map((l, k) => (
         <GridLayerOverlay key={l.id} rgba={l.rgba} grid={grid} geometry={geometry} order={layerUrls.length + k} />
       ))}
       {data.zoneRGBA ? (
@@ -760,7 +766,7 @@ export function TerrainScene({ data, texture, layerUrls, gridLayers, traverse, n
         );
       })}
 
-      {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} />}
+      {walkActive && plan && plan.status === 'ok' && plan.segments.length > 0 && <Astronaut plan={plan} groundAt={groundAt} lifeSize={ground} />}
       <OrbitControls makeDefault enableDamping={false} enabled={mode !== 'follow'} />
       <FreeFly enabled={mode === 'free'} scale={tileSize} />
       <CameraRig data={data} plan={plan} mode={mode} pov={pov} />

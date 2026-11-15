@@ -26,8 +26,9 @@
 
 | id | Що | URL / product ID | Credit | Доступ | Статус | Примітка |
 |---|---|---|---|---|---|---|
-| nasa-3d-mark3-suit | Модель скафандра Mark III для демо-прогулянки (`src/features/terrain/assets/mark3.glb`) | https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Mark%20III%20Spacesuit | NASA 3D Resources | 2026-11-14 | verified | Оригінал 894 КБ з Draco; розпаковано й квантовано (gltf-transform: dedup, prune, weld, quantize) → 1,07 МБ, щоб сайт працював офлайн без декодера з мережі. Модель статична; хода — покачування й поворот (код F2) |
-| assumption-stride | Довжина кроку в скафандрі 1,4 м на цикл (два кроки) — лише для анімації ходи | — | команда | 2026-11-14 | assumption | На швидкість і ресурси не впливає: їх дає модель F4 |
+| quaternius-astronaut | Модель астронавта для демо-прогулянки (`src/features/terrain/assets/astronaut.glb`): сітка й скелет | https://poly.pizza/m/3hC2i0CTuO | Quaternius (Ultimate Modular Men Pack), Public Domain (CC0) | 2026-11-15 | verified | Оригінальні кліпи моделі не використовуються; скафандр перефарбовано в білий у коді. Не модель реального скафандра NASA |
+| mixamo-motion | Рух астронавта: мокап Mixamo «Walking» (Male Standard Walk), «Slow Run», «Breathing Idle», експорт для X Bot на місці, 30 fps | https://www.mixamo.com | Adobe Mixamo (безкоштовні анімації для використання в проєктах) | 2026-11-15 | verified | Перенесено на скелет Quaternius у three.js (поворот кожної кістки відносно T-пози у світових координатах; IK-ступні — у кінці гомілки); gltf-transform: resample, prune, quantize → 0,76 МБ. Сирі FBX у репо не кладемо |
+| assumption-stride | Цикл ходи Mixamo «Walking» ≈ 1,6 м (два кроки), цикл «Slow Run» ≈ 2,2 м — лише для темпу анімації, щоб ступні не ковзали | — | команда | 2026-11-15 | assumption | На швидкість і ресурси не впливає: їх дає модель F4. Вище темпу бігу — прискорене відтворення (fast-forward) |
 | f2-eye-height | Висота очей для POV-камери, 1.7 м | — | — | 2026-11-14 | assumption | Без джерела; на екрані підпис «Eye height 1.7 m — assumption» |
 
 ## F3

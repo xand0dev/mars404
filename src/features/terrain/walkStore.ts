@@ -1,7 +1,8 @@
 // Демо-прогулянка астронавта маршрутом (локальний стан F2, у useMission не пише).
 import { create } from 'zustand';
 import { Vector3 } from 'three';
-import { WALK_SPEEDS } from './lib/walk';
+import type { XY } from '../../contracts';
+import { DEFAULT_WALK_SPEED } from './lib/walk';
 
 interface WalkStore {
   playing: boolean;
@@ -22,7 +23,7 @@ interface WalkStore {
 export const useWalk = create<WalkStore>()((set) => ({
   playing: false,
   t: 0,
-  speed: WALK_SPEEDS[2],
+  speed: DEFAULT_WALK_SPEED,
   active: false,
   play: () => set({ playing: true, active: true }),
   pause: () => set({ playing: false }),
@@ -37,4 +38,8 @@ export const walkPose = {
   position: new Vector3(),
   heading: 0,
   ready: false,
+  /** Висота ґрунту (локальні метри) — камера Follow не провалюється в рельєф */
+  groundAt: null as ((xy: XY) => number | null) | null,
+  /** Темп вище за біг — прискорене відтворення (ноги не встигають) */
+  fastForward: false,
 };

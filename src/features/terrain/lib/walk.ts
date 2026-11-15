@@ -95,5 +95,101 @@ export function clock(seconds: number): string {
   return h > 0 ? `${h}:${two(m)}:${two(ss)}` : `${two(m)}:${two(ss)}`;
 }
 
-/** Швидкості відтворення: модельних секунд за реальну. */
-export const WALK_SPEEDS = [10, 30, 60, 120] as const;
+/** Швидкості відтворення: модельних секунд за реальну. 1× — реальний час. */
+export const WALK_SPEEDS = [1, 2, 5, 10, 30, 60] as const;
+export const DEFAULT_WALK_SPEED = 5;
+
+/** Вершини маршруту: старт кожного відрізка + кінець останнього. */
+export function routeVertices(plan: Pick<RoutePlan, 'segments'>): XY[] {
+  const segs = plan.segments;
+  if (segs.length === 0) return [];
+  return [...segs.map((s) => s.from), segs[segs.length - 1]!.to];
+}
+
+/** Згладжування Чайкіна лише для показу: прибирає зубці сітки 10 м, кінці не зсуваються. */
+export function smoothPath(points: XY[], iterations = 2): XY[] {
+  let pts = points.filter((p, i) => i === 0 || p[0] !== points[i - 1]![0] || p[1] !== points[i - 1]![1]);
+  for (let k = 0; k < iterations && pts.length > 2; k++) {
+    const out: XY[] = [pts[0]!];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i]!;
+      const b = pts[i + 1]!;
+      if (i > 0) out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+      if (i < pts.length - 2) out.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+    }
+    out.push(pts[pts.length - 1]!);
+    pts = out;
+  }
+  return pts;
+}
+
+export interface PathIndex {
+  points: XY[];
+  /** Накопичена довжина до кожної точки, м */
+  cum: number[];
+  length: number;
+}
+
+export function indexPath(points: XY[]): PathIndex {
+  const cum = [0];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!;
+    const b = points[i]!;
+    cum.push(cum[i - 1]! + Math.hypot(b[0] - a[0], b[1] - a[1]));
+  }
+  return { points, cum, length: cum[cum.length - 1] ?? 0 };
+}
+
+/** Точка на шляху на відстані d від початку (обрізано до [0, length]). */
+export function pointAt(path: PathIndex, d: number): XY {
+  const { points, cum, length } = path;
+  if (points.length === 0) return [0, 0];
+  if (points.length === 1 || !(length > 0)) return points[0]!;
+  const dd = Math.min(Math.max(d, 0), length);
+  let lo = 0;
+  let hi = points.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (cum[mid]! <= dd) lo = mid;
+    else hi = mid;
+  }
+  const span = cum[hi]! - cum[lo]!;
+  const f = span > 0 ? (dd - cum[lo]!) / span : 0;
+  const a = points[lo]!;
+  const b = points[hi]!;
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+}
+
+/** Частина шляху між d0 і d1 з кроком ≤ step м (для лінії, що лягає на рельєф). */
+export function slicePath(path: PathIndex, d0: number, d1: number, step = 2): XY[] {
+  const a = Math.max(0, Math.min(d0, d1));
+  const b = Math.min(path.length, Math.max(d0, d1));
+  if (!(b > a)) return [];
+  const n = Math.max(1, Math.ceil((b - a) / step));
+  return Array.from({ length: n + 1 }, (_, i) => pointAt(path, a + ((b - a) * i) / n));
+}
+
+/**
+ * Хода моделі: який кліп і з якою швидкістю, щоб ступні не ковзали.
+ * Кліпи — мокап Mixamo («Walking», «Slow Run», «Breathing Idle»), перенесені на скелет астронавта.
+ * Цикл Walk ≈ 1,6 м (два кроки по ~0,8 м), цикл Slow Run ≈ 2,2 м — assumption для темпу анімації.
+ * Вище межі бігу ноги вже не встигають — це прискорене відтворення (fastForward), анімацію обмежуємо.
+ */
+export const WALK_CYCLE_M = 1.6;
+export const RUN_CYCLE_M = 2.2;
+export interface Gait {
+  clip: 'Idle' | 'Walk' | 'Run';
+  timeScale: number;
+  fastForward: boolean;
+}
+export function gaitFor(speedMps: number, walkDur: number, runDur: number): Gait {
+  const v = Number.isFinite(speedMps) ? Math.max(0, speedMps) : 0;
+  if (v < 0.05) return { clip: 'Idle', timeScale: 1, fastForward: false };
+  const walkNatural = WALK_CYCLE_M / walkDur;
+  const runNatural = RUN_CYCLE_M / runDur;
+  const WALK_MAX = 1.8;
+  const RUN_MAX = 1.6;
+  if (v <= walkNatural * WALK_MAX) return { clip: 'Walk', timeScale: Math.max(0.5, v / walkNatural), fastForward: false };
+  const ts = v / runNatural;
+  return { clip: 'Run', timeScale: Math.min(RUN_MAX, Math.max(0.7, ts)), fastForward: ts > RUN_MAX };
+}
