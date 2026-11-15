@@ -1,5 +1,6 @@
 // Марсохід у маршруті (specs/F4/rover.md §1–2). Числа — Apollo LRV на Місяці, для Марса це assumption.
-import type { ModelParams, RoutePlan, Source } from '../contracts';
+import type { ModelParams, ResourceKey, Resources, RoutePlan, Source } from '../contracts';
+import { computeBudget, estimateReturn, reserveOf } from './budget';
 
 export type TravelMode = 'walk' | 'rover';
 
@@ -43,4 +44,45 @@ export const modelFor = (mode: TravelMode, model: ModelParams): ModelParams => (
 /** Витрата батареї ровера на маршрут; без чинного плану — null. */
 export function roverEnergyWh(plan: RoutePlan | null): number | null {
   return plan?.status === 'ok' ? plan.totals.dist * ROVER.energyWhPerM : null;
+}
+
+export interface TravelOption {
+  totals: Resources;
+  /** Як «Return in» у HUD: запас після плану, хвилини на зупинки. */
+  returnInS: number;
+  deficits: ResourceKey[];
+  /** Витрата батареї ровера; пішки — null. */
+  roverWh: number | null;
+}
+
+export interface CompareInput {
+  plan: RoutePlan | null;
+  planMode: TravelMode;
+  /** Пішохідна модель району (store): з неї рахується повернення й норма на зупинках. */
+  model: ModelParams;
+  limits: Resources;
+  elapsedS: number;
+}
+
+/** Обидва варіанти з одного плану: шлях у режимів спільний (граф і ліміт схилу ті самі), різні лише швидкість і норми. */
+export function compareTravelModes({ plan, planMode, model, limits, elapsedS }: CompareInput): Record<TravelMode, TravelOption> | null {
+  if (plan?.status !== 'ok') return null;
+  const planSpeed = modelFor(planMode, model).speedMps;
+  const budget = computeBudget(limits, model, elapsedS);
+  const reserve = reserveOf(limits, model);
+
+  const option = (mode: TravelMode): TravelOption => {
+    const m = modelFor(mode, model);
+    const time = (plan.totals.time * planSpeed) / m.speedMps;
+    const totals: Resources = {
+      time,
+      o2: time * m.o2GPerS,
+      energy: plan.totals.dist * m.energyWhPerM,
+      dose: m.doseUSvPerS === null ? null : time * m.doseUSvPerS,
+    };
+    const { returnInS, deficits } = estimateReturn({ budget, reserve, model, planned: totals });
+    return { totals, returnInS, deficits, roverWh: mode === 'rover' ? plan.totals.dist * ROVER.energyWhPerM : null };
+  };
+
+  return { walk: option('walk'), rover: option('rover') };
 }

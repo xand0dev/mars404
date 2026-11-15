@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Annotation, RoutePlan, Segment, Target, XY } from '../../contracts';
 import { applyAnnotations } from '../../contracts/planning';
-import { modelFor } from '../../core';
+import { compareTravelModes, modelFor } from '../../core';
 import { useMission } from '../../store/useMission';
 import { Disclosure, Panel, StatusNote } from '../../ui';
 import { ElevationProfile } from './ElevationProfile';
@@ -57,6 +57,13 @@ export function RoutePanel() {
   const travelMode = useMission((s) => s.travelMode);
   const setTravelMode = useMission((s) => s.setTravelMode);
   const planModel = useMemo(() => modelFor(travelMode, model), [travelMode, model]);
+  const limits = useMission((s) => s.limits);
+  const elapsedS = useMission((s) => s.time);
+  // Два варіанти поруч: пішки й на ровері — з того самого шляху, без другого пошуку.
+  const travelOptions = useMemo(
+    () => compareTravelModes({ plan, planMode: travelMode, model, limits, elapsedS }),
+    [plan, travelMode, model, limits, elapsedS],
+  );
 
   const requestPlan = (start: XY, end: XY) => getRouteClient().request({ grid: planningGrid, model: planModel, start, waypoints, base: end, noData });
 
@@ -95,7 +102,7 @@ export function RoutePanel() {
           <WaypointOrder waypoints={waypoints} names={names} onReorder={setWaypoints} />
         </Disclosure>
       )}
-      <TravelModeToggle mode={travelMode} onChange={setTravelMode} className="route-mode route-mode--panel" />
+      <TravelModeToggle mode={travelMode} onChange={setTravelMode} className="route-mode route-mode--panel" options={travelOptions} />
       <button type="button" className="route-build" disabled={!canBuild} aria-busy={plan?.status === 'pending'} onClick={build}>
         Build route
       </button>
